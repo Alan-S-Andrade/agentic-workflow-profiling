@@ -1,0 +1,44 @@
+{
+  "critical_path_duration_ms": 326655.806,
+  "steps": [
+    {
+      "kind": "llm",
+      "node_type": "llm",
+      "name": "/v1/chat/completions",
+      "duration_ms": 124158.655,
+      "cpu_ms": null,
+      "rss_delta_bytes": null,
+      "peak_rss_bytes": null,
+      "process_peak_rss_bytes": null,
+      "children_peak_rss_bytes": null,
+      "python_net_allocated_bytes": null,
+      "started_at": 1788334434.2855055
+    },
+    {
+      "kind": "llm",
+      "node_type": "llm",
+      "name": "/v1/chat/completions",
+      "duration_ms": 125124.149,
+      "cpu_ms": null,
+      "rss_delta_bytes": null,
+      "peak_rss_bytes": null,
+      "process_peak_rss_bytes": null,
+      "children_peak_rss_bytes": null,
+      "python_net_allocated_bytes": null,
+      "started_at": 1788334558.493215
+    },
+    {
+      "kind": "llm",
+      "node_type": "llm",
+      "name": "/v1/chat/completions",
+      "duration_ms": 77373.002,
+      "cpu_ms": null,
+      "rss_delta_bytes": null,
+      "peak_rss_bytes": null,
+      "process_peak_rss_bytes": null,
+      "children_peak_rss_bytes": null,
+      "python_net_allocated_bytes": null,
+      "started_at": 1788334683.9777644
+    }
+  ]
+}

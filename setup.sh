@@ -22,6 +22,7 @@ clone_at autogpt https://github.com/Significant-Gravitas/AutoGPT.git 32a43d005c0
 clone_at metagpt https://github.com/FoundationAgents/MetaGPT.git 11cdf466d042aece04fc6cfd13b28e1a70341b1f
 clone_at swe-agent https://github.com/SWE-agent/SWE-agent.git 3ea751c087f32b16e039a2233dd6eefecef325d5
 clone_at openhands https://github.com/OpenHands/OpenHands.git b4428e1f8529fe726039437c8e54a7e7319986eb
+clone_at speculative-tools https://github.com/joelvarun/speculative-tools.git c93cad9e6449be5e3953ef563943c28b3a962629
 
 apply_once() {
   local directory="$1" patch="$2"
@@ -36,14 +37,30 @@ apply_once metagpt "$ROOT/patches/metagpt-gpt5.patch"
 apply_once swe-agent "$ROOT/patches/swe-agent-local-gpt5.patch"
 
 uv sync --directory browser-use
+uv run --directory browser-use playwright install chromium
 uv venv --python 3.11 gpt-researcher/.venv
-uv pip install --python gpt-researcher/.venv/bin/python -e gpt-researcher ddgs
+uv pip install --python gpt-researcher/.venv/bin/python -e gpt-researcher ddgs langchain-huggingface langchain-mcp-adapters sentence-transformers
 uv sync --directory autogpt/classic
+uv pip install --python autogpt/classic/.venv/bin/python -e autogpt/classic
 uv venv --python 3.10 metagpt/.venv
 uv pip install --python metagpt/.venv/bin/python -e metagpt
+uv pip install --python metagpt/.venv/bin/python 'click<8.2'
 uv sync --directory swe-agent
+uv venv --python 3.11 speculative-tools/.venv
+uv pip install --python speculative-tools/.venv/bin/python -e 'speculative-tools[openai]'
 
 mkdir -p .tools/openhands /tmp/swe-agent-home /tmp/swe-agent-tools
+NODE_BIN="$ROOT/.tools/node-v22.22.0-linux-x64/bin"
+if [[ ! -x "$NODE_BIN/node" ]] && { ! command -v node >/dev/null || [[ "$(node -p 'process.versions.node.split(".")[0]')" -lt 22 ]]; }; then
+  command -v curl >/dev/null || { echo "curl is required to install Node.js 22" >&2; exit 1; }
+  command -v tar >/dev/null || { echo "tar is required to install Node.js 22" >&2; exit 1; }
+  node_archive="/tmp/node-v22.22.0-linux-x64.tar.xz"
+  curl -fsSL https://nodejs.org/dist/v22.22.0/node-v22.22.0-linux-x64.tar.xz -o "$node_archive"
+  tar -xJf "$node_archive" -C "$ROOT/.tools"
+fi
+if [[ -x "$NODE_BIN/node" ]]; then
+  export PATH="$NODE_BIN:$PATH"
+fi
 if command -v npm >/dev/null; then
   npm install --prefix .tools/openhands @openhands/agent-canvas@1.16.0
 else
@@ -64,4 +81,4 @@ if [[ ! -f .env ]]; then
   chmod 600 .env
 fi
 
-echo "Setup complete. Add OPENAI_API_KEY to .env, then run ./smoke-test.sh"
+echo "Setup complete. Start llama.cpp on localhost:8080, then run ./smoke-test.sh"

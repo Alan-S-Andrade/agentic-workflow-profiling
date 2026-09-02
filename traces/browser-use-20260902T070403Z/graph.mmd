@@ -1,0 +1,13 @@
+flowchart LR
+  55e99e0504e94a31a65553543bb773a7["agent: browser-use.agent_loop (142392.656 ms)"]
+  65d9692cd83d4840a36eb46431114d29["llm: /v1/chat/completions (35432.678 ms)"]
+  b8f9c51349d345fb882c2ea82c5efa11["llm: /v1/chat/completions (32901.458 ms)"]
+  6ae6bebcd1134003bb6f879a9df49845["llm: /v1/chat/completions (28174.890 ms)"]
+  3d792b73c0d54e29a14231cbbfdfb41d["llm: /v1/chat/completions (41816.767 ms)"]
+  55e99e0504e94a31a65553543bb773a7 -.->|contains| 65d9692cd83d4840a36eb46431114d29
+  55e99e0504e94a31a65553543bb773a7 -.->|contains| b8f9c51349d345fb882c2ea82c5efa11
+  55e99e0504e94a31a65553543bb773a7 -.->|contains| 6ae6bebcd1134003bb6f879a9df49845
+  55e99e0504e94a31a65553543bb773a7 -.->|contains| 3d792b73c0d54e29a14231cbbfdfb41d
+  65d9692cd83d4840a36eb46431114d29 -.->|temporal| b8f9c51349d345fb882c2ea82c5efa11
+  b8f9c51349d345fb882c2ea82c5efa11 -.->|temporal| 6ae6bebcd1134003bb6f879a9df49845
+  6ae6bebcd1134003bb6f879a9df49845 -.->|temporal| 3d792b73c0d54e29a14231cbbfdfb41d

@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "/users/alanuiuc/agentic-workflow-profiling/run.py", line 171, in <module>
+    main()
+  File "/users/alanuiuc/agentic-workflow-profiling/run.py", line 141, in main
+    ensure_venv_python("gpt-researcher")
+  File "/users/alanuiuc/agentic-workflow-profiling/run.py", line 128, in ensure_venv_python
+    os.execve(python, [str(python), str(Path(__file__).resolve()), *sys.argv[1:]], os.environ)
+FileNotFoundError: [Errno 2] No such file or directory: '/users/alanuiuc/agentic-workflow-profiling/gpt-researcher/.venv/bin/python'

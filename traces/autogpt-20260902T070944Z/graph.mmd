@@ -1,0 +1,8 @@
+flowchart LR
+  c5a77815b1e0497298ca5d5f432998e8["llm: /v1/models (3.535 ms)"]
+  aa1429974cd94712a85b61c5c48c7de9["llm: /v1/models (1.592 ms)"]
+  92d3409caefd4ec0a3b211b6f504eecb["llm: /v1/models (1.315 ms)"]
+  ce642e89677140cf914fb3b624944866["llm: /v1/chat/completions (126652.123 ms)"]
+  c5a77815b1e0497298ca5d5f432998e8 -.->|temporal| aa1429974cd94712a85b61c5c48c7de9
+  aa1429974cd94712a85b61c5c48c7de9 -.->|temporal| 92d3409caefd4ec0a3b211b6f504eecb
+  92d3409caefd4ec0a3b211b6f504eecb -.->|temporal| ce642e89677140cf914fb3b624944866

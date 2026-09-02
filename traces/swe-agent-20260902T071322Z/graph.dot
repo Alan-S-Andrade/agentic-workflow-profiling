@@ -1,0 +1,6 @@
+digraph workflow {
+  rankdir=LR;
+  "a85bad0243c64391abb02279d2f8d152" [label="llm: /v1/chat/completions\\n76303.709 ms"];
+  "de6d64ad987b4806b3c59dfa04cffe56" [label="llm: /v1/chat/completions\\n75344.954 ms"];
+  "a85bad0243c64391abb02279d2f8d152" -> "de6d64ad987b4806b3c59dfa04cffe56" [label="temporal" [style=dashed,color=gray]];
+}

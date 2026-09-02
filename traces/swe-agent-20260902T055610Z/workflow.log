@@ -1,0 +1,546 @@
+👋 INFO     This is SWE-agent version 1.1.0                                     
+            (hash='3ea751c087f32b16e039a2233dd6eefecef325d5') with SWE-ReX      
+            version 1.4.0 (rex_hash='unavailable').                             
+🔧 INFO     Setting problem statement id to hash of text                        
+🔧 INFO     Setting problem statement id to hash of text                        
+🔧 DEBUG    No .env file found                                                  
+🤖 WARN     Model openai/local-llama does not support function calling. If your 
+            model does not support function calling, you can use                
+            `parse_function='thought_action'` instead. See                      
+            https://swe-agent.com/latest/faq/ for more information.             
+🏃 INFO     Starting environment                                                
+🪴 INFO     Environment Initialized                                             
+🪴 DEBUG    Resetting repository                                                
+            users/alanuiuc/agentic-workflow-profiling/swe-smoke-target to commit
+            HEAD                                                                
+🏃 INFO     Running agent                                                       
+🤠 INFO     Setting up agent for instance 58d862                                
+🤠 INFO     Trajectory will be saved to                                         
+            /users/alanuiuc/agentic-workflow-profiling/swe-agent/trajectories/al
+            anuiuc/no_config__openai--local-llama__t-0.00__p-1.00__c-3.00___58d8
+            62/58d862/58d862.traj                                               
+🧰 INFO     Resetting tools                                                     
+🤠 INFO     SYSTEM (main)                                                       
+            You are a helpful assistant that can interact with a computer to    
+            solve tasks.                                                        
+🪴 ERROR    Command failed:                                                     
+            Traceback (most recent call last):                                  
+              File "/tmp/swe-agent-tools/edit_anthropic/bin/_state_anthropic",  
+            line 21, in <module>                                                
+                main()                                                          
+              File "/tmp/swe-agent-tools/edit_anthropic/bin/_state_anthropic",  
+            line 10, in main                                                    
+                if state_path.exists():                                         
+              File "/usr/lib/python3.10/pathlib.py", line 1290, in exists       
+                self.stat()                                                     
+              File "/usr/lib/python3.10/pathlib.py", line 1097, in stat         
+                return self._accessor.stat(self,                                
+            follow_symlinks=follow_symlinks)                                    
+            PermissionError: [Errno 13] Permission denied: '/root/state.json'   
+                                                                                
+🪴 ERROR    Command '_state_anthropic' failed (r.exit_code=1): Command failed   
+🧰 DEBUG    Retrieved state from environment: {}                                
+🤠 INFO     🤖 MODEL INPUT                                                      
+            <uploaded_files>                                                    
+                                                                                
+            </uploaded_files>                                                   
+            I've uploaded a python code repository in the directory . Consider  
+            the following PR description:                                       
+                                                                                
+            <pr_description>                                                    
+            Reply with exactly: workflow smoke test                             
+            </pr_description>                                                   
+                                                                                
+            Can you help me implement the necessary changes to the repository so
+            that the requirements specified in the <pr_description> are met?    
+            I've already taken care of all changes to any of the test files     
+            described in the <pr_description>. This means you DON'T have to     
+            modify the testing logic or any of the tests in any way!            
+            Your task is to make the minimal changes to non-tests files in the  
+            directory to ensure the <pr_description> is satisfied.              
+            Follow these steps to resolve the issue:                            
+            1. As a first step, it might be a good idea to find and read code   
+            relevant to the <pr_description>                                    
+            2. Create a script to reproduce the error and execute it with       
+            `python <filename.py>` using the bash tool, to confirm the error    
+            3. Edit the sourcecode of the repo to resolve the issue             
+            4. Rerun your reproduce script and confirm that the error is fixed! 
+            5. Think about edgecases and make sure your fix handles them as well
+            Your thinking should be thorough and so it's fine if it's very long.
+🤠 INFO     ========================= STEP 1 =========================          
+🤖 DEBUG    n_cache_control: 1                                                  
+🤖 WARN     No max input tokens found for model 'openai/local-llama'. If you are
+            using a local model, you can set `max_input_token` in the model     
+            config to override this.                                            
+🤖 DEBUG    Response:                                                           
+            ModelResponse(id='chatcmpl-4IhDxl087tYzyEouxwHcTgQt8rE4Q9BC',       
+            created=1788328623, model='Qwen3-14B-Q4_K_M.gguf',                  
+            object='chat.completion', system_fingerprint='b10752-b96806d96',    
+            choices=[Choices(finish_reason='tool_calls', index=0,               
+            message=Message(content='', role='assistant',                       
+            tool_calls=[ChatCompletionMessageToolCall(function=Function(argument
+            s='{"command": "view", "path": "."}', name='str_replace_editor'),   
+            id='caM1v2sagF20K9q5NXUzJ8VkluIWvXqr', type='function')],           
+            function_call=None, reasoning_content='Okay, let\'s tackle this     
+            problem. The user wants to implement the necessary changes in the   
+            repository so that the PR description "workflow smoke test" is      
+            satisfied. They mentioned that they\'ve already handled the test    
+            files, so I don\'t need to modify any tests. My task is to make     
+            minimal changes to non-test files.\n\nFirst, I need to figure out   
+            what the "workflow smoke test" entails. Since the PR description is 
+            just a placeholder, maybe the actual requirements are in the code or
+            the repository structure. The user hasn\'t provided specific        
+            details, so I\'ll have to infer based on common practices.\n\nStep  
+            1: Find and read relevant code. I should look for files that might  
+            be related to workflows or smoke tests. Common places could be entry
+            points, main functions, or configuration files. Let me check the    
+            directory structure using the str_replace_editor\'s view command on 
+            the root directory.\n\nAssuming the repository is in the current    
+            directory, I\'ll use the view command on the root to see the files. 
+            Maybe there\'s a script or a module that handles workflows. Let\'s  
+            say I find a file named workflow.py or something similar. I\'ll need
+            to inspect that.\n\nStep 2: Create a script to reproduce the error. 
+            If the smoke test isn\'t passing, maybe there\'s a missing function 
+            or an incorrect setup. For example, if the workflow isn\'t properly 
+            initialized, the smoke test might fail. I can write a simple script 
+            that runs the workflow and checks for errors.\n\nStep 3: Edit the   
+            source code. Suppose the issue is that the workflow isn\'t handling 
+            certain edge cases. I might need to add error handling or modify the
+            workflow\'s logic. For instance, if the workflow expects a specific 
+            input format and doesn\'t handle missing parameters, adding         
+            validation could fix it.\n\nStep 4: Rerun the script to confirm the 
+            fix. After making changes, executing the script again should show   
+            that the error is resolved.\n\nStep 5: Consider edge cases. What if 
+            the workflow is called with invalid data? Ensuring that the code    
+            handles such scenarios gracefully would be important.\n\nBut since  
+            the user hasn\'t provided specific details about the current code\'s
+            issues, I need to make assumptions. Maybe the workflow smoke test is
+            failing because a certain function isn\'t implemented. For example, 
+            if there\'s a function called run_smoke_test that\'s not properly   
+            defined, adding that could be the fix.\n\nAlternatively, maybe the  
+            workflow isn\'t being triggered correctly. Checking the entry points
+            or the main function\'s logic might reveal that. For example, if the
+            main function doesn\'t call the workflow setup, adding that call    
+            would be necessary.\n\nI should proceed by first exploring the      
+            directory structure to find relevant files. Let\'s start with       
+            that.\n', provider_specific_fields={'refusal': None}),              
+            provider_specific_fields={})], usage=Usage(completion_tokens=581,   
+            prompt_tokens=1112, total_tokens=1693,                              
+            completion_tokens_details=None,                                     
+            prompt_tokens_details=PromptTokensDetailsWrapper(audio_tokens=None, 
+            cached_tokens=0, text_tokens=None, image_tokens=None,               
+            video_tokens=None)), moderation=None, service_tier=None,            
+            timings={'cache_n': 0, 'prompt_n': 1112, 'prompt_ms': 6576.423,     
+            'prompt_per_token_ms': 5.914049460431655, 'prompt_per_second':      
+            169.08888007964208, 'predicted_n': 581, 'predicted_ms': 35554.542,  
+            'predicted_per_token_ms': 61.30093448275862, 'predicted_per_second':
+            16.312965021459142})                                                
+🤖 DEBUG    Error calculating cost: This model isn't mapped yet.                
+            model=openai/local-llama, custom_llm_provider=openai. Add it here - 
+            https://github.com/BerriAI/litellm/blob/main/model_prices_and_contex
+            t_window.json., setting cost to 0.                                  
+🤖 ERROR    Error calculating cost: This model isn't mapped yet.                
+            model=openai/local-llama, custom_llm_provider=openai. Add it here - 
+            https://github.com/BerriAI/litellm/blob/main/model_prices_and_contex
+            t_window.json. for your model openai/local-llama. If this is ok     
+            (local models, etc.), please make sure you set                      
+            `per_instance_cost_limit` and `total_cost_limit` to 0 to disable    
+            this safety check.                                                  
+🤠 ERROR    Exiting due to unknown error: Error calculating cost: This model    
+            isn't mapped yet. model=openai/local-llama,                         
+            custom_llm_provider=openai. Add it here -                           
+            https://github.com/BerriAI/litellm/blob/main/model_prices_and_contex
+            t_window.json. for your model openai/local-llama. If this is ok     
+            (local models, etc.), please make sure you set                      
+            `per_instance_cost_limit` and `total_cost_limit` to 0 to disable    
+            this safety check.                                                  
+            Traceback (most recent call last):                                  
+              File                                                              
+            "/users/alanuiuc/agentic-workflow-profiling/swe-agent/.venv/lib/pyth
+            on3.12/site-packages/litellm/utils.py", line 5583, in               
+            _get_model_info_helper                                              
+                raise ValueError(                                               
+            ValueError: This model isn't mapped yet. Add it here -              
+            https://github.com/BerriAI/litellm/blob/main/model_prices_and_contex
+            t_window.json                                                       
+                                                                                
+            During handling of the above exception, another exception occurred: 
+                                                                                
+            Traceback (most recent call last):                                  
+              File                                                              
+            "/users/alanuiuc/agentic-workflow-profiling/swe-agent/sweagent/agent
+            /models.py", line 746, in _single_query                             
+                cost = litellm.cost_calculator.completion_cost(response,        
+            model=self.config.name)                                             
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            ^^^^^^^^^^^^^^^^                                                    
+              File                                                              
+            "/users/alanuiuc/agentic-workflow-profiling/swe-agent/.venv/lib/pyth
+            on3.12/site-packages/litellm/cost_calculator.py", line 1712, in     
+            completion_cost                                                     
+                raise e                                                         
+              File                                                              
+            "/users/alanuiuc/agentic-workflow-profiling/swe-agent/.venv/lib/pyth
+            on3.12/site-packages/litellm/cost_calculator.py", line 1709, in     
+            completion_cost                                                     
+                raise e                                                         
+              File                                                              
+            "/users/alanuiuc/agentic-workflow-profiling/swe-agent/.venv/lib/pyth
+            on3.12/site-packages/litellm/cost_calculator.py", line 1570, in     
+            completion_cost                                                     
+                ) = cost_per_token(                                             
+                    ^^^^^^^^^^^^^^^                                             
+              File                                                              
+            "/users/alanuiuc/agentic-workflow-profiling/swe-agent/.venv/lib/pyth
+            on3.12/site-packages/litellm/cost_calculator.py", line 607, in      
+            cost_per_token                                                      
+                return openai_cost_per_token(                                   
+                       ^^^^^^^^^^^^^^^^^^^^^^                                   
+              File                                                              
+            "/users/alanuiuc/agentic-workflow-profiling/swe-agent/.venv/lib/pyth
+            on3.12/site-packages/litellm/llms/openai/cost_calculation.py", line 
+            42, in cost_per_token                                               
+                return generic_cost_per_token(                                  
+                       ^^^^^^^^^^^^^^^^^^^^^^^                                  
+              File                                                              
+            "/users/alanuiuc/agentic-workflow-profiling/swe-agent/.venv/lib/pyth
+            on3.12/site-packages/litellm/litellm_core_utils/llm_cost_calc/utils.
+            py", line 854, in generic_cost_per_token                            
+                model_info = get_model_info(model=model,                        
+            custom_llm_provider=custom_llm_provider)                            
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            ^^^^^^^^^^^^^^^^^                                                   
+              File                                                              
+            "/users/alanuiuc/agentic-workflow-profiling/swe-agent/.venv/lib/pyth
+            on3.12/site-packages/litellm/utils.py", line 5906, in get_model_info
+                return _cached_get_model_info(model, custom_llm_provider,       
+            api_base)                                                           
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            ^^^                                                                 
+              File                                                              
+            "/users/alanuiuc/agentic-workflow-profiling/swe-agent/.venv/lib/pyth
+            on3.12/site-packages/litellm/utils.py", line 5822, in               
+            _cached_get_model_info                                              
+                return _build_model_info(model=model,                           
+            custom_llm_provider=custom_llm_provider, api_base=api_base)         
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^                                   
+              File                                                              
+            "/users/alanuiuc/agentic-workflow-profiling/swe-agent/.venv/lib/pyth
+            on3.12/site-packages/litellm/utils.py", line 5797, in               
+            _build_model_info                                                   
+                _model_info: Final = _get_model_info_helper(                    
+                                     ^^^^^^^^^^^^^^^^^^^^^^^                    
+              File                                                              
+            "/users/alanuiuc/agentic-workflow-profiling/swe-agent/.venv/lib/pyth
+            on3.12/site-packages/litellm/utils.py", line 5784, in               
+            _get_model_info_helper                                              
+                raise Exception(                                                
+            Exception: This model isn't mapped yet. model=openai/local-llama,   
+            custom_llm_provider=openai. Add it here -                           
+            https://github.com/BerriAI/litellm/blob/main/model_prices_and_contex
+            t_window.json.                                                      
+                                                                                
+            During handling of the above exception, another exception occurred: 
+                                                                                
+            Traceback (most recent call last):                                  
+              File                                                              
+            "/users/alanuiuc/agentic-workflow-profiling/swe-agent/sweagent/agent
+            /agents.py", line 1109, in forward_with_handling                    
+                return self.forward(history)                                    
+                       ^^^^^^^^^^^^^^^^^^^^^                                    
+              File                                                              
+            "/users/alanuiuc/agentic-workflow-profiling/swe-agent/sweagent/agent
+            /agents.py", line 1042, in forward                                  
+                output = self.model.query(history)  # type: ignore              
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^                              
+              File                                                              
+            "/users/alanuiuc/agentic-workflow-profiling/swe-agent/sweagent/agent
+            /models.py", line 811, in query                                     
+                for attempt in Retrying(                                        
+                               ^^^^^^^^^                                        
+              File                                                              
+            "/users/alanuiuc/agentic-workflow-profiling/swe-agent/.venv/lib/pyth
+            on3.12/site-packages/tenacity/__init__.py", line 438, in __iter__   
+                do = self.iter(retry_state=retry_state)                         
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^                         
+              File                                                              
+            "/users/alanuiuc/agentic-workflow-profiling/swe-agent/.venv/lib/pyth
+            on3.12/site-packages/tenacity/__init__.py", line 371, in iter       
+                result = action(retry_state)                                    
+                         ^^^^^^^^^^^^^^^^^^^                                    
+              File                                                              
+            "/users/alanuiuc/agentic-workflow-profiling/swe-agent/.venv/lib/pyth
+            on3.12/site-packages/tenacity/__init__.py", line 393, in <lambda>   
+                self._add_action_func(lambda rs: rs.outcome.result())           
+                                                 ^^^^^^^^^^^^^^^^^^^            
+              File                                                              
+            "/users/alanuiuc/.local/share/uv/python/cpython-3.12.14-linux-x86_64
+            -gnu/lib/python3.12/concurrent/futures/_base.py", line 449, in      
+            result                                                              
+                return self.__get_result()                                      
+                       ^^^^^^^^^^^^^^^^^^^                                      
+              File                                                              
+            "/users/alanuiuc/.local/share/uv/python/cpython-3.12.14-linux-x86_64
+            -gnu/lib/python3.12/concurrent/futures/_base.py", line 401, in      
+            __get_result                                                        
+                raise self._exception                                           
+              File                                                              
+            "/users/alanuiuc/agentic-workflow-profiling/swe-agent/sweagent/agent
+            /models.py", line 837, in query                                     
+                result = self._query(messages, n=n, temperature=temperature)    
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^    
+              File                                                              
+            "/users/alanuiuc/agentic-workflow-profiling/swe-agent/sweagent/agent
+            /models.py", line 793, in _query                                    
+                outputs.extend(self._single_query(messages))                    
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^                     
+              File                                                              
+            "/users/alanuiuc/agentic-workflow-profiling/swe-agent/sweagent/agent
+            /models.py", line 756, in _single_query                             
+                raise ModelConfigurationError(msg)                              
+            sweagent.exceptions.ModelConfigurationError: Error calculating cost:
+            This model isn't mapped yet. model=openai/local-llama,              
+            custom_llm_provider=openai. Add it here -                           
+            https://github.com/BerriAI/litellm/blob/main/model_prices_and_contex
+            t_window.json. for your model openai/local-llama. If this is ok     
+            (local models, etc.), please make sure you set                      
+            `per_instance_cost_limit` and `total_cost_limit` to 0 to disable    
+            this safety check.                                                  
+🤠 WARN     Exit due to unknown error: Error calculating cost: This model isn't 
+            mapped yet. model=openai/local-llama, custom_llm_provider=openai.   
+            Add it here -                                                       
+            https://github.com/BerriAI/litellm/blob/main/model_prices_and_contex
+            t_window.json. for your model openai/local-llama. If this is ok     
+            (local models, etc.), please make sure you set                      
+            `per_instance_cost_limit` and `total_cost_limit` to 0 to disable    
+            this safety check.                                                  
+🤠 WARN     Attempting autosubmission after error                               
+🤠 INFO     Executing submission command git add -A && git diff --cached >      
+            /root/model.patch in                                                
+            /users/alanuiuc/agentic-workflow-profiling/swe-smoke-target         
+🤠 ERROR    Failed to execute submission command, got Command 'git add -A && git
+            diff --cached > /root/model.patch' failed with exit code 2. Stdout: 
+            ''                                                                  
+            Stderr:                                                             
+            '/bin/sh: 1: cannot create /root/model.patch: Permission denied\n'  
+🤠 ERROR    Failed to read submission file, got [Errno 13] Permission denied:   
+            '/root/model.patch'                                                 
+            Traceback (most recent call last):                                  
+              File                                                              
+            "/users/alanuiuc/agentic-workflow-profiling/swe-agent/.venv/lib/pyth
+            on3.12/site-packages/litellm/utils.py", line 5583, in               
+            _get_model_info_helper                                              
+                raise ValueError(                                               
+            ValueError: This model isn't mapped yet. Add it here -              
+            https://github.com/BerriAI/litellm/blob/main/model_prices_and_contex
+            t_window.json                                                       
+                                                                                
+            During handling of the above exception, another exception occurred: 
+                                                                                
+            Traceback (most recent call last):                                  
+              File                                                              
+            "/users/alanuiuc/agentic-workflow-profiling/swe-agent/sweagent/agent
+            /models.py", line 746, in _single_query                             
+                cost = litellm.cost_calculator.completion_cost(response,        
+            model=self.config.name)                                             
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            ^^^^^^^^^^^^^^^^                                                    
+              File                                                              
+            "/users/alanuiuc/agentic-workflow-profiling/swe-agent/.venv/lib/pyth
+            on3.12/site-packages/litellm/cost_calculator.py", line 1712, in     
+            completion_cost                                                     
+                raise e                                                         
+              File                                                              
+            "/users/alanuiuc/agentic-workflow-profiling/swe-agent/.venv/lib/pyth
+            on3.12/site-packages/litellm/cost_calculator.py", line 1709, in     
+            completion_cost                                                     
+                raise e                                                         
+              File                                                              
+            "/users/alanuiuc/agentic-workflow-profiling/swe-agent/.venv/lib/pyth
+            on3.12/site-packages/litellm/cost_calculator.py", line 1570, in     
+            completion_cost                                                     
+                ) = cost_per_token(                                             
+                    ^^^^^^^^^^^^^^^                                             
+              File                                                              
+            "/users/alanuiuc/agentic-workflow-profiling/swe-agent/.venv/lib/pyth
+            on3.12/site-packages/litellm/cost_calculator.py", line 607, in      
+            cost_per_token                                                      
+                return openai_cost_per_token(                                   
+                       ^^^^^^^^^^^^^^^^^^^^^^                                   
+              File                                                              
+            "/users/alanuiuc/agentic-workflow-profiling/swe-agent/.venv/lib/pyth
+            on3.12/site-packages/litellm/llms/openai/cost_calculation.py", line 
+            42, in cost_per_token                                               
+                return generic_cost_per_token(                                  
+                       ^^^^^^^^^^^^^^^^^^^^^^^                                  
+              File                                                              
+            "/users/alanuiuc/agentic-workflow-profiling/swe-agent/.venv/lib/pyth
+            on3.12/site-packages/litellm/litellm_core_utils/llm_cost_calc/utils.
+            py", line 854, in generic_cost_per_token                            
+                model_info = get_model_info(model=model,                        
+            custom_llm_provider=custom_llm_provider)                            
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            ^^^^^^^^^^^^^^^^^                                                   
+              File                                                              
+            "/users/alanuiuc/agentic-workflow-profiling/swe-agent/.venv/lib/pyth
+            on3.12/site-packages/litellm/utils.py", line 5906, in get_model_info
+                return _cached_get_model_info(model, custom_llm_provider,       
+            api_base)                                                           
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            ^^^                                                                 
+              File                                                              
+            "/users/alanuiuc/agentic-workflow-profiling/swe-agent/.venv/lib/pyth
+            on3.12/site-packages/litellm/utils.py", line 5822, in               
+            _cached_get_model_info                                              
+                return _build_model_info(model=model,                           
+            custom_llm_provider=custom_llm_provider, api_base=api_base)         
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^                                   
+              File                                                              
+            "/users/alanuiuc/agentic-workflow-profiling/swe-agent/.venv/lib/pyth
+            on3.12/site-packages/litellm/utils.py", line 5797, in               
+            _build_model_info                                                   
+                _model_info: Final = _get_model_info_helper(                    
+                                     ^^^^^^^^^^^^^^^^^^^^^^^                    
+              File                                                              
+            "/users/alanuiuc/agentic-workflow-profiling/swe-agent/.venv/lib/pyth
+            on3.12/site-packages/litellm/utils.py", line 5784, in               
+            _get_model_info_helper                                              
+                raise Exception(                                                
+            Exception: This model isn't mapped yet. model=openai/local-llama,   
+            custom_llm_provider=openai. Add it here -                           
+            https://github.com/BerriAI/litellm/blob/main/model_prices_and_contex
+            t_window.json.                                                      
+                                                                                
+            During handling of the above exception, another exception occurred: 
+                                                                                
+            Traceback (most recent call last):                                  
+              File                                                              
+            "/users/alanuiuc/agentic-workflow-profiling/swe-agent/sweagent/agent
+            /agents.py", line 1109, in forward_with_handling                    
+                return self.forward(history)                                    
+                       ^^^^^^^^^^^^^^^^^^^^^                                    
+              File                                                              
+            "/users/alanuiuc/agentic-workflow-profiling/swe-agent/sweagent/agent
+            /agents.py", line 1042, in forward                                  
+                output = self.model.query(history)  # type: ignore              
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^                              
+              File                                                              
+            "/users/alanuiuc/agentic-workflow-profiling/swe-agent/sweagent/agent
+            /models.py", line 811, in query                                     
+                for attempt in Retrying(                                        
+                               ^^^^^^^^^                                        
+              File                                                              
+            "/users/alanuiuc/agentic-workflow-profiling/swe-agent/.venv/lib/pyth
+            on3.12/site-packages/tenacity/__init__.py", line 438, in __iter__   
+                do = self.iter(retry_state=retry_state)                         
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^                         
+              File                                                              
+            "/users/alanuiuc/agentic-workflow-profiling/swe-agent/.venv/lib/pyth
+            on3.12/site-packages/tenacity/__init__.py", line 371, in iter       
+                result = action(retry_state)                                    
+                         ^^^^^^^^^^^^^^^^^^^                                    
+              File                                                              
+            "/users/alanuiuc/agentic-workflow-profiling/swe-agent/.venv/lib/pyth
+            on3.12/site-packages/tenacity/__init__.py", line 393, in <lambda>   
+                self._add_action_func(lambda rs: rs.outcome.result())           
+                                                 ^^^^^^^^^^^^^^^^^^^            
+              File                                                              
+            "/users/alanuiuc/.local/share/uv/python/cpython-3.12.14-linux-x86_64
+            -gnu/lib/python3.12/concurrent/futures/_base.py", line 449, in      
+            result                                                              
+                return self.__get_result()                                      
+                       ^^^^^^^^^^^^^^^^^^^                                      
+              File                                                              
+            "/users/alanuiuc/.local/share/uv/python/cpython-3.12.14-linux-x86_64
+            -gnu/lib/python3.12/concurrent/futures/_base.py", line 401, in      
+            __get_result                                                        
+                raise self._exception                                           
+              File                                                              
+            "/users/alanuiuc/agentic-workflow-profiling/swe-agent/sweagent/agent
+            /models.py", line 837, in query                                     
+                result = self._query(messages, n=n, temperature=temperature)    
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^    
+              File                                                              
+            "/users/alanuiuc/agentic-workflow-profiling/swe-agent/sweagent/agent
+            /models.py", line 793, in _query                                    
+                outputs.extend(self._single_query(messages))                    
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^                     
+              File                                                              
+            "/users/alanuiuc/agentic-workflow-profiling/swe-agent/sweagent/agent
+            /models.py", line 756, in _single_query                             
+                raise ModelConfigurationError(msg)                              
+            sweagent.exceptions.ModelConfigurationError: Error calculating cost:
+            This model isn't mapped yet. model=openai/local-llama,              
+            custom_llm_provider=openai. Add it here -                           
+            https://github.com/BerriAI/litellm/blob/main/model_prices_and_contex
+            t_window.json. for your model openai/local-llama. If this is ok     
+            (local models, etc.), please make sure you set                      
+            `per_instance_cost_limit` and `total_cost_limit` to 0 to disable    
+            this safety check.                                                  
+                                                                                
+            During handling of the above exception, another exception occurred: 
+                                                                                
+            Traceback (most recent call last):                                  
+              File                                                              
+            "/users/alanuiuc/agentic-workflow-profiling/swe-agent/sweagent/agent
+            /agents.py", line 887, in handle_submission                         
+                submission = self._env.read_file("/root/model.patch",           
+            encoding="utf-8", errors="backslashreplace")                        
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^                                  
+              File                                                              
+            "/users/alanuiuc/agentic-workflow-profiling/swe-agent/sweagent/envir
+            onment/swe_env.py", line 247, in read_file                          
+                r = asyncio.run(                                                
+                    ^^^^^^^^^^^^                                                
+              File                                                              
+            "/users/alanuiuc/.local/share/uv/python/cpython-3.12.14-linux-x86_64
+            -gnu/lib/python3.12/asyncio/runners.py", line 195, in run           
+                return runner.run(main)                                         
+                       ^^^^^^^^^^^^^^^^                                         
+              File                                                              
+            "/users/alanuiuc/.local/share/uv/python/cpython-3.12.14-linux-x86_64
+            -gnu/lib/python3.12/asyncio/runners.py", line 118, in run           
+                return self._loop.run_until_complete(task)                      
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^                      
+              File                                                              
+            "/users/alanuiuc/.local/share/uv/python/cpython-3.12.14-linux-x86_64
+            -gnu/lib/python3.12/asyncio/base_events.py", line 691, in           
+            run_until_complete                                                  
+                return future.result()                                          
+                       ^^^^^^^^^^^^^^^                                          
+              File                                                              
+            "/users/alanuiuc/agentic-workflow-profiling/swe-agent/.venv/lib/pyth
+            on3.12/site-packages/swerex/runtime/local.py", line 455, in         
+            read_file                                                           
+                content =                                                       
+            Path(request.path).read_text(encoding=request.encoding,             
+            errors=request.errors)                                              
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            ^^^^^^^^^^^^^^^^^^^^^^^^                                            
+              File                                                              
+            "/users/alanuiuc/.local/share/uv/python/cpython-3.12.14-linux-x86_64
+            -gnu/lib/python3.12/pathlib.py", line 1027, in read_text            
+                with self.open(mode='r', encoding=encoding, errors=errors) as f:
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^      
+              File                                                              
+            "/users/alanuiuc/.local/share/uv/python/cpython-3.12.14-linux-x86_64
+            -gnu/lib/python3.12/pathlib.py", line 1013, in open                 
+                return io.open(self, mode, buffering, encoding, errors, newline)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            PermissionError: [Errno 13] Permission denied: '/root/model.patch'  
+🤠 INFO     🤖 MODEL INPUT                                                      
+            Your command ran successfully and did not produce any output.       
+🤠 INFO     Trajectory saved to                                                 
+            /users/alanuiuc/agentic-workflow-profiling/swe-agent/trajectories/al
+            anuiuc/no_config__openai--local-llama__t-0.00__p-1.00__c-3.00___58d8
+            62/58d862/58d862.traj                                               
+⚡️ INFO    No patch to save.                                                    
+🏃 INFO     Done                                                                
+🪴 INFO     Beginning environment shutdown...                                   
+🦖 DEBUG    Ensuring deployment is stopped because object is deleted            
+/users/alanuiuc/agentic-workflow-profiling/swe-agent/.venv/lib/python3.12/site-packages/swerex/deployment/abstract.py:60: RuntimeWarning: coroutine 'LocalDeployment.stop' was never awaited
+  pass
+RuntimeWarning: Enable tracemalloc to get the object allocation traceback

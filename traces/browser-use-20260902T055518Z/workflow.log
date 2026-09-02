@@ -1,0 +1,271 @@
+INFO     [service] Using anonymized telemetry, see https://docs.browser-use.com/development/monitoring/telemetry.
+INFO     [Agent] [34m🎯 Task: Reply with exactly: workflow smoke test[0m
+INFO     [Agent] Starting a browser-use agent with version 0.13.8, with provider=openai and model=local-llama
+INFO     [utils] 📦 Downloading uBlock Origin Lite extension...
+INFO     [utils] 📂 Extracting uBlock Origin Lite extension...
+INFO     [utils] 📦 Downloading I still don't care about cookies extension...
+INFO     [utils] 📂 Extracting I still don't care about cookies extension...
+INFO     [utils] 📦 Downloading Force Background Tab extension...
+INFO     [utils] 📂 Extracting Force Background Tab extension...
+INFO     [utils] [BrowserProfile] ✅ Cookie extension: nature.com, qatarairways.com pre-populated in storage
+ERROR    [BrowserSession] [LocalBrowserWatchdog] ⚠️ No local browser binary found, installing browser using playwright subprocess...
+WARNING  [bubus] ⚠️ EventBus_ed317d16🟢(⏳ 0 | ▶️ 2 | ✅ 0 ➡️ 31 👂) handler browser_use.browser.watchdog_base.BrowserSession.on_BrowserStartEvent() has been running for >15s on event. Possible slow processing or deadlock.
+(handler could be trying to await its own result or could be blocked by another async task).
+browser_use.browser.watchdog_base.BrowserSession.on_BrowserStartEvent(?▶ BrowserStartEvent#85a0 🏃)
+WARNING  [bubus] ⚠️ EventBus_ed317d16🟢(⏳ 0 | ▶️ 2 | ✅ 0 ➡️ 31 👂) handler browser_use.browser.watchdog_base.LocalBrowserWatchdog.on_BrowserLaunchEvent() has been running for >15s on event. Possible slow processing or deadlock.
+(handler could be trying to await its own result or could be blocked by another async task).
+browser_use.browser.watchdog_base.LocalBrowserWatchdog.on_BrowserLaunchEvent(?▶ BrowserLaunchEvent#3846 🏃)
+WARNING  [bubus] ================================================================================
+WARNING  [bubus] ⏱️  TIMEOUT ERROR - Handling took more than 30.0s for EventBus_ed317d16.browser_use.browser.watchdog_base.BrowserSession.on_BrowserStartEvent(?▶ BrowserStartEvent#85a0 ✅)
+WARNING  [bubus] ================================================================================
+WARNING  [bubus] 📣 BrowserStartEvent#85a0                                              [91m30s[0m
+WARNING  [bubus]    ⏰ browser_use.browser.watchdog_base.BrowserSession.on_BrowserStartEvent(#85a0) ⌛️ [91m30s[0m/[91m30s[0m   ⬅️ [91mTIMEOUT HERE[0m ⏰
+WARNING  [bubus]       📣 BrowserLaunchEvent#3846                                       [93m30s[0m
+WARNING  [bubus]          ☑️ browser_use.browser.watchdog_base.DownloadsWatchdog.on_BrowserLaunchEvent(#3846)    [92m 0s[0m/30s   ✓
+WARNING  [bubus]          ➡️ browser_use.browser.watchdog_base.LocalBrowserWatchdog.on_BrowserLaunchEvent(#3846) ⏳ [93m30s[0m/30s   ⬅️ [93mINTERRUPTED[0m ✂️
+WARNING  [bubus] 
+================================================================================
+
+ERROR    [Agent] Agent run failed with exception: Event handler browser_use.browser.watchdog_base.BrowserSession.on_BrowserStartEvent#4240(?▶ BrowserStartEvent#85a0 🏃) timed out after 30.0s and interrupted any processing of 1 child events
+Traceback (most recent call last):
+  File "/users/alanuiuc/agentic-workflow-profiling/browser-use/.venv/lib/python3.12/site-packages/bubus/service.py", line 1128, in execute_handler
+    result_value: Any = await asyncio.wait_for(handler_task, timeout=event_result.timeout)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/users/alanuiuc/.local/share/uv/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/asyncio/tasks.py", line 520, in wait_for
+    return await fut
+           ^^^^^^^^^
+  File "/users/alanuiuc/agentic-workflow-profiling/browser-use/browser_use/browser/watchdog_base.py", line 153, in unique_handler
+    result = await actual_handler(event)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/users/alanuiuc/agentic-workflow-profiling/browser-use/browser_use/observability.py", line 73, in async_wrapper
+    return await func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/users/alanuiuc/agentic-workflow-profiling/browser-use/browser_use/browser/watchdogs/local_browser_watchdog.py", line 56, in on_BrowserLaunchEvent
+    process, cdp_url = await self._launch_browser()
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/users/alanuiuc/agentic-workflow-profiling/browser-use/browser_use/observability.py", line 73, in async_wrapper
+    return await func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/users/alanuiuc/agentic-workflow-profiling/browser-use/browser_use/browser/watchdogs/local_browser_watchdog.py", line 135, in _launch_browser
+    browser_path = await self._install_browser_with_playwright()
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/users/alanuiuc/agentic-workflow-profiling/browser-use/browser_use/browser/watchdogs/local_browser_watchdog.py", line 377, in _install_browser_with_playwright
+    stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=60.0)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/users/alanuiuc/.local/share/uv/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/asyncio/tasks.py", line 520, in wait_for
+    return await fut
+           ^^^^^^^^^
+  File "/users/alanuiuc/.local/share/uv/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/asyncio/subprocess.py", line 201, in communicate
+    stdin, stdout, stderr = await tasks.gather(stdin, stdout, stderr)
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/users/alanuiuc/.local/share/uv/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/asyncio/subprocess.py", line 181, in _read_stream
+    output = await stream.read()
+             ^^^^^^^^^^^^^^^^^^^
+  File "/users/alanuiuc/.local/share/uv/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/asyncio/streams.py", line 706, in read
+    block = await self.read(self._limit)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/users/alanuiuc/.local/share/uv/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/asyncio/streams.py", line 713, in read
+    await self._wait_for_data('read')
+  File "/users/alanuiuc/.local/share/uv/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/asyncio/streams.py", line 545, in _wait_for_data
+    await self._waiter
+asyncio.exceptions.CancelledError
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/users/alanuiuc/.local/share/uv/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/asyncio/tasks.py", line 520, in wait_for
+    return await fut
+           ^^^^^^^^^
+  File "/users/alanuiuc/agentic-workflow-profiling/browser-use/browser_use/browser/watchdog_base.py", line 153, in unique_handler
+    result = await actual_handler(event)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/users/alanuiuc/agentic-workflow-profiling/browser-use/browser_use/observability.py", line 73, in async_wrapper
+    return await func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/users/alanuiuc/agentic-workflow-profiling/browser-use/browser_use/browser/session.py", line 813, in on_BrowserStartEvent
+    await launch_event
+  File "/users/alanuiuc/agentic-workflow-profiling/browser-use/.venv/lib/python3.12/site-packages/bubus/models.py", line 313, in wait_for_handlers_to_complete_then_return_event
+    await bus.process_event(event)
+  File "/users/alanuiuc/agentic-workflow-profiling/browser-use/.venv/lib/python3.12/site-packages/bubus/service.py", line 976, in process_event
+    await self._execute_handlers(event, handlers=applicable_handlers, timeout=timeout)
+  File "/users/alanuiuc/agentic-workflow-profiling/browser-use/.venv/lib/python3.12/site-packages/bubus/service.py", line 1070, in _execute_handlers
+    await self.execute_handler(event, handler, timeout=timeout)
+  File "/users/alanuiuc/agentic-workflow-profiling/browser-use/.venv/lib/python3.12/site-packages/bubus/service.py", line 1174, in execute_handler
+    raise handler_interrupted_error from e
+asyncio.exceptions.CancelledError: Event handler browser_use.browser.watchdog_base.LocalBrowserWatchdog.on_BrowserLaunchEvent#5408(?▶ BrowserLaunchEvent#3846 🏃) was interrupted because of a parent timeout
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/users/alanuiuc/agentic-workflow-profiling/browser-use/.venv/lib/python3.12/site-packages/bubus/service.py", line 1128, in execute_handler
+    result_value: Any = await asyncio.wait_for(handler_task, timeout=event_result.timeout)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/users/alanuiuc/.local/share/uv/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/asyncio/tasks.py", line 519, in wait_for
+    async with timeouts.timeout(timeout):
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/users/alanuiuc/.local/share/uv/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/asyncio/timeouts.py", line 115, in __aexit__
+    raise TimeoutError from exc_val
+TimeoutError
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/users/alanuiuc/agentic-workflow-profiling/browser-use/browser_use/agent/service.py", line 2563, in run
+    await self.browser_session.start()
+  File "/users/alanuiuc/agentic-workflow-profiling/browser-use/browser_use/observability.py", line 73, in async_wrapper
+    return await func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/users/alanuiuc/agentic-workflow-profiling/browser-use/browser_use/browser/session.py", line 728, in start
+    await start_event.event_result(raise_if_any=True, raise_if_none=False)
+  File "/users/alanuiuc/agentic-workflow-profiling/browser-use/.venv/lib/python3.12/site-packages/bubus/models.py", line 574, in event_result
+    valid_results = await self.event_results_filtered(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/users/alanuiuc/agentic-workflow-profiling/browser-use/.venv/lib/python3.12/site-packages/bubus/models.py", line 516, in event_results_filtered
+    raise original_error
+  File "/users/alanuiuc/agentic-workflow-profiling/browser-use/.venv/lib/python3.12/site-packages/bubus/models.py", line 490, in event_results_filtered
+    await event_result
+  File "/users/alanuiuc/agentic-workflow-profiling/browser-use/.venv/lib/python3.12/site-packages/bubus/models.py", line 889, in wait_for_handler_to_complete_and_return_result
+    raise self.error if isinstance(self.error, BaseException) else Exception(self.error)  # pyright: ignore[reportUnnecessaryIsInstance]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/users/alanuiuc/agentic-workflow-profiling/browser-use/.venv/lib/python3.12/site-packages/bubus/service.py", line 1070, in _execute_handlers
+    await self.execute_handler(event, handler, timeout=timeout)
+  File "/users/alanuiuc/agentic-workflow-profiling/browser-use/.venv/lib/python3.12/site-packages/bubus/service.py", line 1194, in execute_handler
+    raise handler_timeout_error from e
+TimeoutError: Event handler browser_use.browser.watchdog_base.BrowserSession.on_BrowserStartEvent#4240(?▶ BrowserStartEvent#85a0 🏃) timed out after 30.0s and interrupted any processing of 1 child events
+INFO     [Agent] 
+INFO     [Agent] Did the Agent not work as expected? Let us fix this!
+INFO     [Agent]    Open a short issue on GitHub: https://github.com/browser-use/browser-use/issues
+INFO     [BrowserSession] 📢 on_BrowserStopEvent - Calling reset() (force=True, keep_alive=None)
+INFO     [BrowserSession] ✅ Browser session reset complete
+WARNING  [bubus] ⌛️ EventBus_ed317d16🟢(⏳ 0 | ▶️ 0 | ✅ 5 ➡️ 31 👂) Timeout waiting for event bus to be idle after 5s (processing: 0)
+INFO     [BrowserSession] ✅ Browser session reset complete
+Traceback (most recent call last):
+  File "/users/alanuiuc/agentic-workflow-profiling/browser-use/.venv/lib/python3.12/site-packages/bubus/service.py", line 1128, in execute_handler
+    result_value: Any = await asyncio.wait_for(handler_task, timeout=event_result.timeout)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/users/alanuiuc/.local/share/uv/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/asyncio/tasks.py", line 520, in wait_for
+    return await fut
+           ^^^^^^^^^
+  File "/users/alanuiuc/agentic-workflow-profiling/browser-use/browser_use/browser/watchdog_base.py", line 153, in unique_handler
+    result = await actual_handler(event)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/users/alanuiuc/agentic-workflow-profiling/browser-use/browser_use/observability.py", line 73, in async_wrapper
+    return await func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/users/alanuiuc/agentic-workflow-profiling/browser-use/browser_use/browser/watchdogs/local_browser_watchdog.py", line 56, in on_BrowserLaunchEvent
+    process, cdp_url = await self._launch_browser()
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/users/alanuiuc/agentic-workflow-profiling/browser-use/browser_use/observability.py", line 73, in async_wrapper
+    return await func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/users/alanuiuc/agentic-workflow-profiling/browser-use/browser_use/browser/watchdogs/local_browser_watchdog.py", line 135, in _launch_browser
+    browser_path = await self._install_browser_with_playwright()
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/users/alanuiuc/agentic-workflow-profiling/browser-use/browser_use/browser/watchdogs/local_browser_watchdog.py", line 377, in _install_browser_with_playwright
+    stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=60.0)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/users/alanuiuc/.local/share/uv/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/asyncio/tasks.py", line 520, in wait_for
+    return await fut
+           ^^^^^^^^^
+  File "/users/alanuiuc/.local/share/uv/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/asyncio/subprocess.py", line 201, in communicate
+    stdin, stdout, stderr = await tasks.gather(stdin, stdout, stderr)
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/users/alanuiuc/.local/share/uv/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/asyncio/subprocess.py", line 181, in _read_stream
+    output = await stream.read()
+             ^^^^^^^^^^^^^^^^^^^
+  File "/users/alanuiuc/.local/share/uv/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/asyncio/streams.py", line 706, in read
+    block = await self.read(self._limit)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/users/alanuiuc/.local/share/uv/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/asyncio/streams.py", line 713, in read
+    await self._wait_for_data('read')
+  File "/users/alanuiuc/.local/share/uv/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/asyncio/streams.py", line 545, in _wait_for_data
+    await self._waiter
+asyncio.exceptions.CancelledError
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/users/alanuiuc/.local/share/uv/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/asyncio/tasks.py", line 520, in wait_for
+    return await fut
+           ^^^^^^^^^
+  File "/users/alanuiuc/agentic-workflow-profiling/browser-use/browser_use/browser/watchdog_base.py", line 153, in unique_handler
+    result = await actual_handler(event)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/users/alanuiuc/agentic-workflow-profiling/browser-use/browser_use/observability.py", line 73, in async_wrapper
+    return await func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/users/alanuiuc/agentic-workflow-profiling/browser-use/browser_use/browser/session.py", line 813, in on_BrowserStartEvent
+    await launch_event
+  File "/users/alanuiuc/agentic-workflow-profiling/browser-use/.venv/lib/python3.12/site-packages/bubus/models.py", line 313, in wait_for_handlers_to_complete_then_return_event
+    await bus.process_event(event)
+  File "/users/alanuiuc/agentic-workflow-profiling/browser-use/.venv/lib/python3.12/site-packages/bubus/service.py", line 976, in process_event
+    await self._execute_handlers(event, handlers=applicable_handlers, timeout=timeout)
+  File "/users/alanuiuc/agentic-workflow-profiling/browser-use/.venv/lib/python3.12/site-packages/bubus/service.py", line 1070, in _execute_handlers
+    await self.execute_handler(event, handler, timeout=timeout)
+  File "/users/alanuiuc/agentic-workflow-profiling/browser-use/.venv/lib/python3.12/site-packages/bubus/service.py", line 1174, in execute_handler
+    raise handler_interrupted_error from e
+asyncio.exceptions.CancelledError: Event handler browser_use.browser.watchdog_base.LocalBrowserWatchdog.on_BrowserLaunchEvent#5408(?▶ BrowserLaunchEvent#3846 🏃) was interrupted because of a parent timeout
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/users/alanuiuc/agentic-workflow-profiling/browser-use/.venv/lib/python3.12/site-packages/bubus/service.py", line 1128, in execute_handler
+    result_value: Any = await asyncio.wait_for(handler_task, timeout=event_result.timeout)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/users/alanuiuc/.local/share/uv/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/asyncio/tasks.py", line 519, in wait_for
+    async with timeouts.timeout(timeout):
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/users/alanuiuc/.local/share/uv/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/asyncio/timeouts.py", line 115, in __aexit__
+    raise TimeoutError from exc_val
+TimeoutError
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/users/alanuiuc/agentic-workflow-profiling/run.py", line 171, in <module>
+    main()
+  File "/users/alanuiuc/agentic-workflow-profiling/run.py", line 139, in main
+    run_browser(task)
+  File "/users/alanuiuc/agentic-workflow-profiling/run.py", line 50, in run_browser
+    asyncio.run(main())
+  File "/users/alanuiuc/.local/share/uv/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/asyncio/runners.py", line 195, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "/users/alanuiuc/.local/share/uv/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/users/alanuiuc/.local/share/uv/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/asyncio/base_events.py", line 691, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "/users/alanuiuc/agentic-workflow-profiling/run.py", line 48, in main
+    await Agent(task=task, llm=llm).run()
+  File "/users/alanuiuc/agentic-workflow-profiling/browser-use/.venv/lib/python3.12/site-packages/lmnr/opentelemetry_lib/decorators/__init__.py", line 266, in wrap
+    return await fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/users/alanuiuc/agentic-workflow-profiling/browser-use/browser_use/utils.py", line 491, in wrapper
+    result = await func(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/users/alanuiuc/agentic-workflow-profiling/browser-use/browser_use/agent/service.py", line 2674, in run
+    raise e
+  File "/users/alanuiuc/agentic-workflow-profiling/browser-use/browser_use/agent/service.py", line 2563, in run
+    await self.browser_session.start()
+  File "/users/alanuiuc/agentic-workflow-profiling/browser-use/browser_use/observability.py", line 73, in async_wrapper
+    return await func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/users/alanuiuc/agentic-workflow-profiling/browser-use/browser_use/browser/session.py", line 728, in start
+    await start_event.event_result(raise_if_any=True, raise_if_none=False)
+  File "/users/alanuiuc/agentic-workflow-profiling/browser-use/.venv/lib/python3.12/site-packages/bubus/models.py", line 574, in event_result
+    valid_results = await self.event_results_filtered(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/users/alanuiuc/agentic-workflow-profiling/browser-use/.venv/lib/python3.12/site-packages/bubus/models.py", line 516, in event_results_filtered
+    raise original_error
+  File "/users/alanuiuc/agentic-workflow-profiling/browser-use/.venv/lib/python3.12/site-packages/bubus/models.py", line 490, in event_results_filtered
+    await event_result
+  File "/users/alanuiuc/agentic-workflow-profiling/browser-use/.venv/lib/python3.12/site-packages/bubus/models.py", line 889, in wait_for_handler_to_complete_and_return_result
+    raise self.error if isinstance(self.error, BaseException) else Exception(self.error)  # pyright: ignore[reportUnnecessaryIsInstance]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/users/alanuiuc/agentic-workflow-profiling/browser-use/.venv/lib/python3.12/site-packages/bubus/service.py", line 1070, in _execute_handlers
+    await self.execute_handler(event, handler, timeout=timeout)
+  File "/users/alanuiuc/agentic-workflow-profiling/browser-use/.venv/lib/python3.12/site-packages/bubus/service.py", line 1194, in execute_handler
+    raise handler_timeout_error from e
+TimeoutError: Event handler browser_use.browser.watchdog_base.BrowserSession.on_BrowserStartEvent#4240(?▶ BrowserStartEvent#85a0 🏃) timed out after 30.0s and interrupted any processing of 1 child events

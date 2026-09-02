@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "/users/alanuiuc/agentic-workflow-profiling/run.py", line 171, in <module>
+    main()
+  File "/users/alanuiuc/agentic-workflow-profiling/run.py", line 165, in main
+    exec_in("openhands", str(ROOT / ".tools/openhands/node_modules/.bin/agent-canvas"), [])
+  File "/users/alanuiuc/agentic-workflow-profiling/run.py", line 121, in exec_in
+    os.chdir(ROOT / directory)
+FileNotFoundError: [Errno 2] No such file or directory: '/users/alanuiuc/agentic-workflow-profiling/openhands'

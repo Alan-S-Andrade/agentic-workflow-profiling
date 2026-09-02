@@ -1,0 +1,114 @@
+
+[36m[1mAgent Canvas (Static)[0m
+
+[36m[1/2][0m Checking prerequisites...
+[32m✓[0m uvx found
+[36m[ports][0m Checking ports...
+[36m[2/2][0m Starting services...
+[2m07:16:23[0m [34m[agent-server][0m Starting on port 18000...
+[2m07:16:23[0m [2m[agent-server][0m Using PyPI (1.44.0, default)
+[2m07:16:26[0m [33m[agent-server][0m +----------------------------------------------------------------------+
+[2m07:16:26[0m [33m[agent-server][0m |  OpenHands SDK v1.44.0                                               |
+[2m07:16:26[0m [33m[agent-server][0m |                                                                      |
+[2m07:16:26[0m [33m[agent-server][0m |  Report a bug: github.com/OpenHands/software-agent-sdk/issues        |
+[2m07:16:26[0m [33m[agent-server][0m |  Get help: openhands.dev/joinslack                                   |
+[2m07:16:26[0m [33m[agent-server][0m |  Scale up: openhands.dev/product/sdk                                 |
+[2m07:16:26[0m [33m[agent-server][0m |                                                                      |
+[2m07:16:26[0m [33m[agent-server][0m |  Set OPENHANDS_SUPPRESS_BANNER=1 to hide this message                |
+[2m07:16:26[0m [33m[agent-server][0m +----------------------------------------------------------------------+
+[2m07:16:26[0m [34m[agent-server][0m INFO     Added to sys.path: /users/alanuiuc/agentic-workflow-profiling/.tools/openhands/node_modules/@openhands/agent-canvas/tools  __main__.py:103
+[2m07:16:26[0m [34m[agent-server][0m INFO     Extended sys.path with 1 directory for custom tool imports  __main__.py:107
+[2m07:16:26[0m [34m[agent-server][0m INFO     Imported module: canvas_ui_tool  __main__.py:128
+[2m07:16:26[0m [33m[agent-server][0m WARNING  Current configuration will not reload as not all conditions are met, please refer to documentation.  config.py:305
+[2m07:16:27[0m [34m[agent-server][0m INFO     Registered file-based agent 'bash-runner' from /users/alanuiuc/.cache/uv/archive-v0/xC6tDFc0TiI42AaP/lib/python3.12/site-packages/openhands/tools/preset/subagents/bash_runner.md  default.py:167
+[2m07:16:27[0m [34m[agent-server][0m INFO     Registered file-based agent 'code-explorer' from /users/alanuiuc/.cache/uv/archive-v0/xC6tDFc0TiI42AaP/lib/python3.12/site-packages/openhands/tools/preset/subagents/code_explorer.md  default.py:167
+[2m07:16:27[0m [34m[agent-server][0m INFO     Registered file-based agent 'general-purpose' from /users/alanuiuc/.cache/uv/archive-v0/xC6tDFc0TiI42AaP/lib/python3.12/site-packages/openhands/tools/preset/subagents/default.md  default.py:167
+[2m07:16:27[0m [34m[agent-server][0m INFO     Registered file-based agent 'web-researcher' from /users/alanuiuc/.cache/uv/archive-v0/xC6tDFc0TiI42AaP/lib/python3.12/site-packages/openhands/tools/preset/subagents/web_researcher.md  default.py:167
+[2m07:16:27[0m [34m[agent-server][0m INFO     Started server process [26604]  server.py:94
+[2m07:16:27[0m [34m[agent-server][0m INFO     Waiting for application startup.  on.py:48
+[2m07:16:27[0m [34m[agent-server][0m INFO     Telemetry initialised: exporter=posthog enabled=False (default)  service.py:154
+[2m07:16:27[0m [34m[agent-server][0m INFO     VNC desktop is disabled in configuration  desktop_service.py:219
+[2m07:16:27[0m [33m[agent-server][0m WARNING  VSCode server binary not found, VSCode will be disabled  vscode_service.py:48
+[2m07:16:27[0m [33m[agent-server][0m WARNING  VSCode service failed to start, continuing without VSCode  api.py:180
+[2m07:16:27[0m [34m[agent-server][0m INFO     Desktop service is disabled  api.py:196
+[2m07:16:27[0m [34m[agent-server][0m INFO     Chromium is available for browser operations at /users/alanuiuc/.cache/ms-playwright/chromium-1234/chrome-linux64/chrome  impl.py:291
+[2m07:16:27[0m [31m[agent-server][0m ERROR    Error preloading chromium  tool_preload_service.py:43
+[2m07:16:27[0m [33m[agent-server][0m WARNING  Tool preload service failed to start - skipping  api.py:204
+[2m07:16:27[0m [34m[agent-server][0m INFO     Server initialization complete - ready to serve requests  api.py:270
+[2m07:16:27[0m [34m[agent-server][0m INFO     Application startup complete.  on.py:62
+[2m07:16:27[0m [34m[agent-server][0m INFO     Uvicorn running on http://127.0.0.1:18000 (Press CTRL+C to quit)  server.py:225
+[2m07:16:28[0m [34m[agent-server][0m INFO     127.0.0.1:53680 - "GET /server_info HTTP/1.1" 200
+[2m07:16:28[0m [32m[agent-server][0m Ready at http://127.0.0.1:18000/server_info
+[2m07:16:28[0m [2m[secrets][0m Seeding OPENHANDS_AUTOMATION_API_KEY into agent-server...
+[2m07:16:28[0m [34m[agent-server][0m INFO     Secret created/updated  settings_router.py:522
+[2m07:16:28[0m [34m[agent-server][0m INFO     127.0.0.1:53688 - "PUT /api/settings/secrets HTTP/1.1" 200
+[2m07:16:28[0m [32m[secrets][0m OPENHANDS_AUTOMATION_API_KEY seeded successfully
+[2m07:16:28[0m [32m[automation][0m Starting on port 18001...
+[2m07:16:28[0m [2m[automation][0m Using PyPI (1.9.0, default)
+[2m07:16:28[0m [35m[static][0m Starting on port 3001...
+[2m07:16:28[0m [2m[static][0m Serving from: /users/alanuiuc/agentic-workflow-profiling/.tools/openhands/node_modules/@openhands/agent-canvas/build
+[2m07:16:28[0m [35m[static][0m Static-server + proxy listening on http://:::3001/
+[2m07:16:28[0m [35m[static][0m Static dir: /users/alanuiuc/agentic-workflow-profiling/.tools/openhands/node_modules/@openhands/agent-canvas/build
+[2m07:16:28[0m [35m[static][0m Base path: /
+[2m07:16:28[0m [35m[static][0m /api/automation -> http://127.0.0.1:18001
+[2m07:16:28[0m [35m[static][0m /openapi.json -> http://127.0.0.1:18000
+[2m07:16:28[0m [35m[static][0m /server_info -> http://127.0.0.1:18000
+[2m07:16:28[0m [35m[static][0m /sockets -> http://127.0.0.1:18000
+[2m07:16:28[0m [35m[static][0m /health -> http://127.0.0.1:18000
+[2m07:16:28[0m [35m[static][0m /vscode -> http://127.0.0.1:19000
+[2m07:16:28[0m [35m[static][0m /ready -> http://127.0.0.1:18000
+[2m07:16:28[0m [35m[static][0m /alive -> http://127.0.0.1:18000
+[2m07:16:28[0m [35m[static][0m /redoc -> http://127.0.0.1:18000
+[2m07:16:28[0m [35m[static][0m /docs -> http://127.0.0.1:18000
+[2m07:16:28[0m [35m[static][0m /api -> http://127.0.0.1:18000
+[2m07:16:28[0m [35m[static][0m * (default) -> static files + SPA fallback
+[2m07:16:28[0m [33m[automation][0m warning: An executable named `uvicorn` is not provided by package `openhands-automation` but is available via the dependency `uvicorn`. Consider using `uvx --from uvicorn uvicorn` instead.
+[2m07:16:30[0m [33m[ingress][0m Starting on port 8000...
+[2m07:16:30[0m [33m[ingress][0m ╔═══════════════════════════════════════════════════════════════╗
+[2m07:16:30[0m [33m[ingress][0m ║  Ingress Proxy                                                ║
+[2m07:16:30[0m [33m[ingress][0m ╠═══════════════════════════════════════════════════════════════╣
+[2m07:16:30[0m [33m[ingress][0m ║  Listening on: http://localhost:8000/                           ║
+[2m07:16:30[0m [33m[ingress][0m ╠═══════════════════════════════════════════════════════════════╣
+[2m07:16:30[0m [33m[ingress][0m ║  Routes:                                                      ║
+[2m07:16:30[0m [33m[ingress][0m ║      /api/automation → http://127.0.0.1:18001                 ║
+[2m07:16:30[0m [33m[ingress][0m ║      /openapi.json → http://127.0.0.1:18000                   ║
+[2m07:16:30[0m [33m[ingress][0m ║      /server_info → http://127.0.0.1:18000                    ║
+[2m07:16:30[0m [33m[ingress][0m ║      /sockets → http://127.0.0.1:18000                        ║
+[2m07:16:30[0m [33m[ingress][0m ║      /health → http://127.0.0.1:18000                         ║
+[2m07:16:30[0m [33m[ingress][0m ║      /vscode → http://127.0.0.1:19000                         ║
+[2m07:16:30[0m [33m[ingress][0m ║      /ready → http://127.0.0.1:18000                          ║
+[2m07:16:30[0m [33m[ingress][0m ║      /alive → http://127.0.0.1:18000                          ║
+[2m07:16:30[0m [33m[ingress][0m ║      /redoc → http://127.0.0.1:18000                          ║
+[2m07:16:30[0m [33m[ingress][0m ║      /docs → http://127.0.0.1:18000                           ║
+[2m07:16:30[0m [33m[ingress][0m ║      /api → http://127.0.0.1:18000                            ║
+[2m07:16:30[0m [33m[ingress][0m ║      * (default) → http://localhost:3001                      ║
+[2m07:16:30[0m [33m[ingress][0m ║                                                               ║
+[2m07:16:30[0m [33m[ingress][0m ╚═══════════════════════════════════════════════════════════════╝
+OpenHands Agent Canvas is ready at http://localhost:8000
+
+[33mShutting down...[0m
+[2m07:16:31[0m [2m[agent-server][0m Stopping...
+[2m07:16:31[0m [2m[automation][0m Stopping...
+[2m07:16:31[0m [2m[static][0m Stopping...
+[2m07:16:31[0m [2m[ingress][0m Stopping...
+[2m07:16:31[0m [34m[agent-server][0m INFO     Received signal SIGTERM (15), shutting down...  __main__.py:186
+[2m07:16:31[0m [34m[agent-server][0m INFO     Received signal SIGTERM (15), shutting down...  __main__.py:186
+[2m07:16:31[0m [33m[ingress][0m Shutting down...
+[2m07:16:31[0m [34m[agent-server][0m INFO     Shutting down  server.py:273
+[2m07:16:31[0m [34m[agent-server][0m INFO     Waiting for application shutdown.  on.py:67
+[2m07:16:31[0m [34m[agent-server][0m INFO     Application shutdown complete.  on.py:76
+[2m07:16:31[0m [34m[agent-server][0m INFO     Finished server process [26604]  server.py:104
+
+[32m[1m╔══════════════════════════════════════════════════════════════╗[0m
+[32m[1m║[0m  [1mAgent Canvas + Automation Stack[0m                             [32m[1m║[0m
+[32m[1m╠══════════════════════════════════════════════════════════════╣[0m
+[32m[1m║[0m                                                              [32m[1m║[0m
+[32m[1m║[0m  Ingress:      [36mhttp://localhost:8000/[0m                        [32m[1m║[0m
+[32m[1m║[0m  Main UI:      [36mhttp://localhost:8000/[0m                        [32m[1m║[0m
+[32m[1m║[0m  API Docs:     [36mhttp://localhost:8000/api/automation/docs[0m     [32m[1m║[0m
+[32m[1m║[0m                                                              [32m[1m║[0m
+[32m[1m╚══════════════════════════════════════════════════════════════╝[0m
+
+[2mState directory: /users/alanuiuc/.openhands/agent-canvas[0m
+[2mPress Ctrl+C to stop[0m
+

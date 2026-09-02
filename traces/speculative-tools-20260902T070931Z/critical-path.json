@@ -1,0 +1,18 @@
+{
+  "critical_path_duration_ms": 9587.979,
+  "steps": [
+    {
+      "kind": "execution_node",
+      "node_type": "agent",
+      "name": "speculative-tools.agent_loop",
+      "duration_ms": 9587.979,
+      "cpu_ms": 1806.143,
+      "rss_delta_bytes": 32313344,
+      "peak_rss_bytes": 121901056,
+      "process_peak_rss_bytes": 121901056,
+      "children_peak_rss_bytes": 120233984,
+      "python_net_allocated_bytes": 14149354,
+      "started_at": 1788332974.2862742
+    }
+  ]
+}

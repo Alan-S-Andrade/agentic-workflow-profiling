@@ -1,0 +1,6 @@
+digraph workflow {
+  rankdir=LR;
+  "8f295b179dc5496080ad6fe672522471" [label="agent: speculative-tools.agent_loop\\n9427.860 ms"];
+  "3bad02ac8d9b4ccfb45d8aa7a35b6dde" [label="llm: /v1/chat/completions\\n7828.045 ms"];
+  "8f295b179dc5496080ad6fe672522471" -> "3bad02ac8d9b4ccfb45d8aa7a35b6dde" [label="contains" [style=dashed,color=gray]];
+}

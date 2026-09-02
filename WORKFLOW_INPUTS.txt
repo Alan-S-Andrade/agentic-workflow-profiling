@@ -1,0 +1,68 @@
+Agentic Workflow Profiling - Basic Inputs
+==========================================
+
+Start llama.cpp first (from the llama.cpp checkout):
+
+  ./build/bin/llama-server -m Qwen3-14B-Q4_K_M.gguf --host 0.0.0.0 --port 8080 -t 28 -c 32768
+
+The commands below are run from this repository. They use the local
+OpenAI-compatible endpoint at http://localhost:8080/v1.
+
+1. Browser Use
+--------------
+Open example.com, read the page title, and report it in one sentence.
+
+  ./run.py browser-use "Open https://example.com, read the page title, and report it in one sentence."
+
+2. GPT Researcher
+------------------
+Give a short overview of what llama.cpp is and list three practical uses.
+
+  ./run.py gpt-researcher "Give a short overview of what llama.cpp is and list three practical uses."
+
+3. Speculative Tools
+--------------------
+Explain the weather in London and provide a three-day forecast.
+
+  ./run.py speculative-tools "What's the weather in London, and what is the three-day forecast?"
+
+4. AutoGPT
+----------
+Create a concise checklist for testing a local LLM API. Do not modify files.
+
+  ./run.py autogpt "Create a concise checklist for testing a local LLM API. Do not modify files."
+
+5. MetaGPT
+----------
+Design a small command-line calculator and describe its files and commands.
+
+  ./run.py metagpt "Design a small command-line calculator and describe its files and commands."
+
+6. SWE-agent
+------------
+Inspect the target repository and summarize its README. Do not edit files.
+
+  ./run.py swe-agent "Inspect the target repository and summarize its README. Do not edit files."
+
+7. OpenHands Agent Canvas
+-------------------------
+Start the Agent Canvas UI. Open http://localhost:8000 in a browser and submit:
+
+  Summarize the files in the current workspace. Do not modify files.
+
+  ./run.py openhands "start"
+
+Run all seven with the default profiling prompt:
+
+  ./run-all-local-llama.sh
+
+Run all seven with one shared prompt:
+
+  ./run-all-local-llama.sh "Reply with exactly: local workflow test complete"
+
+Notes:
+- Keep the llama.cpp server running while workflows execute.
+- AutoGPT is interactive and may ask for confirmation.
+- OpenHands stays running as a UI service; submit its task in Agent Canvas.
+- SWE-agent uses the local smoke target unless swe-default-target/ exists.
+- Traces are written under traces/ when using run-all-local-llama.sh.

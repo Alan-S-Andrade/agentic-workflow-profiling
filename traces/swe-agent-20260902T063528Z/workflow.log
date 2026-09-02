@@ -1,0 +1,66 @@
+👋 INFO     This is SWE-agent version 1.1.0                                     
+            (hash='3ea751c087f32b16e039a2233dd6eefecef325d5') with SWE-ReX      
+            version 1.4.0 (rex_hash='unavailable').                             
+🔧 INFO     Setting problem statement id to hash of text                        
+🔧 INFO     Setting problem statement id to hash of text                        
+🔧 DEBUG    No .env file found                                                  
+🤖 WARN     Model openai/local-llama does not support function calling. If your 
+            model does not support function calling, you can use                
+            `parse_function='thought_action'` instead. See                      
+            https://swe-agent.com/latest/faq/ for more information.             
+[92m06:35:30 - LiteLLM:WARNING[0m: utils.py:2907 - register_model: model=openai/local-llama not in built-in cost map and no prefix/region variant matched; cache cost fields will default to 0. To track cache cost, add cache_creation_input_token_cost and cache_read_input_token_cost to model_info
+🏃 INFO     Starting environment                                                
+🪴 INFO     Environment Initialized                                             
+🪴 DEBUG    Resetting repository                                                
+            users/alanuiuc/agentic-workflow-profiling/swe-smoke-target to commit
+            HEAD                                                                
+🏃 INFO     Running agent                                                       
+🤠 INFO     Setting up agent for instance 613619                                
+🤠 INFO     Trajectory will be saved to                                         
+            /users/alanuiuc/agentic-workflow-profiling/swe-agent/trajectories/al
+            anuiuc/no_config__openai--local-llama__t-0.00__p-1.00__c-0.00___6136
+            19/613619/613619.traj                                               
+Traceback (most recent call last):
+  File "/users/alanuiuc/agentic-workflow-profiling/swe-agent/.venv/bin/sweagent", line 10, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/users/alanuiuc/agentic-workflow-profiling/swe-agent/sweagent/run/run.py", line 92, in main
+    run_single_main(remaining_args)
+  File "/users/alanuiuc/agentic-workflow-profiling/swe-agent/sweagent/run/run_single.py", line 221, in run_from_cli
+    run_from_config(BasicCLI(RunSingleConfig, help_text=help_text).get_config(args))  # type: ignore
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/users/alanuiuc/agentic-workflow-profiling/swe-agent/sweagent/run/run_single.py", line 211, in run_from_config
+    RunSingle.from_config(config).run()
+  File "/users/alanuiuc/agentic-workflow-profiling/swe-agent/sweagent/run/run_single.py", line 198, in run
+    result = self.agent.run(
+             ^^^^^^^^^^^^^^^
+  File "/users/alanuiuc/agentic-workflow-profiling/swe-agent/sweagent/agent/agents.py", line 1279, in run
+    self.setup(env=env, problem_statement=problem_statement, output_dir=output_dir)
+  File "/users/alanuiuc/agentic-workflow-profiling/swe-agent/sweagent/agent/agents.py", line 593, in setup
+    self.tools.install(self._env)
+  File "/users/alanuiuc/agentic-workflow-profiling/swe-agent/sweagent/tools/tools.py", line 253, in install
+    self._install_commands(env)
+  File "/users/alanuiuc/agentic-workflow-profiling/swe-agent/sweagent/tools/tools.py", line 296, in _install_commands
+    asyncio.run(self._upload_bundles(env))
+  File "/users/alanuiuc/.local/share/uv/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/asyncio/runners.py", line 195, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "/users/alanuiuc/.local/share/uv/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/users/alanuiuc/.local/share/uv/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/asyncio/base_events.py", line 691, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "/users/alanuiuc/agentic-workflow-profiling/swe-agent/sweagent/tools/tools.py", line 267, in _upload_bundles
+    await asyncio.gather(
+  File "/users/alanuiuc/agentic-workflow-profiling/swe-agent/.venv/lib/python3.12/site-packages/swerex/runtime/local.py", line 467, in upload
+    shutil.copytree(request.source_path, request.target_path)
+  File "/users/alanuiuc/.local/share/uv/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/shutil.py", line 600, in copytree
+    return _copytree(entries=entries, src=src, dst=dst, symlinks=symlinks,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/users/alanuiuc/.local/share/uv/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/shutil.py", line 498, in _copytree
+    os.makedirs(dst, exist_ok=dirs_exist_ok)
+  File "<frozen os>", line 225, in makedirs
+FileExistsError: [Errno 17] File exists: '/tmp/swe-agent-tools/registry'
+/users/alanuiuc/agentic-workflow-profiling/swe-agent/.venv/lib/python3.12/site-packages/swerex/deployment/abstract.py:60: RuntimeWarning: coroutine 'LocalDeployment.stop' was never awaited
+Ensuring deployment is stopped because object is deleted

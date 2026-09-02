@@ -1,0 +1,13 @@
+{
+  "critical_path_duration_ms": 176706.957,
+  "steps": [
+    {
+      "kind": "execution_node",
+      "node_type": "workflow",
+      "name": "autogpt/classic",
+      "duration_ms": 176706.957,
+      "cpu_ms": 9138.572,
+      "started_at": 1788330593.0195544
+    }
+  ]
+}

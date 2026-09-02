@@ -1,0 +1,32 @@
+INFO     [service] Using anonymized telemetry, see https://docs.browser-use.com/development/monitoring/telemetry.
+INFO     [Agent] [34m🎯 Task: Reply with exactly: local workflow test complete[0m
+INFO     [Agent] Starting a browser-use agent with version 0.13.8, with provider=openai and model=local-llama
+INFO     [BrowserSession] Setting viewport to 1920x1080 with device scale factor 1.0 whereas original device scale factor was 1.0
+INFO     [Agent] 
+
+INFO     [Agent] 📍 Step 1:
+WARNING  [Agent] ⚠️ LLM error (ModelOutputTruncatedError: Model output was truncated at max_completion_tokens=512; the structured output is incomplete. Increase max_completion_tokens or request shorter output.) but no fallback_llm configured
+WARNING  [Agent] ❌ Result failed 1/3 times: Model output was truncated at max_completion_tokens=512; the structured output is incomplete. Increase max_completion_tokens or request shorter output.
+INFO     [Agent] 
+
+INFO     [Agent] 📍 Step 2:
+WARNING  [Agent] ⚠️ LLM error (ModelOutputTruncatedError: Model output was truncated at max_completion_tokens=512; the structured output is incomplete. Increase max_completion_tokens or request shorter output.) but no fallback_llm configured
+WARNING  [Agent] ❌ Result failed 2/3 times: Model output was truncated at max_completion_tokens=512; the structured output is incomplete. Increase max_completion_tokens or request shorter output.
+INFO     [Agent] 
+
+INFO     [Agent] 📍 Step 3:
+INFO     [Agent]   🧠 Memory: Agent terminated after 2 format failures. Final attempt to use 'done' tool with success=false due to incomplete task. Browser state showed empty page with no interactive elements. No files or todo items present. Task 'local workflow test complete' not confirmed.
+INFO     [Agent]   ▶️   [34mdone[0m: [35mtext[0m: local workflow test incomplete - agent terminated due to format errors. Browser state: empty page, no interactive elements. No files processed., [35msuccess[0m: False, [35mfiles_to_display[0m: []
+INFO     [Agent] 
+📄 [31m Final Result:[0m 
+local workflow test incomplete - agent terminated due to format errors. Browser state: empty page, no interactive elements. No files processed.
+
+
+ERROR    [Agent] Judge trace failed: Model output was truncated at max_completion_tokens=512; the structured output is incomplete. Increase max_completion_tokens or request shorter output.
+INFO     [Agent] 
+INFO     [Agent] Did the Agent not work as expected? Let us fix this!
+INFO     [Agent]    Open a short issue on GitHub: https://github.com/browser-use/browser-use/issues
+INFO     [BrowserSession] 📢 on_BrowserStopEvent - Calling reset() (force=True, keep_alive=None)
+INFO     [BrowserSession] [SessionManager] Cleared all owned data (targets, sessions, mappings)
+INFO     [BrowserSession] ✅ Browser session reset complete
+INFO     [BrowserSession] ✅ Browser session reset complete

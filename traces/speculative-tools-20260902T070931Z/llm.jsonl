@@ -1,0 +1,1 @@
+{"kind":"llm","event":"end","span_id":"bce268005f214acbba42517d7881d4f2","request_id":"bce268005f214acbba42517d7881d4f2","started_at":1788332975.8438985,"duration_ms":7994.398,"method":"POST","path":"/v1/chat/completions","model":"local-llama","status":200}

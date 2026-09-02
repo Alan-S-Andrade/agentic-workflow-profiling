@@ -1,0 +1,2 @@
+Enter this task when prompted: Reply with exactly: workflow smoke test
+/users/alanuiuc/agentic-workflow-profiling/autogpt/classic/.venv/bin/python: can't open file '/users/alanuiuc/agentic-workflow-profiling/autogpt/classic/.venv/bin/autogpt': [Errno 2] No such file or directory

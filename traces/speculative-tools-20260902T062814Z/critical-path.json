@@ -1,0 +1,37 @@
+{
+  "critical_path_duration_ms": 97192.725,
+  "steps": [
+    {
+      "kind": "llm",
+      "node_type": "llm",
+      "name": "/v1/chat/completions",
+      "duration_ms": 52875.281,
+      "cpu_ms": null,
+      "started_at": 1788330495.4060426
+    },
+    {
+      "kind": "execution_node",
+      "node_type": "tool",
+      "name": "speculative-tools.get_weather",
+      "duration_ms": 300.717,
+      "cpu_ms": 0.435,
+      "started_at": 1788330548.2930636
+    },
+    {
+      "kind": "execution_node",
+      "node_type": "tool",
+      "name": "speculative-tools.get_forecast",
+      "duration_ms": 250.527,
+      "cpu_ms": 0.29,
+      "started_at": 1788330548.5942936
+    },
+    {
+      "kind": "llm",
+      "node_type": "llm",
+      "name": "/v1/chat/completions",
+      "duration_ms": 43766.2,
+      "cpu_ms": null,
+      "started_at": 1788330548.8486922
+    }
+  ]
+}

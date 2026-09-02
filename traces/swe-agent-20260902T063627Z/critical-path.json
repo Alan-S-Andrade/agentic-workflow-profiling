@@ -1,0 +1,13 @@
+{
+  "critical_path_duration_ms": 4331.995,
+  "steps": [
+    {
+      "kind": "execution_node",
+      "node_type": "workflow",
+      "name": "swe-agent",
+      "duration_ms": 4331.995,
+      "cpu_ms": 9999.429,
+      "started_at": 1788330987.1621501
+    }
+  ]
+}

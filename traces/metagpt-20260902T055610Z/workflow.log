@@ -1,0 +1,41 @@
+2026-09-02 05:56:10.474 | INFO     | metagpt.const:get_metagpt_package_root:15 - Package root set to /users/alanuiuc/agentic-workflow-profiling/metagpt
+2026-09-02 05:56:10.474 | INFO     | metagpt.const:get_metagpt_package_root:15 - Package root set to /users/alanuiuc/agentic-workflow-profiling/metagpt
+╭───────────────────── Traceback (most recent call last) ──────────────────────╮
+│ /users/alanuiuc/agentic-workflow-profiling/metagpt/.venv/bin/metagpt:10 in   │
+│ <module>                                                                     │
+│                                                                              │
+│    7 │   │   sys.argv[0] = sys.argv[0][:-11]                                 │
+│    8 │   elif sys.argv[0].endswith(".exe"):                                  │
+│    9 │   │   sys.argv[0] = sys.argv[0][:-4]                                  │
+│ ❱ 10 │   sys.exit(app())                                                     │
+│   11                                                                         │
+│                                                                              │
+│ /users/alanuiuc/agentic-workflow-profiling/metagpt/.venv/lib/python3.10/site │
+│ -packages/typer/main.py:328 in __call__                                      │
+│                                                                              │
+│ /users/alanuiuc/agentic-workflow-profiling/metagpt/.venv/lib/python3.10/site │
+│ -packages/typer/main.py:311 in __call__                                      │
+│                                                                              │
+│ /users/alanuiuc/agentic-workflow-profiling/metagpt/.venv/lib/python3.10/site │
+│ -packages/typer/main.py:364 in get_command                                   │
+│                                                                              │
+│ /users/alanuiuc/agentic-workflow-profiling/metagpt/.venv/lib/python3.10/site │
+│ -packages/typer/main.py:577 in get_command_from_info                         │
+│                                                                              │
+│ /users/alanuiuc/agentic-workflow-profiling/metagpt/.venv/lib/python3.10/site │
+│ -packages/typer/main.py:553 in                                               │
+│ get_params_convertors_ctx_param_name_from_function                           │
+│                                                                              │
+│ /users/alanuiuc/agentic-workflow-profiling/metagpt/.venv/lib/python3.10/site │
+│ -packages/typer/main.py:877 in get_click_param                               │
+│                                                                              │
+│ /users/alanuiuc/agentic-workflow-profiling/metagpt/.venv/lib/python3.10/site │
+│ -packages/typer/core.py:489 in __init__                                      │
+│                                                                              │
+│ /users/alanuiuc/agentic-workflow-profiling/metagpt/.venv/lib/python3.10/site │
+│ -packages/click/core.py:3030 in __init__                                     │
+│                                                                              │
+│ /users/alanuiuc/agentic-workflow-profiling/metagpt/.venv/lib/python3.10/site │
+│ -packages/click/core.py:3163 in _validate                                    │
+╰──────────────────────────────────────────────────────────────────────────────╯
+TypeError: Secondary flag is not valid for non-boolean flag.

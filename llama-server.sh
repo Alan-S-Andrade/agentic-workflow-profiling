@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LLAMA_DIR="${LLAMA_CPP_DIR:-$ROOT/.tools/llama.cpp}"
 MODEL="${LLAMA_MODEL:-$ROOT/.models/Llama-3.2-3B-Instruct-Q4_K_M.gguf}"
-PORT="${LLAMA_PORT:-18080}"
+PORT="${LLAMA_PORT:-8080}"
 
 if [[ ! -x "$LLAMA_DIR/build/bin/llama-server" && ! -x "$LLAMA_DIR/build/bin/llama-server.exe" ]]; then
   command -v git >/dev/null || { echo "git is required" >&2; exit 1; }

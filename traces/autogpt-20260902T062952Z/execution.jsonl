@@ -1,0 +1,2 @@
+{"kind":"execution_node","span_id":"4baee0c8f5294b59b81d9c574ca94046","parent_span_id":null,"node_type":"workflow","name":"autogpt/classic","pid":21358,"thread_id":140494683414976,"started_at":1788330593.0195544,"event":"start"}
+{"kind":"execution_node","span_id":"4baee0c8f5294b59b81d9c574ca94046","parent_span_id":null,"node_type":"workflow","name":"autogpt/classic","pid":21358,"thread_id":140494683414976,"started_at":1788330593.0195544,"event":"end","ended_at":1788330769.72652,"duration_ms":176706.957,"cpu_ms":9138.572,"status":"ok"}

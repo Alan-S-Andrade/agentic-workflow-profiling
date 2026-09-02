@@ -1,0 +1,7 @@
+flowchart LR
+  5136a733931c4efd847a1cda3f326b13["workflow: metagpt (38331.875 ms)"]
+  629602ff57fe499fb0941a82e668e277["llm: /v1/chat/completions (22788.222 ms)"]
+  aa1d02d5aecd49d1a5710b8a4f81e323["llm: /v1/chat/completions (11660.070 ms)"]
+  5136a733931c4efd847a1cda3f326b13 -.->|contains| 629602ff57fe499fb0941a82e668e277
+  5136a733931c4efd847a1cda3f326b13 -.->|contains| aa1d02d5aecd49d1a5710b8a4f81e323
+  629602ff57fe499fb0941a82e668e277 -.->|temporal| aa1d02d5aecd49d1a5710b8a4f81e323

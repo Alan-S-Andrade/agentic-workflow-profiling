@@ -1,0 +1,103 @@
+{
+  "nodes": [
+    {
+      "id": "55e99e0504e94a31a65553543bb773a7",
+      "kind": "execution_node",
+      "node_type": "agent",
+      "name": "browser-use.agent_loop",
+      "started_at": 1788332647.849555,
+      "ended_at": 1788332790.242211,
+      "duration_ms": 142392.656,
+      "cpu_ms": 10459.798,
+      "peak_rss_bytes": 224894976
+    },
+    {
+      "id": "65d9692cd83d4840a36eb46431114d29",
+      "kind": "llm",
+      "node_type": "llm",
+      "name": "/v1/chat/completions",
+      "started_at": 1788332651.2448664,
+      "ended_at": 1788332686.6775444,
+      "duration_ms": 35432.678,
+      "cpu_ms": null,
+      "peak_rss_bytes": null
+    },
+    {
+      "id": "b8f9c51349d345fb882c2ea82c5efa11",
+      "kind": "llm",
+      "node_type": "llm",
+      "name": "/v1/chat/completions",
+      "started_at": 1788332686.844514,
+      "ended_at": 1788332719.745972,
+      "duration_ms": 32901.458,
+      "cpu_ms": null,
+      "peak_rss_bytes": null
+    },
+    {
+      "id": "6ae6bebcd1134003bb6f879a9df49845",
+      "kind": "llm",
+      "node_type": "llm",
+      "name": "/v1/chat/completions",
+      "started_at": 1788332719.8684378,
+      "ended_at": 1788332748.0433278,
+      "duration_ms": 28174.89,
+      "cpu_ms": null,
+      "peak_rss_bytes": null
+    },
+    {
+      "id": "3d792b73c0d54e29a14231cbbfdfb41d",
+      "kind": "llm",
+      "node_type": "llm",
+      "name": "/v1/chat/completions",
+      "started_at": 1788332748.0627224,
+      "ended_at": 1788332789.8794894,
+      "duration_ms": 41816.767,
+      "cpu_ms": null,
+      "peak_rss_bytes": null
+    }
+  ],
+  "edges": [
+    {
+      "source": "55e99e0504e94a31a65553543bb773a7",
+      "target": "65d9692cd83d4840a36eb46431114d29",
+      "type": "contains",
+      "recorded": false
+    },
+    {
+      "source": "55e99e0504e94a31a65553543bb773a7",
+      "target": "b8f9c51349d345fb882c2ea82c5efa11",
+      "type": "contains",
+      "recorded": false
+    },
+    {
+      "source": "55e99e0504e94a31a65553543bb773a7",
+      "target": "6ae6bebcd1134003bb6f879a9df49845",
+      "type": "contains",
+      "recorded": false
+    },
+    {
+      "source": "55e99e0504e94a31a65553543bb773a7",
+      "target": "3d792b73c0d54e29a14231cbbfdfb41d",
+      "type": "contains",
+      "recorded": false
+    },
+    {
+      "source": "65d9692cd83d4840a36eb46431114d29",
+      "target": "b8f9c51349d345fb882c2ea82c5efa11",
+      "type": "temporal",
+      "recorded": false
+    },
+    {
+      "source": "b8f9c51349d345fb882c2ea82c5efa11",
+      "target": "6ae6bebcd1134003bb6f879a9df49845",
+      "type": "temporal",
+      "recorded": false
+    },
+    {
+      "source": "6ae6bebcd1134003bb6f879a9df49845",
+      "target": "3d792b73c0d54e29a14231cbbfdfb41d",
+      "type": "temporal",
+      "recorded": false
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+flowchart LR
+  22e83b4b94964eb7be57d926bfa85d97["agent: gpt-researcher.conduct_research (44227.482 ms)"]
+  7a51cd962ea74e1eb76a813570dbf1ca["llm: /v1/chat/completions (2642.112 ms)"]
+  8145f868d5f441d5ad50cf5799b304d5["llm: /v1/chat/completions (25666.826 ms)"]
+  22e83b4b94964eb7be57d926bfa85d97 -.->|contains| 7a51cd962ea74e1eb76a813570dbf1ca
+  22e83b4b94964eb7be57d926bfa85d97 -.->|contains| 8145f868d5f441d5ad50cf5799b304d5
+  7a51cd962ea74e1eb76a813570dbf1ca -.->|temporal| 8145f868d5f441d5ad50cf5799b304d5

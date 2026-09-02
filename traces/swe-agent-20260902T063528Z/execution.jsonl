@@ -1,0 +1,2 @@
+{"kind":"execution_node","span_id":"41f6d0ef14e9463485565fa07cd039b3","parent_span_id":null,"node_type":"workflow","name":"swe-agent","pid":21792,"thread_id":140007118062016,"started_at":1788330928.244679,"event":"start"}
+{"kind":"execution_node","span_id":"41f6d0ef14e9463485565fa07cd039b3","parent_span_id":null,"node_type":"workflow","name":"swe-agent","pid":21792,"thread_id":140007118062016,"started_at":1788330928.244679,"event":"end","ended_at":1788330932.5613353,"duration_ms":4316.648,"cpu_ms":9980.284,"status":"ok"}

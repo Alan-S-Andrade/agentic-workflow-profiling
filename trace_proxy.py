@@ -7,6 +7,7 @@ import os
 import time
 import urllib.error
 import urllib.request
+import uuid
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from threading import Lock
@@ -24,6 +25,7 @@ class Handler(BaseHTTPRequestHandler):
     def _forward(self) -> None:
         started_wall = time.time()
         started_ns = time.perf_counter_ns()
+        request_id = uuid.uuid4().hex
         body = self.rfile.read(int(self.headers.get("content-length", "0")))
         model = None
         try:
@@ -53,6 +55,9 @@ class Handler(BaseHTTPRequestHandler):
             ended_ns = time.perf_counter_ns()
             event = {
                 "kind": "llm",
+                "event": "end",
+                "span_id": request_id,
+                "request_id": request_id,
                 "started_at": started_wall,
                 "duration_ms": round((ended_ns - started_ns) / 1_000_000, 3),
                 "method": self.command,

@@ -1,0 +1,26 @@
+Failed to import MCPRetriever: No module named 'langchain_mcp_adapters'
+Traceback (most recent call last):
+  File "/users/alanuiuc/agentic-workflow-profiling/run.py", line 171, in <module>
+    main()
+  File "/users/alanuiuc/agentic-workflow-profiling/run.py", line 142, in main
+    run_research(task)
+  File "/users/alanuiuc/agentic-workflow-profiling/run.py", line 62, in run_research
+    asyncio.run(main())
+  File "/users/alanuiuc/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/asyncio/runners.py", line 190, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "/users/alanuiuc/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/users/alanuiuc/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/asyncio/base_events.py", line 654, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "/users/alanuiuc/agentic-workflow-profiling/run.py", line 58, in main
+    researcher = GPTResearcher(query=query)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/users/alanuiuc/agentic-workflow-profiling/gpt-researcher/gpt_researcher/agent.py", line 177, in __init__
+    self.memory = Memory(
+                  ^^^^^^^
+  File "/users/alanuiuc/agentic-workflow-profiling/gpt-researcher/gpt_researcher/memory/embeddings.py", line 165, in __init__
+    from langchain_huggingface import HuggingFaceEmbeddings
+ModuleNotFoundError: No module named 'langchain_huggingface'

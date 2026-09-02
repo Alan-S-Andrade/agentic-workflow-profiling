@@ -13,5 +13,6 @@ __pycache__/
 /metagpt/
 /openhands/
 /swe-agent/
+/speculative-tools/
 /swe-smoke-target/
 /swe-default-target/

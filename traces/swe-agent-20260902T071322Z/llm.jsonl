@@ -1,0 +1,2 @@
+{"kind":"llm","event":"end","span_id":"a85bad0243c64391abb02279d2f8d152","request_id":"a85bad0243c64391abb02279d2f8d152","started_at":1788333209.4692469,"duration_ms":76303.709,"method":"POST","path":"/v1/chat/completions","model":"local-llama","status":200}
+{"kind":"llm","event":"end","span_id":"de6d64ad987b4806b3c59dfa04cffe56","request_id":"de6d64ad987b4806b3c59dfa04cffe56","started_at":1788333285.8032768,"duration_ms":75344.954,"method":"POST","path":"/v1/chat/completions","model":"local-llama","status":200}

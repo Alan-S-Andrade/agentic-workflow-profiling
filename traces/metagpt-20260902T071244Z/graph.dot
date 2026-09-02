@@ -1,0 +1,9 @@
+digraph workflow {
+  rankdir=LR;
+  "5136a733931c4efd847a1cda3f326b13" [label="workflow: metagpt\\n38331.875 ms"];
+  "629602ff57fe499fb0941a82e668e277" [label="llm: /v1/chat/completions\\n22788.222 ms"];
+  "aa1d02d5aecd49d1a5710b8a4f81e323" [label="llm: /v1/chat/completions\\n11660.070 ms"];
+  "5136a733931c4efd847a1cda3f326b13" -> "629602ff57fe499fb0941a82e668e277" [label="contains" [style=dashed,color=gray]];
+  "5136a733931c4efd847a1cda3f326b13" -> "aa1d02d5aecd49d1a5710b8a4f81e323" [label="contains" [style=dashed,color=gray]];
+  "629602ff57fe499fb0941a82e668e277" -> "aa1d02d5aecd49d1a5710b8a4f81e323" [label="temporal" [style=dashed,color=gray]];
+}

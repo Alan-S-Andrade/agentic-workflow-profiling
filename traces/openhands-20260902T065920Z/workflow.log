@@ -1,0 +1,316 @@
+
+[36m[1mAgent Canvas (Static)[0m
+
+[36m[1/2][0m Checking prerequisites...
+[32m✓[0m uvx found
+[36m[ports][0m Checking ports...
+[36m[2/2][0m Starting services...
+[2m06:59:20[0m [34m[agent-server][0m Starting on port 18000...
+[2m06:59:20[0m [2m[agent-server][0m Using PyPI (1.44.0, default)
+[2m06:59:24[0m [33m[agent-server][0m +----------------------------------------------------------------------+
+[2m06:59:24[0m [33m[agent-server][0m |  OpenHands SDK v1.44.0                                               |
+[2m06:59:24[0m [33m[agent-server][0m |                                                                      |
+[2m06:59:24[0m [33m[agent-server][0m |  Report a bug: github.com/OpenHands/software-agent-sdk/issues        |
+[2m06:59:24[0m [33m[agent-server][0m |  Get help: openhands.dev/joinslack                                   |
+[2m06:59:24[0m [33m[agent-server][0m |  Scale up: openhands.dev/product/sdk                                 |
+[2m06:59:24[0m [33m[agent-server][0m |                                                                      |
+[2m06:59:24[0m [33m[agent-server][0m |  Set OPENHANDS_SUPPRESS_BANNER=1 to hide this message                |
+[2m06:59:24[0m [33m[agent-server][0m +----------------------------------------------------------------------+
+[2m06:59:24[0m [34m[agent-server][0m INFO     Added to sys.path: /users/alanuiuc/agentic-workflow-profiling/.tools/openhands/node_modules/@openhands/agent-canvas/tools  __main__.py:103
+[2m06:59:24[0m [34m[agent-server][0m INFO     Extended sys.path with 1 directory for custom tool imports  __main__.py:107
+[2m06:59:24[0m [34m[agent-server][0m INFO     Imported module: canvas_ui_tool  __main__.py:128
+[2m06:59:24[0m [33m[agent-server][0m WARNING  Current configuration will not reload as not all conditions are met, please refer to documentation.  config.py:305
+[2m06:59:24[0m [34m[agent-server][0m INFO     Registered file-based agent 'bash-runner' from /users/alanuiuc/.cache/uv/archive-v0/xC6tDFc0TiI42AaP/lib/python3.12/site-packages/openhands/tools/preset/subagents/bash_runner.md  default.py:167
+[2m06:59:24[0m [34m[agent-server][0m INFO     Registered file-based agent 'code-explorer' from /users/alanuiuc/.cache/uv/archive-v0/xC6tDFc0TiI42AaP/lib/python3.12/site-packages/openhands/tools/preset/subagents/code_explorer.md  default.py:167
+[2m06:59:24[0m [34m[agent-server][0m INFO     Registered file-based agent 'general-purpose' from /users/alanuiuc/.cache/uv/archive-v0/xC6tDFc0TiI42AaP/lib/python3.12/site-packages/openhands/tools/preset/subagents/default.md  default.py:167
+[2m06:59:24[0m [34m[agent-server][0m INFO     Registered file-based agent 'web-researcher' from /users/alanuiuc/.cache/uv/archive-v0/xC6tDFc0TiI42AaP/lib/python3.12/site-packages/openhands/tools/preset/subagents/web_researcher.md  default.py:167
+[2m06:59:24[0m [34m[agent-server][0m INFO     Started server process [24979]  server.py:94
+[2m06:59:24[0m [34m[agent-server][0m INFO     Waiting for application startup.  on.py:48
+[2m06:59:25[0m [34m[agent-server][0m INFO     Telemetry initialised: exporter=posthog enabled=False (default)  service.py:154
+[2m06:59:25[0m [34m[agent-server][0m INFO     VNC desktop is disabled in configuration  desktop_service.py:219
+[2m06:59:25[0m [33m[agent-server][0m WARNING  VSCode server binary not found, VSCode will be disabled  vscode_service.py:48
+[2m06:59:25[0m [33m[agent-server][0m WARNING  VSCode service failed to start, continuing without VSCode  api.py:180
+[2m06:59:25[0m [34m[agent-server][0m INFO     Desktop service is disabled  api.py:196
+[2m06:59:25[0m [34m[agent-server][0m INFO     Chromium is available for browser operations at /users/alanuiuc/.cache/ms-playwright/chromium-1234/chrome-linux64/chrome  impl.py:291
+[2m06:59:25[0m [31m[agent-server][0m ERROR    Error preloading chromium  tool_preload_service.py:43
+[2m06:59:25[0m [33m[agent-server][0m WARNING  Tool preload service failed to start - skipping  api.py:204
+[2m06:59:25[0m [34m[agent-server][0m INFO     Server initialization complete - ready to serve requests  api.py:270
+[2m06:59:25[0m [34m[agent-server][0m INFO     Application startup complete.  on.py:62
+[2m06:59:25[0m [34m[agent-server][0m INFO     Uvicorn running on http://127.0.0.1:18000 (Press CTRL+C to quit)  server.py:225
+[2m06:59:25[0m [34m[agent-server][0m INFO     127.0.0.1:60770 - "GET /server_info HTTP/1.1" 200
+[2m06:59:25[0m [32m[agent-server][0m Ready at http://127.0.0.1:18000/server_info
+[2m06:59:25[0m [2m[secrets][0m Seeding OPENHANDS_AUTOMATION_API_KEY into agent-server...
+[2m06:59:26[0m [34m[agent-server][0m INFO     Secret created/updated  settings_router.py:522
+[2m06:59:26[0m [34m[agent-server][0m INFO     127.0.0.1:60782 - "PUT /api/settings/secrets HTTP/1.1" 200
+[2m06:59:26[0m [32m[secrets][0m OPENHANDS_AUTOMATION_API_KEY seeded successfully
+[2m06:59:26[0m [32m[automation][0m Starting on port 18001...
+[2m06:59:26[0m [2m[automation][0m Using PyPI (1.9.0, default)
+[2m06:59:26[0m [35m[static][0m Starting on port 3001...
+[2m06:59:26[0m [2m[static][0m Serving from: /users/alanuiuc/agentic-workflow-profiling/.tools/openhands/node_modules/@openhands/agent-canvas/build
+[2m06:59:26[0m [35m[static][0m Static-server + proxy listening on http://:::3001/
+[2m06:59:26[0m [35m[static][0m Static dir: /users/alanuiuc/agentic-workflow-profiling/.tools/openhands/node_modules/@openhands/agent-canvas/build
+[2m06:59:26[0m [35m[static][0m Base path: /
+[2m06:59:26[0m [35m[static][0m /api/automation -> http://127.0.0.1:18001
+[2m06:59:26[0m [35m[static][0m /openapi.json -> http://127.0.0.1:18000
+[2m06:59:26[0m [35m[static][0m /server_info -> http://127.0.0.1:18000
+[2m06:59:26[0m [35m[static][0m /sockets -> http://127.0.0.1:18000
+[2m06:59:26[0m [35m[static][0m /health -> http://127.0.0.1:18000
+[2m06:59:26[0m [35m[static][0m /vscode -> http://127.0.0.1:19000
+[2m06:59:26[0m [35m[static][0m /ready -> http://127.0.0.1:18000
+[2m06:59:26[0m [35m[static][0m /alive -> http://127.0.0.1:18000
+[2m06:59:26[0m [35m[static][0m /redoc -> http://127.0.0.1:18000
+[2m06:59:26[0m [35m[static][0m /docs -> http://127.0.0.1:18000
+[2m06:59:26[0m [35m[static][0m /api -> http://127.0.0.1:18000
+[2m06:59:26[0m [35m[static][0m * (default) -> static files + SPA fallback
+[2m06:59:26[0m [33m[automation][0m warning: An executable named `uvicorn` is not provided by package `openhands-automation` but is available via the dependency `uvicorn`. Consider using `uvx --from uvicorn uvicorn` instead.
+[2m06:59:28[0m [33m[ingress][0m Starting on port 8000...
+[2m06:59:28[0m [33m[ingress][0m ╔═══════════════════════════════════════════════════════════════╗
+[2m06:59:28[0m [33m[ingress][0m ║  Ingress Proxy                                                ║
+[2m06:59:28[0m [33m[ingress][0m ╠═══════════════════════════════════════════════════════════════╣
+[2m06:59:28[0m [33m[ingress][0m ║  Listening on: http://localhost:8000/                           ║
+[2m06:59:28[0m [33m[ingress][0m ╠═══════════════════════════════════════════════════════════════╣
+[2m06:59:28[0m [33m[ingress][0m ║  Routes:                                                      ║
+[2m06:59:28[0m [33m[ingress][0m ║      /api/automation → http://127.0.0.1:18001                 ║
+[2m06:59:28[0m [33m[ingress][0m ║      /openapi.json → http://127.0.0.1:18000                   ║
+[2m06:59:28[0m [33m[ingress][0m ║      /server_info → http://127.0.0.1:18000                    ║
+[2m06:59:28[0m [33m[ingress][0m ║      /sockets → http://127.0.0.1:18000                        ║
+[2m06:59:28[0m [33m[ingress][0m ║      /health → http://127.0.0.1:18000                         ║
+[2m06:59:28[0m [33m[ingress][0m ║      /vscode → http://127.0.0.1:19000                         ║
+[2m06:59:28[0m [33m[ingress][0m ║      /ready → http://127.0.0.1:18000                          ║
+[2m06:59:28[0m [33m[ingress][0m ║      /alive → http://127.0.0.1:18000                          ║
+[2m06:59:28[0m [33m[ingress][0m ║      /redoc → http://127.0.0.1:18000                          ║
+[2m06:59:28[0m [33m[ingress][0m ║      /docs → http://127.0.0.1:18000                           ║
+[2m06:59:28[0m [33m[ingress][0m ║      /api → http://127.0.0.1:18000                            ║
+[2m06:59:28[0m [33m[ingress][0m ║      * (default) → http://localhost:3001                      ║
+[2m06:59:28[0m [33m[ingress][0m ║                                                               ║
+[2m06:59:28[0m [33m[ingress][0m ╚═══════════════════════════════════════════════════════════════╝
+
+[32m[1m╔══════════════════════════════════════════════════════════════╗[0m
+[32m[1m║[0m  [1mAgent Canvas + Automation Stack[0m                             [32m[1m║[0m
+[32m[1m╠══════════════════════════════════════════════════════════════╣[0m
+[32m[1m║[0m                                                              [32m[1m║[0m
+[32m[1m║[0m  Ingress:      [36mhttp://localhost:8000/[0m                        [32m[1m║[0m
+[32m[1m║[0m  Main UI:      [36mhttp://localhost:8000/[0m                        [32m[1m║[0m
+[32m[1m║[0m  API Docs:     [36mhttp://localhost:8000/api/automation/docs[0m     [32m[1m║[0m
+[32m[1m║[0m                                                              [32m[1m║[0m
+[32m[1m╚══════════════════════════════════════════════════════════════╝[0m
+
+[2mState directory: /users/alanuiuc/.openhands/agent-canvas[0m
+[2mPress Ctrl+C to stop[0m
+
+OpenHands Agent Canvas is ready at http://localhost:8000
+[2m06:59:30[0m [32m[automation][0m {"message": "Started server process [25019]", "severity": "INFO", "color_message": "Started server process [\u001b[36m25019\u001b[0m]"}
+[2m06:59:30[0m [32m[automation][0m {"message": "Waiting for application startup.", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "Starting OpenHands Automations Service", "severity": "INFO", "kv_store_configured": true}
+[2m06:59:30[0m [32m[automation][0m {"message": "Created SQLite engine: sqlite+aiosqlite:////users/alanuiuc/.openhands/automation/automations.db", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "setup plugin alembic.autogenerate.schemas", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "setup plugin alembic.autogenerate.tables", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "setup plugin alembic.autogenerate.types", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "setup plugin alembic.autogenerate.constraints", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "setup plugin alembic.autogenerate.defaults", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "setup plugin alembic.autogenerate.comments", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "setup plugin alembic.autogenerate.checkconstraint_byname", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "Context impl SQLiteImpl.", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "Will assume non-transactional DDL.", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "SQLite database migrations applied successfully", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "Background scheduler started", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "Background dispatcher started", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "Background watchdog started", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "Background git sync started", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "Scheduler started, polling every 60 seconds (batch_size=50)", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "Dispatcher started, polling every 10 seconds (batch_size=10)", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(Automation|automations) _post_configure_properties() started", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(Automation|automations) initialize prop runs", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "Automation.runs setup primary join automations.id = automation_runs.automation_id", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "Automation.runs setup secondary join None", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "Automation.runs synchronize pairs [(automations.id => automation_runs.automation_id)]", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "Automation.runs secondary synchronize pairs []", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "Automation.runs local/remote pairs [(automations.id / automation_runs.automation_id)]", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "Automation.runs remote columns [automation_runs.automation_id]", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "Automation.runs local columns [automations.id]", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "Automation.runs relationship direction RelationshipDirection.ONETOMANY", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "Automation.runs lazy loading clause :param_1 = automation_runs.automation_id", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(Automation|automations) initialize prop disable_events", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "Automation.disable_events setup primary join automations.id = automation_disable_events.automation_id", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "Automation.disable_events setup secondary join None", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "Automation.disable_events synchronize pairs [(automations.id => automation_disable_events.automation_id)]", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "Automation.disable_events secondary synchronize pairs []", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "Automation.disable_events local/remote pairs [(automations.id / automation_disable_events.automation_id)]", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "Automation.disable_events remote columns [automation_disable_events.automation_id]", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "Automation.disable_events local columns [automations.id]", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "Automation.disable_events relationship direction RelationshipDirection.ONETOMANY", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "Automation.disable_events lazy loading clause :param_1 = automation_disable_events.automation_id", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(Automation|automations) initialize prop id", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(Automation|automations) initialize prop user_id", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(Automation|automations) initialize prop org_id", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(Automation|automations) initialize prop name", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(Automation|automations) initialize prop telemetry_distinct_id", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(Automation|automations) initialize prop prompt", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(Automation|automations) initialize prop preset_metadata", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(Automation|automations) initialize prop model", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(Automation|automations) initialize prop trigger", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(Automation|automations) initialize prop tarball_path", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(Automation|automations) initialize prop setup_script_path", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(Automation|automations) initialize prop entrypoint", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(Automation|automations) initialize prop timeout", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(Automation|automations) initialize prop keep_alive", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(Automation|automations) initialize prop enabled", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(Automation|automations) initialize prop disabled_reason", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(Automation|automations) initialize prop disabled_detail", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(Automation|automations) initialize prop disabled_at", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(Automation|automations) initialize prop deleted_at", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(Automation|automations) initialize prop last_triggered_at", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(Automation|automations) initialize prop last_polled_at", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(Automation|automations) initialize prop created_at", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(Automation|automations) initialize prop updated_at", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(Automation|automations) _post_configure_properties() complete", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(AutomationRun|automation_runs) _post_configure_properties() started", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(AutomationRun|automation_runs) initialize prop automation", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "AutomationRun.automation setup primary join automations.id = automation_runs.automation_id", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "AutomationRun.automation setup secondary join None", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "AutomationRun.automation synchronize pairs [(automations.id => automation_runs.automation_id)]", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "AutomationRun.automation secondary synchronize pairs []", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "AutomationRun.automation local/remote pairs [(automation_runs.automation_id / automations.id)]", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "AutomationRun.automation remote columns [automations.id]", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "AutomationRun.automation local columns [automation_runs.automation_id]", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "AutomationRun.automation relationship direction RelationshipDirection.MANYTOONE", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "AutomationRun.automation lazy loading clause automations.id = :param_1", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "AutomationRun.automation will use Session.get() to optimize instance loads", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(AutomationRun|automation_runs) initialize prop id", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(AutomationRun|automation_runs) initialize prop automation_id", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(AutomationRun|automation_runs) initialize prop telemetry_distinct_id", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(AutomationRun|automation_runs) initialize prop status", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(AutomationRun|automation_runs) initialize prop error_detail", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(AutomationRun|automation_runs) initialize prop status_detail", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(AutomationRun|automation_runs) initialize prop current_phase", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(AutomationRun|automation_runs) initialize prop conversation_id", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(AutomationRun|automation_runs) initialize prop cost", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(AutomationRun|automation_runs) initialize prop timeout_at", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(AutomationRun|automation_runs) initialize prop sandbox_id", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(AutomationRun|automation_runs) initialize prop bash_command_id", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(AutomationRun|automation_runs) initialize prop event_payload", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(AutomationRun|automation_runs) initialize prop run_metadata", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(AutomationRun|automation_runs) initialize prop created_at", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(AutomationRun|automation_runs) initialize prop started_at", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(AutomationRun|automation_runs) initialize prop completed_at", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(AutomationRun|automation_runs) _post_configure_properties() complete", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(AutomationDisableEvent|automation_disable_events) _post_configure_properties() started", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(AutomationDisableEvent|automation_disable_events) initialize prop automation", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "AutomationDisableEvent.automation setup primary join automations.id = automation_disable_events.automation_id", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "AutomationDisableEvent.automation setup secondary join None", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "AutomationDisableEvent.automation synchronize pairs [(automations.id => automation_disable_events.automation_id)]", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "AutomationDisableEvent.automation secondary synchronize pairs []", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "AutomationDisableEvent.automation local/remote pairs [(automation_disable_events.automation_id / automations.id)]", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "AutomationDisableEvent.automation remote columns [automations.id]", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "AutomationDisableEvent.automation local columns [automation_disable_events.automation_id]", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "AutomationDisableEvent.automation relationship direction RelationshipDirection.MANYTOONE", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "AutomationDisableEvent.automation lazy loading clause automations.id = :param_1", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "AutomationDisableEvent.automation will use Session.get() to optimize instance loads", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(AutomationDisableEvent|automation_disable_events) initialize prop run", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "AutomationDisableEvent.run setup primary join automation_runs.id = automation_disable_events.run_id", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "AutomationDisableEvent.run setup secondary join None", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "AutomationDisableEvent.run synchronize pairs [(automation_runs.id => automation_disable_events.run_id)]", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "AutomationDisableEvent.run secondary synchronize pairs []", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "AutomationDisableEvent.run local/remote pairs [(automation_disable_events.run_id / automation_runs.id)]", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "AutomationDisableEvent.run remote columns [automation_runs.id]", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "AutomationDisableEvent.run local columns [automation_disable_events.run_id]", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "AutomationDisableEvent.run relationship direction RelationshipDirection.MANYTOONE", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "AutomationDisableEvent.run lazy loading clause automation_runs.id = :param_1", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "AutomationDisableEvent.run will use Session.get() to optimize instance loads", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(AutomationDisableEvent|automation_disable_events) initialize prop id", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(AutomationDisableEvent|automation_disable_events) initialize prop automation_id", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(AutomationDisableEvent|automation_disable_events) initialize prop run_id", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(AutomationDisableEvent|automation_disable_events) initialize prop reason", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(AutomationDisableEvent|automation_disable_events) initialize prop detail", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(AutomationDisableEvent|automation_disable_events) initialize prop source", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(AutomationDisableEvent|automation_disable_events) initialize prop created_at", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(AutomationDisableEvent|automation_disable_events) _post_configure_properties() complete", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(TarballUpload|tarball_uploads) _post_configure_properties() started", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(TarballUpload|tarball_uploads) initialize prop id", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(TarballUpload|tarball_uploads) initialize prop user_id", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(TarballUpload|tarball_uploads) initialize prop org_id", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(TarballUpload|tarball_uploads) initialize prop name", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(TarballUpload|tarball_uploads) initialize prop description", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(TarballUpload|tarball_uploads) initialize prop status", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(TarballUpload|tarball_uploads) initialize prop error_message", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(TarballUpload|tarball_uploads) initialize prop size_bytes", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(TarballUpload|tarball_uploads) initialize prop storage_path", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(TarballUpload|tarball_uploads) initialize prop created_at", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(TarballUpload|tarball_uploads) initialize prop updated_at", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(TarballUpload|tarball_uploads) initialize prop deleted_at", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(TarballUpload|tarball_uploads) _post_configure_properties() complete", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(CustomWebhook|custom_webhooks) _post_configure_properties() started", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(CustomWebhook|custom_webhooks) initialize prop id", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(CustomWebhook|custom_webhooks) initialize prop org_id", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(CustomWebhook|custom_webhooks) initialize prop name", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(CustomWebhook|custom_webhooks) initialize prop source", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(CustomWebhook|custom_webhooks) initialize prop webhook_secret", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(CustomWebhook|custom_webhooks) initialize prop enabled", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(CustomWebhook|custom_webhooks) initialize prop event_key_expr", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(CustomWebhook|custom_webhooks) initialize prop signature_header", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(CustomWebhook|custom_webhooks) initialize prop signature_scheme", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(CustomWebhook|custom_webhooks) initialize prop created_at", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(CustomWebhook|custom_webhooks) initialize prop updated_at", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(CustomWebhook|custom_webhooks) _post_configure_properties() complete", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(IntegrationEvent|integration_events) _post_configure_properties() started", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(IntegrationEvent|integration_events) initialize prop id", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(IntegrationEvent|integration_events) initialize prop org_id", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(IntegrationEvent|integration_events) initialize prop source", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(IntegrationEvent|integration_events) initialize prop provider_event_id", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(IntegrationEvent|integration_events) initialize prop event_key", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(IntegrationEvent|integration_events) initialize prop payload", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(IntegrationEvent|integration_events) initialize prop matched_count", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(IntegrationEvent|integration_events) initialize prop received_at", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(IntegrationEvent|integration_events) _post_configure_properties() complete", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(AutomationServiceMetadata|automation_service_metadata) _post_configure_properties() started", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(AutomationServiceMetadata|automation_service_metadata) initialize prop key", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(AutomationServiceMetadata|automation_service_metadata) initialize prop value", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(AutomationServiceMetadata|automation_service_metadata) initialize prop created_at", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(AutomationServiceMetadata|automation_service_metadata) initialize prop updated_at", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(AutomationServiceMetadata|automation_service_metadata) _post_configure_properties() complete", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(AutomationKV|automation_kv) _post_configure_properties() started", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(AutomationKV|automation_kv) initialize prop id", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(AutomationKV|automation_kv) initialize prop automation_id", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(AutomationKV|automation_kv) initialize prop state_encrypted", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(AutomationKV|automation_kv) initialize prop created_at", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(AutomationKV|automation_kv) initialize prop updated_at", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(AutomationKV|automation_kv) _post_configure_properties() complete", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(AutomationGitSyncState|automation_git_sync_state) _post_configure_properties() started", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(AutomationGitSyncState|automation_git_sync_state) initialize prop automation_id", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(AutomationGitSyncState|automation_git_sync_state) initialize prop slug", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(AutomationGitSyncState|automation_git_sync_state) initialize prop content_hash", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(AutomationGitSyncState|automation_git_sync_state) initialize prop last_synced_commit", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(AutomationGitSyncState|automation_git_sync_state) initialize prop last_synced_at", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(AutomationGitSyncState|automation_git_sync_state) initialize prop dirty", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(AutomationGitSyncState|automation_git_sync_state) initialize prop created_at", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(AutomationGitSyncState|automation_git_sync_state) initialize prop updated_at", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "(AutomationGitSyncState|automation_git_sync_state) _post_configure_properties() complete", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "Watchdog started, scanning every 60s", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "Git sync loop started (repo= branch=main path=automations); interval is set from the UI, 0 means manual-only", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "Application startup complete.", "severity": "INFO"}
+[2m06:59:30[0m [32m[automation][0m {"message": "Uvicorn running on http://127.0.0.1:18001 (Press CTRL+C to quit)", "severity": "INFO", "color_message": "Uvicorn running on \u001b[1mhttp://127.0.0.1:18001\u001b[0m (Press CTRL+C to quit)"}
+
+[33mShutting down...[0m
+[2m07:00:05[0m [2m[agent-server][0m Stopping...
+[2m07:00:05[0m [2m[automation][0m Stopping...
+[2m07:00:05[0m [2m[static][0m Stopping...
+[2m07:00:05[0m [2m[ingress][0m Stopping...
+[2m07:00:05[0m [34m[agent-server][0m INFO     Received signal SIGTERM (15), shutting down...  __main__.py:186
+[2m07:00:05[0m [34m[agent-server][0m INFO     Received signal SIGTERM (15), shutting down...  __main__.py:186
+[2m07:00:05[0m [33m[ingress][0m Shutting down...
+[2m07:00:05[0m [32m[automation][0m {"message": "Shutting down", "severity": "INFO"}
+[2m07:00:05[0m [34m[agent-server][0m INFO     Shutting down  server.py:273
+[2m07:00:05[0m [32m[automation][0m {"message": "Waiting for application shutdown.", "severity": "INFO"}
+[2m07:00:05[0m [32m[automation][0m {"message": "Shutting down background tasks...", "severity": "INFO"}
+[2m07:00:05[0m [32m[automation][0m {"message": "Scheduler received shutdown signal, exiting", "severity": "INFO"}
+[2m07:00:05[0m [32m[automation][0m {"message": "Watchdog received shutdown signal, exiting", "severity": "INFO"}
+[2m07:00:05[0m [32m[automation][0m {"message": "Dispatcher received shutdown signal, exiting", "severity": "INFO"}
+[2m07:00:05[0m [32m[automation][0m {"message": "Git sync received shutdown signal, exiting", "severity": "INFO"}
+[2m07:00:05[0m [32m[automation][0m {"message": "Pool disposed. Pool size: 5  Connections in pool: 0 Current Overflow: -5 Current Checked out connections: 0", "severity": "INFO"}
+[2m07:00:05[0m [32m[automation][0m {"message": "Pool recreating", "severity": "INFO"}
+[2m07:00:05[0m [32m[automation][0m {"message": "Automations service shut down", "severity": "INFO"}
+[2m07:00:05[0m [32m[automation][0m {"message": "Application shutdown complete.", "severity": "INFO"}
+[2m07:00:05[0m [32m[automation][0m {"message": "Finished server process [25019]", "severity": "INFO", "color_message": "Finished server process [\u001b[36m25019\u001b[0m]"}
+[2m07:00:05[0m [34m[agent-server][0m INFO     Waiting for application shutdown.  on.py:67
+[2m07:00:05[0m [34m[agent-server][0m INFO     Application shutdown complete.  on.py:76
+[2m07:00:05[0m [34m[agent-server][0m INFO     Finished server process [24979]  server.py:104

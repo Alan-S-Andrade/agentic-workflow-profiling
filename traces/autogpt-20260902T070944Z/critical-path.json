@@ -1,0 +1,57 @@
+{
+  "critical_path_duration_ms": 126658.565,
+  "steps": [
+    {
+      "kind": "llm",
+      "node_type": "llm",
+      "name": "/v1/models",
+      "duration_ms": 3.535,
+      "cpu_ms": null,
+      "rss_delta_bytes": null,
+      "peak_rss_bytes": null,
+      "process_peak_rss_bytes": null,
+      "children_peak_rss_bytes": null,
+      "python_net_allocated_bytes": null,
+      "started_at": 1788332986.0055826
+    },
+    {
+      "kind": "llm",
+      "node_type": "llm",
+      "name": "/v1/models",
+      "duration_ms": 1.592,
+      "cpu_ms": null,
+      "rss_delta_bytes": null,
+      "peak_rss_bytes": null,
+      "process_peak_rss_bytes": null,
+      "children_peak_rss_bytes": null,
+      "python_net_allocated_bytes": null,
+      "started_at": 1788332986.0243418
+    },
+    {
+      "kind": "llm",
+      "node_type": "llm",
+      "name": "/v1/models",
+      "duration_ms": 1.315,
+      "cpu_ms": null,
+      "rss_delta_bytes": null,
+      "peak_rss_bytes": null,
+      "process_peak_rss_bytes": null,
+      "children_peak_rss_bytes": null,
+      "python_net_allocated_bytes": null,
+      "started_at": 1788332986.0280004
+    },
+    {
+      "kind": "llm",
+      "node_type": "llm",
+      "name": "/v1/chat/completions",
+      "duration_ms": 126652.123,
+      "cpu_ms": null,
+      "rss_delta_bytes": null,
+      "peak_rss_bytes": null,
+      "process_peak_rss_bytes": null,
+      "children_peak_rss_bytes": null,
+      "python_net_allocated_bytes": null,
+      "started_at": 1788332986.177853
+    }
+  ]
+}

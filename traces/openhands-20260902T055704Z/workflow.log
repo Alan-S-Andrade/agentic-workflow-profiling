@@ -1,0 +1,12 @@
+Traceback (most recent call last):
+  File "/users/alanuiuc/agentic-workflow-profiling/run.py", line 171, in <module>
+    main()
+  File "/users/alanuiuc/agentic-workflow-profiling/run.py", line 165, in main
+    exec_in("openhands", str(ROOT / ".tools/openhands/node_modules/.bin/agent-canvas"), [])
+  File "/users/alanuiuc/agentic-workflow-profiling/run.py", line 122, in exec_in
+    os.execvpe(executable, [executable, *args], os.environ)
+  File "/usr/lib/python3.10/os.py", line 584, in execvpe
+    _execvpe(file, args, env)
+  File "/usr/lib/python3.10/os.py", line 598, in _execvpe
+    exec_func(file, *argrest)
+FileNotFoundError: [Errno 2] No such file or directory: '/users/alanuiuc/agentic-workflow-profiling/.tools/openhands/node_modules/.bin/agent-canvas'

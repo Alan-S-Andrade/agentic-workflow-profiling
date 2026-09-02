@@ -1,0 +1,18 @@
+{
+  "critical_path_duration_ms": 142392.656,
+  "steps": [
+    {
+      "kind": "execution_node",
+      "node_type": "agent",
+      "name": "browser-use.agent_loop",
+      "duration_ms": 142392.656,
+      "cpu_ms": 10459.798,
+      "rss_delta_bytes": 67436544,
+      "peak_rss_bytes": 224894976,
+      "process_peak_rss_bytes": 224894976,
+      "children_peak_rss_bytes": 240287744,
+      "python_net_allocated_bytes": 24510653,
+      "started_at": 1788332647.849555
+    }
+  ]
+}

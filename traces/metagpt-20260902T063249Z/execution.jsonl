@@ -1,0 +1,2 @@
+{"kind":"execution_node","span_id":"25b1b1e4deb04f02a4a23b24df853a64","parent_span_id":null,"node_type":"workflow","name":"metagpt","pid":21569,"thread_id":140469195469248,"started_at":1788330770.0031645,"event":"start"}
+{"kind":"execution_node","span_id":"25b1b1e4deb04f02a4a23b24df853a64","parent_span_id":null,"node_type":"workflow","name":"metagpt","pid":21569,"thread_id":140469195469248,"started_at":1788330770.0031645,"event":"end","ended_at":1788330927.9829638,"duration_ms":157979.79,"cpu_ms":18248.928,"status":"ok"}

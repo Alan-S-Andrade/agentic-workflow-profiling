@@ -1,0 +1,90 @@
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights: 100%|██████████| 103/103 [00:00<00:00, 2195.83it/s]
+INFO:     [07:22:34] 🔍 Starting the research task for 'Give a short overview of what llama.cpp is and list three practical uses.'...
+INFO:     [07:22:34] 🤖 AI & Machine Learning Agent
+INFO:     [07:22:34] 🌐 Browsing the web to learn more about the task: Give a short overview of what llama.cpp is and list three practical uses....
+INFO:     [07:22:35] 🤔 Planning the research strategy and subtasks...
+INFO:     [07:23:33] 🗂️ I will conduct my research based on the following queries: ['Overview of llama.cpp and its main features', 'Practical applications of llama.cpp in efficient LLM deployment', 'Three use cases for llama.cpp in running large language models locally', 'Give a short overview of what llama.cpp is and list three practical uses.']...
+INFO:     [07:23:33] 
+🔍 Running research for 'Overview of llama.cpp and its main features'...
+INFO:     [07:23:33] 
+🔍 Running research for 'Practical applications of llama.cpp in efficient LLM deployment'...
+INFO:     [07:23:33] 
+🔍 Running research for 'Three use cases for llama.cpp in running large language models locally'...
+INFO:     [07:23:33] 
+🔍 Running research for 'Give a short overview of what llama.cpp is and list three practical uses.'...
+INFO:     [07:23:34] ✅ Added source url to research: https://1337skills.com/blog/2026-05-21-llm-inference-at-the-edge/
+
+INFO:     [07:23:34] ✅ Added source url to research: https://azmx.ai/blog/llama-cpp-tutorial-local-llm-guide
+
+INFO:     [07:23:34] ✅ Added source url to research: https://markaicode.com/usecases/llamacpp-use-cases-production-workflows/
+
+INFO:     [07:23:34] ✅ Added source url to research: https://weavai.app/blog/en/2026/04/24/llama-cpp-2026-guide-local-ai-inference-setup/
+
+INFO:     [07:23:34] ✅ Added source url to research: https://medium.com/@geethusebastian2004/running-llms-locally-a-deep-dive-into-llama-cpp-aa408941f3db
+
+INFO:     [07:23:34] 🤔 Researching for relevant information across multiple sources...
+
+INFO:     [07:23:34] 🌐 Scraping content from 5 URLs...
+Got HTTP 403 for https://medium.com/@geethusebastian2004/running-llms-locally-a-deep-dive-into-llama-cpp-aa408941f3db, skipping
+Content too short or empty for https://medium.com/@geethusebastian2004/running-llms-locally-a-deep-dive-into-llama-cpp-aa408941f3db, treating as fetch failure
+INFO:     [07:23:34] ✅ Added source url to research: https://en.wikipedia.org/wiki/Llama.cpp
+
+INFO:     [07:23:34] ✅ Added source url to research: https://deepwiki.com/ggml-org/llama.cpp
+
+INFO:     [07:23:34] ✅ Added source url to research: https://llama.app/docs/introduction
+
+INFO:     [07:23:34] ✅ Added source url to research: https://deepwiki.com/ggml-org/llama.cpp/2-getting-started
+
+INFO:     [07:23:34] ✅ Added source url to research: https://huggingface.co/docs/inference-endpoints/engines/llama_cpp
+
+INFO:     [07:23:34] 🤔 Researching for relevant information across multiple sources...
+
+INFO:     [07:23:34] 🌐 Scraping content from 5 URLs...
+INFO:     [07:23:34] ✅ Added source url to research: https://ai-tldr.dev/learn/local-open-models/running-models-locally/what-is-llama-cpp/
+
+INFO:     [07:23:34] ✅ Added source url to research: https://aiwiki.ai/wiki/llama_cpp
+
+INFO:     [07:23:34] ✅ Added source url to research: https://github.com/ggml-org/llama.cpp
+
+INFO:     [07:23:34] 🤔 Researching for relevant information across multiple sources...
+
+INFO:     [07:23:34] 🌐 Scraping content from 3 URLs...
+INFO:     [07:23:35] ✅ Added source url to research: https://pyimagesearch.com/2024/08/26/llama-cpp-the-ultimate-guide-to-efficient-llm-inference-and-applications/
+
+INFO:     [07:23:35] ✅ Added source url to research: https://inference.net/content/llama-cpp/
+
+INFO:     [07:23:35] ✅ Added source url to research: https://www.datacamp.com/tutorial/llama-cpp-tutorial
+
+INFO:     [07:23:35] ✅ Added source url to research: https://tech-insider.org/llama-cpp-tutorial-2026/
+
+INFO:     [07:23:35] ✅ Added source url to research: https://daily.dev/blog/running-llms-locally-ollama-llama-cpp-self-hosted-ai-developers/
+
+INFO:     [07:23:35] 🤔 Researching for relevant information across multiple sources...
+
+INFO:     [07:23:35] 🌐 Scraping content from 5 URLs...
+Got HTTP 403 for https://www.datacamp.com/tutorial/llama-cpp-tutorial, skipping
+Content too short or empty for https://www.datacamp.com/tutorial/llama-cpp-tutorial, treating as fetch failure
+INFO:     [07:23:39] 📄 Scraped 5 pages of content
+INFO:     [07:23:39] 🖼️ Selected 4 new images from 4 total images
+INFO:     [07:23:39] 🌐 Scraping complete
+INFO:     [07:23:39] 📚 Getting relevant content based on query: Overview of llama.cpp and its main features...
+INFO:     [07:23:42] 📄 Scraped 4 pages of content
+INFO:     [07:23:42] 🖼️ Selected 4 new images from 23 total images
+INFO:     [07:23:42] 🌐 Scraping complete
+INFO:     [07:23:42] 📚 Getting relevant content based on query: Practical applications of llama.cpp in efficient LLM deployment...
+INFO:     [07:23:43] 📄 Scraped 4 pages of content
+INFO:     [07:23:43] 🖼️ Selected 4 new images from 10 total images
+INFO:     [07:23:43] 🌐 Scraping complete
+INFO:     [07:23:43] 📚 Getting relevant content based on query: Three use cases for llama.cpp in running large language models locally...
+INFO:     [07:23:43] 📄 Scraped 3 pages of content
+INFO:     [07:23:43] 🖼️ Selected 4 new images from 10 total images
+INFO:     [07:23:43] 🌐 Scraping complete
+INFO:     [07:23:43] 📚 Getting relevant content based on query: Give a short overview of what llama.cpp is and list three practical uses....
+INFO:     [07:23:44] 📚 Combined research context: 0 MCP sources, web content
+INFO:     [07:23:45] 📚 Combined research context: 0 MCP sources, web content
+INFO:     [07:23:45] 📚 Combined research context: 0 MCP sources, web content
+INFO:     [07:23:47] 📚 Combined research context: 0 MCP sources, web content
+INFO:     [07:23:47] Finalized research step.
+💸 Total Research Costs: $0.0258377
+INFO:     [07:23:47] ✍️ Writing report for 'Give a short overview of what llama.cpp is and list three practical uses.'...

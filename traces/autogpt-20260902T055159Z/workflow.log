@@ -1,0 +1,9 @@
+Enter this task when prompted: Reply with exactly: workflow smoke test
+Traceback (most recent call last):
+  File "/users/alanuiuc/agentic-workflow-profiling/run.py", line 171, in <module>
+    main()
+  File "/users/alanuiuc/agentic-workflow-profiling/run.py", line 149, in main
+    exec_in("autogpt/classic", str(ROOT / "autogpt/classic/.venv/bin/python"), [str(ROOT / "autogpt/classic/.venv/bin/autogpt"), "run", "--skip-news", "--continuous", "--continuous-limit", "5"])
+  File "/users/alanuiuc/agentic-workflow-profiling/run.py", line 121, in exec_in
+    os.chdir(ROOT / directory)
+FileNotFoundError: [Errno 2] No such file or directory: '/users/alanuiuc/agentic-workflow-profiling/autogpt/classic'

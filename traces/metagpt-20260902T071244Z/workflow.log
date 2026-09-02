@@ -1,0 +1,18 @@
+2026-09-02 07:12:44.642 | INFO     | metagpt.const:get_metagpt_package_root:15 - Package root set to /users/alanuiuc/agentic-workflow-profiling/metagpt
+2026-09-02 07:12:44.642 | INFO     | metagpt.const:get_metagpt_package_root:15 - Package root set to /users/alanuiuc/agentic-workflow-profiling/metagpt
+/users/alanuiuc/agentic-workflow-profiling/metagpt/.venv/lib/python3.10/site-packages/google/api_core/_python_version_support.py:273: FutureWarning: You are using a Python version (3.10.12) which Google will stop supporting in new releases of google.api_core once it reaches its end of life (2026-10-04). Please upgrade to the latest Python version, or at least Python 3.11, to continue receiving updates for google.api_core past that date.
+  warnings.warn(message, FutureWarning)
+/users/alanuiuc/agentic-workflow-profiling/metagpt/.venv/lib/python3.10/site-packages/google/auth/transport/grpc.py:44: FutureWarning: grpcio < 1.83.0 does not support Post-Quantum Cryptography (PQC). Support for non-PQC environments is deprecated. In October 2026, google-auth will raise its minimum requirements to enforce grpcio >= 1.83.0. For more details on Google Cloud's post-quantum security migration, visit: https://cloud.google.com/security/resources/post-quantum-cryptography
+  warnings.warn(
+/users/alanuiuc/agentic-workflow-profiling/metagpt/.venv/lib/python3.10/site-packages/pydantic/main.py:214: UserWarning: A custom validator is returning a value other than `self`.
+Returning anything other than `self` from a top level model validator isn't supported when validating via `__init__`.
+See the `model_validator` docs (https://docs.pydantic.dev/latest/concepts/validators/#model-validators) for more details.
+  warnings.warn(
+2026-09-02 07:12:47.365 | INFO     | metagpt.team:invest:96 - Investment: $3.0.
+2026-09-02 07:13:10.205 | INFO     | metagpt.utils.token_counter:count_message_tokens:438 - Warning: model local-llama not found in tiktoken. Using cl100k_base encoding.
+2026-09-02 07:13:10.492 | WARNING  | metagpt.provider.openai_api:_calc_usage:281 - usage calculation failed: num_tokens_from_messages() is not implemented for model local-llama. See https://cookbook.openai.com/examples/how_to_count_tokens_with_tiktoken for information on how messages are converted to tokens.
+2026-09-02 07:13:22.179 | INFO     | metagpt.utils.token_counter:count_message_tokens:438 - Warning: model local-llama not found in tiktoken. Using cl100k_base encoding.
+2026-09-02 07:13:22.179 | WARNING  | metagpt.provider.openai_api:_calc_usage:281 - usage calculation failed: num_tokens_from_messages() is not implemented for model local-llama. See https://cookbook.openai.com/examples/how_to_count_tokens_with_tiktoken for information on how messages are converted to tokens.
+Thought: The user is instructing Mike to reply with a specific message, which is a direct and straightforward request.  
+Response Category: QUICK
+local workflow test complete

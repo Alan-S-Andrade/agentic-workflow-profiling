@@ -1,0 +1,95 @@
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights: 100%|██████████| 103/103 [00:00<00:00, 2328.98it/s]
+INFO:     [07:07:10] 🔍 Starting the research task for 'Reply with exactly: local workflow test complete'...
+INFO:     [07:07:10] Default Agent
+INFO:     [07:07:10] 🌐 Browsing the web to learn more about the task: Reply with exactly: local workflow test complete...
+INFO:     [07:07:10] 🤔 Planning the research strategy and subtasks...
+INFO:     [07:07:36] 🗂️ I will conduct my research based on the following queries: ['how to structure workflow tests locally', 'testing github actions locally complete', 'automated tests for reusable workflows completion', 'Reply with exactly: local workflow test complete']...
+INFO:     [07:07:36] 
+🔍 Running research for 'how to structure workflow tests locally'...
+INFO:     [07:07:36] 
+🔍 Running research for 'testing github actions locally complete'...
+INFO:     [07:07:36] 
+🔍 Running research for 'automated tests for reusable workflows completion'...
+INFO:     [07:07:36] 
+🔍 Running research for 'Reply with exactly: local workflow test complete'...
+INFO:     [07:07:36] ✅ Added source url to research: https://www.youtube.com/watch
+
+INFO:     [07:07:36] ✅ Added source url to research: https://community.smartbear.com/discussions/testcomplete-questions/how-do-you-structure-workflow-tests/199249
+
+INFO:     [07:07:36] ✅ Added source url to research: https://github.com/orgs/community/discussions/182343
+
+INFO:     [07:07:36] ✅ Added source url to research: https://adsanz.medium.com/develop-github-actions-faster-with-act-an-easy-example-26f38bb1a270
+
+INFO:     [07:07:36] ✅ Added source url to research: https://www.redhat.com/en/blog/testing-github-actions-locally
+
+INFO:     [07:07:36] 🤔 Researching for relevant information across multiple sources...
+
+INFO:     [07:07:36] 🌐 Scraping content from 5 URLs...
+INFO:     [07:07:37] ✅ Added source url to research: https://nhsdigital.github.io/nhs-notify/guides/user-guides/Test_GitHub_Actions_locally.html
+
+INFO:     [07:07:37] ✅ Added source url to research: https://www.reddit.com/r/devops/comments/1bpz8zu/how_do_you_test_github_actions/
+
+INFO:     [07:07:37] ✅ Added source url to research: https://morethanmonkeys.medium.com/testing-github-actions-locally-with-act-38b771005c51
+
+INFO:     [07:07:37] ✅ Added source url to research: https://til.juliusgamanyi.com/posts/gh-actions-run-workflows-locally-with-act/
+
+INFO:     [07:07:37] 🤔 Researching for relevant information across multiple sources...
+
+INFO:     [07:07:37] 🌐 Scraping content from 4 URLs...
+INFO:     [07:07:37] ✅ Added source url to research: https://medium.com/@aihuawu2023/best-practices-for-reusable-github-actions-workflows-automated-testing-1f701cd635b5
+
+INFO:     [07:07:37] ✅ Added source url to research: https://www.reddit.com/r/QualityAssurance/comments/1ly7o6l/has_anyone_here_automated_an_entire_testing/
+
+INFO:     [07:07:37] ✅ Added source url to research: https://www.opkey.com/blog/comprehensive-guide-to-automated-functional-testing
+
+INFO:     [07:07:37] 🤔 Researching for relevant information across multiple sources...
+
+INFO:     [07:07:37] 🌐 Scraping content from 3 URLs...
+INFO:     [07:07:37] ✅ Added source url to research: https://github.com/nektos/act
+
+INFO:     [07:07:37] ✅ Added source url to research: https://github.com/github/local-action
+
+INFO:     [07:07:37] ✅ Added source url to research: https://dev.to/frontenddeveli/how-to-run-github-actions-locally-28nh
+
+INFO:     [07:07:37] ✅ Added source url to research: https://www.eliostruyf.com/locally-testing-custom-github-action/
+
+INFO:     [07:07:37] 🤔 Researching for relevant information across multiple sources...
+
+INFO:     [07:07:37] 🌐 Scraping content from 4 URLs...
+Got HTTP 403 for https://community.smartbear.com/discussions/testcomplete-questions/how-do-you-structure-workflow-tests/199249, skipping
+Got HTTP 403 for https://adsanz.medium.com/develop-github-actions-faster-with-act-an-easy-example-26f38bb1a270, skipping
+Got HTTP 403 for https://morethanmonkeys.medium.com/testing-github-actions-locally-with-act-38b771005c51, skipping
+Got HTTP 403 for https://medium.com/@aihuawu2023/best-practices-for-reusable-github-actions-workflows-automated-testing-1f701cd635b5, skipping
+Content too short or empty for https://community.smartbear.com/discussions/testcomplete-questions/how-do-you-structure-workflow-tests/199249, treating as fetch failure
+Content too short or empty for https://adsanz.medium.com/develop-github-actions-faster-with-act-an-easy-example-26f38bb1a270, treating as fetch failure
+Content too short or empty for https://morethanmonkeys.medium.com/testing-github-actions-locally-with-act-38b771005c51, treating as fetch failure
+Content too short or empty for https://www.reddit.com/r/devops/comments/1bpz8zu/how_do_you_test_github_actions/, treating as fetch failure
+Content too short or empty for https://medium.com/@aihuawu2023/best-practices-for-reusable-github-actions-workflows-automated-testing-1f701cd635b5, treating as fetch failure
+Content too short or empty for https://www.reddit.com/r/QualityAssurance/comments/1ly7o6l/has_anyone_here_automated_an_entire_testing/, treating as fetch failure
+Got HTTP 403 for https://www.opkey.com/blog/comprehensive-guide-to-automated-functional-testing, skipping
+Content too short or empty for https://www.opkey.com/blog/comprehensive-guide-to-automated-functional-testing, treating as fetch failure
+INFO:     [07:07:37] 📄 Scraped 0 pages of content
+INFO:     [07:07:37] 🖼️ Selected 0 new images from 0 total images
+INFO:     [07:07:37] 🌐 Scraping complete
+No context to combine for sub-query: automated tests for reusable workflows completion
+No combined context found for sub-query: automated tests for reusable workflows completion
+INFO:     [07:07:37] 🤷 No content found for 'automated tests for reusable workflows completion'...
+INFO:     [07:07:38] 📄 Scraped 2 pages of content
+INFO:     [07:07:38] 🖼️ Selected 1 new images from 1 total images
+INFO:     [07:07:38] 🌐 Scraping complete
+INFO:     [07:07:38] 📚 Getting relevant content based on query: how to structure workflow tests locally...
+INFO:     [07:07:41] 📚 Combined research context: 0 MCP sources, web content
+INFO:     [07:07:41] 📄 Scraped 3 pages of content
+INFO:     [07:07:41] 🖼️ Selected 4 new images from 10 total images
+INFO:     [07:07:41] 🌐 Scraping complete
+INFO:     [07:07:41] 📚 Getting relevant content based on query: Reply with exactly: local workflow test complete...
+INFO:     [07:07:42] 📄 Scraped 4 pages of content
+INFO:     [07:07:42] 🖼️ Selected 4 new images from 13 total images
+INFO:     [07:07:42] 🌐 Scraping complete
+INFO:     [07:07:42] 📚 Getting relevant content based on query: testing github actions locally complete...
+INFO:     [07:07:42] 📚 Combined research context: 0 MCP sources, web content
+INFO:     [07:07:43] 📚 Combined research context: 0 MCP sources, web content
+INFO:     [07:07:43] Finalized research step.
+💸 Total Research Costs: $0.01054918
+INFO:     [07:07:43] ✍️ Writing report for 'Reply with exactly: local workflow test complete'...

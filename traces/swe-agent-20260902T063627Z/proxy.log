@@ -1,0 +1,12 @@
+Traceback (most recent call last):
+  File "/users/alanuiuc/agentic-workflow-profiling/trace_proxy.py", line 90, in <module>
+    main()
+  File "/users/alanuiuc/agentic-workflow-profiling/trace_proxy.py", line 84, in main
+    server = ThreadingHTTPServer(("127.0.0.1", args.port), Handler)
+  File "/usr/lib/python3.10/socketserver.py", line 452, in __init__
+    self.server_bind()
+  File "/usr/lib/python3.10/http/server.py", line 137, in server_bind
+    socketserver.TCPServer.server_bind(self)
+  File "/usr/lib/python3.10/socketserver.py", line 466, in server_bind
+    self.socket.bind(self.server_address)
+OSError: [Errno 98] Address already in use

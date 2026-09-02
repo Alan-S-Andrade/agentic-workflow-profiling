@@ -1,0 +1,4 @@
+{"kind":"llm","event":"end","span_id":"c5a77815b1e0497298ca5d5f432998e8","request_id":"c5a77815b1e0497298ca5d5f432998e8","started_at":1788332986.0055826,"duration_ms":3.535,"method":"GET","path":"/v1/models","model":null,"status":200}
+{"kind":"llm","event":"end","span_id":"aa1429974cd94712a85b61c5c48c7de9","request_id":"aa1429974cd94712a85b61c5c48c7de9","started_at":1788332986.0243418,"duration_ms":1.592,"method":"GET","path":"/v1/models","model":null,"status":200}
+{"kind":"llm","event":"end","span_id":"92d3409caefd4ec0a3b211b6f504eecb","request_id":"92d3409caefd4ec0a3b211b6f504eecb","started_at":1788332986.0280004,"duration_ms":1.315,"method":"GET","path":"/v1/models","model":null,"status":200}
+{"kind":"llm","event":"end","span_id":"ce642e89677140cf914fb3b624944866","request_id":"ce642e89677140cf914fb3b624944866","started_at":1788332986.177853,"duration_ms":126652.123,"method":"POST","path":"/v1/chat/completions","model":"gpt-4o-mini","status":200}

@@ -1,0 +1,18 @@
+{
+  "critical_path_duration_ms": 44227.482,
+  "steps": [
+    {
+      "kind": "execution_node",
+      "node_type": "agent",
+      "name": "gpt-researcher.conduct_research",
+      "duration_ms": 44227.482,
+      "cpu_ms": 49930.32,
+      "rss_delta_bytes": 613425152,
+      "peak_rss_bytes": 1931538432,
+      "process_peak_rss_bytes": 1937756160,
+      "children_peak_rss_bytes": 1309450240,
+      "python_net_allocated_bytes": 73803754,
+      "started_at": 1788332818.796535
+    }
+  ]
+}

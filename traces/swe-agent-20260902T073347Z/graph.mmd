@@ -1,0 +1,6 @@
+flowchart LR
+  a96ee7ce01d041ef9057f907fbef7921["llm: /v1/chat/completions (124158.655 ms)"]
+  79b06ec13e0740699d982b56882cc90b["llm: /v1/chat/completions (125124.149 ms)"]
+  b962bbff8bfb4fa1b4de6868629d2a8e["llm: /v1/chat/completions (77373.002 ms)"]
+  a96ee7ce01d041ef9057f907fbef7921 -.->|temporal| 79b06ec13e0740699d982b56882cc90b
+  79b06ec13e0740699d982b56882cc90b -.->|temporal| b962bbff8bfb4fa1b4de6868629d2a8e

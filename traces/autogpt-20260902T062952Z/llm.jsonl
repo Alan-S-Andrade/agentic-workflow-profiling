@@ -1,0 +1,5 @@
+{"kind":"llm","started_at":1788330594.5502164,"duration_ms":3.453,"method":"GET","path":"/v1/models","model":null,"status":200}
+{"kind":"llm","started_at":1788330594.5691793,"duration_ms":1.667,"method":"GET","path":"/v1/models","model":null,"status":200}
+{"kind":"llm","started_at":1788330594.5730243,"duration_ms":1.402,"method":"GET","path":"/v1/models","model":null,"status":200}
+{"kind":"llm","started_at":1788330594.7201183,"duration_ms":141772.252,"method":"POST","path":"/v1/chat/completions","model":"gpt-4o-mini","status":200}
+{"kind":"llm","started_at":1788330736.5032864,"duration_ms":32735.977,"method":"POST","path":"/v1/chat/completions","model":"gpt-4o-mini","status":200}

@@ -1,0 +1,15 @@
+digraph workflow {
+  rankdir=LR;
+  "55e99e0504e94a31a65553543bb773a7" [label="agent: browser-use.agent_loop\\n142392.656 ms"];
+  "65d9692cd83d4840a36eb46431114d29" [label="llm: /v1/chat/completions\\n35432.678 ms"];
+  "b8f9c51349d345fb882c2ea82c5efa11" [label="llm: /v1/chat/completions\\n32901.458 ms"];
+  "6ae6bebcd1134003bb6f879a9df49845" [label="llm: /v1/chat/completions\\n28174.890 ms"];
+  "3d792b73c0d54e29a14231cbbfdfb41d" [label="llm: /v1/chat/completions\\n41816.767 ms"];
+  "55e99e0504e94a31a65553543bb773a7" -> "65d9692cd83d4840a36eb46431114d29" [label="contains" [style=dashed,color=gray]];
+  "55e99e0504e94a31a65553543bb773a7" -> "b8f9c51349d345fb882c2ea82c5efa11" [label="contains" [style=dashed,color=gray]];
+  "55e99e0504e94a31a65553543bb773a7" -> "6ae6bebcd1134003bb6f879a9df49845" [label="contains" [style=dashed,color=gray]];
+  "55e99e0504e94a31a65553543bb773a7" -> "3d792b73c0d54e29a14231cbbfdfb41d" [label="contains" [style=dashed,color=gray]];
+  "65d9692cd83d4840a36eb46431114d29" -> "b8f9c51349d345fb882c2ea82c5efa11" [label="temporal" [style=dashed,color=gray]];
+  "b8f9c51349d345fb882c2ea82c5efa11" -> "6ae6bebcd1134003bb6f879a9df49845" [label="temporal" [style=dashed,color=gray]];
+  "6ae6bebcd1134003bb6f879a9df49845" -> "3d792b73c0d54e29a14231cbbfdfb41d" [label="temporal" [style=dashed,color=gray]];
+}

@@ -1,0 +1,2 @@
+{"kind":"llm","started_at":1788330202.5450244,"duration_ms":28082.083,"method":"POST","path":"/v1/chat/completions","model":"local-llama","status":200}
+{"kind":"llm","started_at":1788330233.1289139,"duration_ms":31515.319,"method":"POST","path":"/v1/chat/completions","model":"local-llama","status":200}

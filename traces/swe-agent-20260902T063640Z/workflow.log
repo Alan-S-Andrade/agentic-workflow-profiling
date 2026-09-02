@@ -1,0 +1,115 @@
+👋 INFO     This is SWE-agent version 1.1.0                                     
+            (hash='3ea751c087f32b16e039a2233dd6eefecef325d5') with SWE-ReX      
+            version 1.4.0 (rex_hash='unavailable').                             
+🔧 INFO     Setting problem statement id to hash of text                        
+🔧 INFO     Setting problem statement id to hash of text                        
+🔧 DEBUG    No .env file found                                                  
+🤖 WARN     Model openai/local-llama does not support function calling. If your 
+            model does not support function calling, you can use                
+            `parse_function='thought_action'` instead. See                      
+            https://swe-agent.com/latest/faq/ for more information.             
+[92m06:36:42 - LiteLLM:WARNING[0m: utils.py:2907 - register_model: model=openai/local-llama not in built-in cost map and no prefix/region variant matched; cache cost fields will default to 0. To track cache cost, add cache_creation_input_token_cost and cache_read_input_token_cost to model_info
+🏃 INFO     Starting environment                                                
+🪴 INFO     Environment Initialized                                             
+🪴 DEBUG    Resetting repository                                                
+            users/alanuiuc/agentic-workflow-profiling/swe-smoke-target to commit
+            HEAD                                                                
+🏃 INFO     Running agent                                                       
+🤠 INFO     Setting up agent for instance 613619                                
+🤠 INFO     Trajectory will be saved to                                         
+            /users/alanuiuc/agentic-workflow-profiling/swe-agent/trajectories/al
+            anuiuc/no_config__openai--local-llama__t-0.00__p-1.00__c-0.00___6136
+            19/613619/613619.traj                                               
+🧰 INFO     Resetting tools                                                     
+🤠 INFO     SYSTEM (main)                                                       
+            You are a helpful assistant that can interact with a computer to    
+            solve tasks.                                                        
+🪴 ERROR    Command failed:                                                     
+            Traceback (most recent call last):                                  
+              File "/tmp/swe-agent-tools/edit_anthropic/bin/_state_anthropic",  
+            line 21, in <module>                                                
+                main()                                                          
+              File "/tmp/swe-agent-tools/edit_anthropic/bin/_state_anthropic",  
+            line 10, in main                                                    
+                if state_path.exists():                                         
+              File "/usr/lib/python3.10/pathlib.py", line 1290, in exists       
+                self.stat()                                                     
+              File "/usr/lib/python3.10/pathlib.py", line 1097, in stat         
+                return self._accessor.stat(self,                                
+            follow_symlinks=follow_symlinks)                                    
+            PermissionError: [Errno 13] Permission denied: '/root/state.json'   
+                                                                                
+🪴 ERROR    Command '_state_anthropic' failed (r.exit_code=1): Command failed   
+🧰 DEBUG    Retrieved state from environment: {}                                
+🤠 INFO     🤖 MODEL INPUT                                                      
+            <uploaded_files>                                                    
+                                                                                
+            </uploaded_files>                                                   
+            I've uploaded a python code repository in the directory . Consider  
+            the following PR description:                                       
+                                                                                
+            <pr_description>                                                    
+            Inspect the target repository and summarize its README. Do not edit 
+            files.                                                              
+            </pr_description>                                                   
+                                                                                
+            Can you help me implement the necessary changes to the repository so
+            that the requirements specified in the <pr_description> are met?    
+            I've already taken care of all changes to any of the test files     
+            described in the <pr_description>. This means you DON'T have to     
+            modify the testing logic or any of the tests in any way!            
+            Your task is to make the minimal changes to non-tests files in the  
+            directory to ensure the <pr_description> is satisfied.              
+            Follow these steps to resolve the issue:                            
+            1. As a first step, it might be a good idea to find and read code   
+            relevant to the <pr_description>                                    
+            2. Create a script to reproduce the error and execute it with       
+            `python <filename.py>` using the bash tool, to confirm the error    
+            3. Edit the sourcecode of the repo to resolve the issue             
+            4. Rerun your reproduce script and confirm that the error is fixed! 
+            5. Think about edgecases and make sure your fix handles them as well
+            Your thinking should be thorough and so it's fine if it's very long.
+🤠 INFO     ========================= STEP 1 =========================          
+🤖 DEBUG    n_cache_control: 1                                                  
+🤖 WARN     Retrying LM query: attempt 1 (slept for 10.00s) due to              
+            InternalServerError: litellm.InternalServerError:                   
+            InternalServerError: OpenAIException - Connection error.            
+🤖 WARN     Retrying LM query: attempt 2 (slept for 20.00s) due to              
+            InternalServerError: litellm.InternalServerError:                   
+            InternalServerError: OpenAIException - Connection error.            
+🤖 WARN     Retrying LM query: attempt 3 (slept for 30.00s) due to              
+            InternalServerError: litellm.InternalServerError:                   
+            InternalServerError: OpenAIException - Connection error.            
+🤖 WARN     Retrying LM query: attempt 4 (slept for 40.00s) due to              
+            InternalServerError: litellm.InternalServerError:                   
+            InternalServerError: OpenAIException - Connection error.            
+🤖 WARN     Retrying LM query: attempt 5 (slept for 55.05s) due to              
+            InternalServerError: litellm.InternalServerError:                   
+            InternalServerError: OpenAIException - Connection error.            
+🤖 WARN     Retrying LM query: attempt 6 (slept for 76.77s) due to              
+            InternalServerError: litellm.InternalServerError:                   
+            InternalServerError: OpenAIException - Connection error.            
+🤖 WARN     Retrying LM query: attempt 7 (slept for 108.12s) due to             
+            InternalServerError: litellm.InternalServerError:                   
+            InternalServerError: OpenAIException - Connection error.            
+🤖 WARN     Retrying LM query: attempt 8 (slept for 180.17s) due to             
+            InternalServerError: litellm.InternalServerError:                   
+            InternalServerError: OpenAIException - Connection error.            
+🤖 WARN     Retrying LM query: attempt 9 (slept for 238.00s) due to             
+            InternalServerError: litellm.InternalServerError:                   
+            InternalServerError: OpenAIException - Connection error.            
+🤖 WARN     Retrying LM query: attempt 10 (slept for 297.32s) due to            
+            InternalServerError: litellm.InternalServerError:                   
+            InternalServerError: OpenAIException - Connection error.            
+🤖 WARN     Retrying LM query: attempt 11 (slept for 400.66s) due to            
+            InternalServerError: litellm.InternalServerError:                   
+            InternalServerError: OpenAIException - Connection error.            
+🤖 WARN     Retrying LM query: attempt 12 (slept for 453.51s) due to            
+            InternalServerError: litellm.InternalServerError:                   
+            InternalServerError: OpenAIException - Connection error.            
+🤖 WARN     Retrying LM query: attempt 13 (slept for 540.14s) due to            
+            InternalServerError: litellm.InternalServerError:                   
+            InternalServerError: OpenAIException - Connection error.            
+🤖 WARN     Retrying LM query: attempt 14 (slept for 607.06s) due to            
+            InternalServerError: litellm.InternalServerError:                   
+            InternalServerError: OpenAIException - Connection error.            

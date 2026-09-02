@@ -1,0 +1,13 @@
+{
+  "critical_path_duration_ms": 157979.79,
+  "steps": [
+    {
+      "kind": "execution_node",
+      "node_type": "workflow",
+      "name": "metagpt",
+      "duration_ms": 157979.79,
+      "cpu_ms": 18248.928,
+      "started_at": 1788330770.0031645
+    }
+  ]
+}

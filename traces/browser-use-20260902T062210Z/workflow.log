@@ -1,0 +1,22 @@
+INFO     [service] Using anonymized telemetry, see https://docs.browser-use.com/development/monitoring/telemetry.
+INFO     [Agent] 🔗 Found URL in task: https://example.com, adding as initial action...
+INFO     [Agent] [34m🎯 Task: Open https://example.com, read the page title, and report it in one sentence.[0m
+INFO     [Agent] Starting a browser-use agent with version 0.13.8, with provider=openai and model=local-llama
+INFO     [BrowserSession] Setting viewport to 1920x1080 with device scale factor 1.0 whereas original device scale factor was 1.0
+INFO     [Agent]   ▶️   [34mnavigate[0m: [35murl[0m: https://example.com, [35mnew_tab[0m: False
+INFO     [tools] 🔗 Navigated to https://example.com
+INFO     [Agent] 
+
+INFO     [Agent] 📍 Step 1:
+INFO     [Agent]   🧠 Memory: Step successful, page title identified as 'Example Domain'. Next immediate goal: report the title in one sentence. No further actions required as task is complete.
+INFO     [Agent]   ▶️   [34mdone[0m: [35mtext[0m: The page title is 'Example Domain'., [35msuccess[0m: True, [35mfiles_to_display[0m: []
+INFO     [Agent] 
+📄 [32m Final Result:[0m 
+The page title is 'Example Domain'.
+
+
+INFO     [Agent] ✅ Task completed successfully
+INFO     [BrowserSession] 📢 on_BrowserStopEvent - Calling reset() (force=True, keep_alive=None)
+INFO     [BrowserSession] [SessionManager] Cleared all owned data (targets, sessions, mappings)
+INFO     [BrowserSession] ✅ Browser session reset complete
+INFO     [BrowserSession] ✅ Browser session reset complete
