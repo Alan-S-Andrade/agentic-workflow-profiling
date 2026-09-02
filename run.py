@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
-MODEL = "gpt-5-nano"
+MODEL = os.getenv("WORKFLOW_MODEL", "gpt-5-nano")
 
 
 def load_env() -> None:
@@ -17,11 +17,13 @@ def load_env() -> None:
                 key, value = line.split("=", 1)
                 os.environ.setdefault(key.strip(), value.strip())
 
+    base_url = os.getenv("PROFILE_OPENAI_BASE_URL", "https://api.openai.com/v1")
     key = os.getenv("OPENAI_API_KEY", "")
     if not key:
-        raise SystemExit("Set OPENAI_API_KEY to an OpenAI Platform API key")
-
-    base_url = os.getenv("PROFILE_OPENAI_BASE_URL", "https://api.openai.com/v1")
+        if base_url.startswith(("http://127.0.0.1", "http://localhost")):
+            key = "sk-local-llama"
+        else:
+            raise SystemExit("Set OPENAI_API_KEY to an OpenAI Platform API key")
     os.environ.update(
         OPENAI_API_KEY=key,
         OPENAI_BASE_URL=base_url,

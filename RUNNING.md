@@ -16,3 +16,5 @@ All workflows default to `gpt-5-nano`, currently OpenAI's cheapest GPT-5 API mod
 AutoGPT is interactive and requests task/tool approval. OpenHands starts Agent Canvas at `http://localhost:8000`; its task is submitted through the UI. The smoke script limits each launcher to five minutes.
 
 SWE-agent uses `swe-smoke-target/`, generated locally by the runner, so smoke tests do not modify the framework checkout.
+
+For completely local inference, download a GGUF and run `./run-all-local-llama.sh`. It builds and starts `llama.cpp` automatically and routes all six workflows to its local OpenAI-compatible server. No OpenAI API key is used in this mode.

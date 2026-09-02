@@ -10,6 +10,7 @@ OUT="$ROOT/traces/${WORKFLOW}-${STAMP}"
 PORT="${PROFILE_PORT:-18765}"
 mkdir -p "$OUT"
 
+TRACE_PROXY_UPSTREAM="${PROFILE_PROXY_UPSTREAM:-https://api.openai.com}" \
 python3 "$ROOT/trace_proxy.py" --port "$PORT" --trace "$OUT/llm.jsonl" >"$OUT/proxy.log" 2>&1 &
 PROXY_PID=$!
 cleanup() { kill "$PROXY_PID" 2>/dev/null || true; }

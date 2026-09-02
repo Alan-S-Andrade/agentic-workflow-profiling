@@ -2,6 +2,9 @@
 .tools/
 __pycache__/
 *.log
+/traces/
+/models/
+/llama-server.log
 
 # Upstream repositories are cloned by setup.sh at pinned commits.
 /autogpt/
@@ -11,4 +14,4 @@ __pycache__/
 /openhands/
 /swe-agent/
 /swe-smoke-target/
-
+/swe-default-target/

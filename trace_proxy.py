@@ -11,7 +11,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from threading import Lock
 
-UPSTREAM = "https://api.openai.com"
+UPSTREAM = os.getenv("TRACE_PROXY_UPSTREAM", "https://api.openai.com")
 WRITE_LOCK = Lock()
 
 
