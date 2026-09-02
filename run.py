@@ -21,10 +21,11 @@ def load_env() -> None:
     if not key:
         raise SystemExit("Set OPENAI_API_KEY to an OpenAI Platform API key")
 
+    base_url = os.getenv("PROFILE_OPENAI_BASE_URL", "https://api.openai.com/v1")
     os.environ.update(
         OPENAI_API_KEY=key,
-        OPENAI_BASE_URL="https://api.openai.com/v1",
-        OPENAI_API_BASE_URL="https://api.openai.com/v1",
+        OPENAI_BASE_URL=base_url,
+        OPENAI_API_BASE_URL=base_url,
         FAST_LLM=f"openai:{MODEL}",
         SMART_LLM=f"openai:{MODEL}",
         STRATEGIC_LLM=f"openai:{MODEL}",
@@ -96,19 +97,22 @@ def main() -> None:
     elif workflow == "autogpt":
         os.environ.update(FAST_LLM=MODEL, SMART_LLM=MODEL)
         print(f"Enter this task when prompted: {task}", flush=True)
-        exec_in("autogpt/classic", str(ROOT / "autogpt/classic/.venv/bin/python"), [str(ROOT / "autogpt/classic/.venv/bin/autogpt"), "run", "--skip-news"])
+        exec_in("autogpt/classic", str(ROOT / "autogpt/classic/.venv/bin/python"), [str(ROOT / "autogpt/classic/.venv/bin/autogpt"), "run", "--skip-news", "--continuous", "--continuous-limit", "5"])
     elif workflow == "metagpt":
         configure_metagpt()
         exec_in("metagpt", str(ROOT / "metagpt/.venv/bin/python"), [str(ROOT / "metagpt/.venv/bin/metagpt"), task])
     elif workflow == "swe-agent":
+        swe_target = "swe-default-target" if (ROOT / "swe-default-target/.git").exists() else "swe-smoke-target"
         exec_in(
             "swe-agent",
             str(ROOT / "swe-agent/.venv/bin/python"),
-            [str(ROOT / "swe-agent/.venv/bin/sweagent"), "run", "--config", "config/default.yaml", "--agent.model.name", f"openai/{MODEL}", "--agent.model.api_base", os.environ["OPENAI_BASE_URL"], "--env.deployment.type", "local", "--env.repo.type", "preexisting", "--env.repo.repo_name", "users/alanuiuc/agentic-workflow-profiling/swe-smoke-target", "--problem_statement.text", task],
+            [str(ROOT / "swe-agent/.venv/bin/sweagent"), "run", "--config", "config/default.yaml", "--agent.model.name", f"openai/{MODEL}", "--agent.model.api_base", os.environ["OPENAI_BASE_URL"], "--env.deployment.type", "local", "--env.repo.type", "preexisting", "--env.repo.repo_name", f"users/alanuiuc/agentic-workflow-profiling/{swe_target}", "--problem_statement.text", task],
         )
     elif workflow == "openhands":
         os.environ.update(LLM_API_KEY=os.environ["OPENAI_API_KEY"], LLM_BASE_URL=os.environ["OPENAI_BASE_URL"], LLM_MODEL=f"openai/{MODEL}")
-        os.environ["PATH"] = f"{Path.home() / '.local/bin'}:{os.environ['PATH']}"
+        bundled_node = ROOT / ".tools/node-v22.22.0-linux-x64/bin"
+        node_prefix = f"{bundled_node}:" if bundled_node.exists() else ""
+        os.environ["PATH"] = f"{node_prefix}{Path.home() / '.local/bin'}:{os.environ['PATH']}"
         exec_in("openhands", str(ROOT / ".tools/openhands/node_modules/.bin/agent-canvas"), [])
     else:
         raise SystemExit(f"Unknown workflow: {workflow}")
