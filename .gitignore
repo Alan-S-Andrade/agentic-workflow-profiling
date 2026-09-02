@@ -1,0 +1,14 @@
+.env
+.tools/
+__pycache__/
+*.log
+
+# Upstream repositories are cloned by setup.sh at pinned commits.
+/autogpt/
+/browser-use/
+/gpt-researcher/
+/metagpt/
+/openhands/
+/swe-agent/
+/swe-smoke-target/
+
