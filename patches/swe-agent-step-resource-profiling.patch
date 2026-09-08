@@ -1,0 +1,23 @@
+diff --git a/sweagent/environment/swe_env.py b/sweagent/environment/swe_env.py
+index 730ed44..a267d8b 100644
+--- a/sweagent/environment/swe_env.py
++++ b/sweagent/environment/swe_env.py
+@@ -220,4 +220,15 @@ class SWEEnv:
+-        r = asyncio.run(
+-            self.deployment.runtime.run_in_session(BashAction(command=input, timeout=timeout, check=rex_check))
+-        )
++        from node_trace import execution_node
++        # This is the boundary for every setup, inspection, edit, and test
++        # command sent to SWE-ReX.  PROFILE_NODE_TRACE is inherited from the
++        # launcher, so each action becomes a separate non-LLM resource span.
++        with execution_node(
++            "tool",
++            "swe-agent.shell",
++            command=input,
++            timeout_seconds=timeout,
++            exit_check=check,
++        ):
++            r = asyncio.run(
++                self.deployment.runtime.run_in_session(BashAction(command=input, timeout=timeout, check=rex_check))
++            )
+         output = r.output

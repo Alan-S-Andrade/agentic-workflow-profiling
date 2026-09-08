@@ -1,0 +1,39 @@
+Act as the maintainer of this repository. Deliver a production-quality,
+  user-visible improvement—not merely an analysis or a README-only change.
+
+  First, thoroughly inspect the repository: README and contributor guidance,
+  directory structure, dependency/build configuration, existing tests, CLI/API
+  entry points, recent git history/status, and any related implementation paths.
+  Use the project’s established conventions and avoid introducing dependencies
+  unless the repository already supports them.
+
+  Find the most valuable small-to-medium missing capability, reliability defect,
+  or developer-experience weakness that is supported by evidence in the existing
+  code, tests, documentation, TODOs, or issue-like comments. Prefer work that
+  touches an actual execution path and can be verified end-to-end. Before
+  editing, form a concrete implementation plan based on what you discover.
+
+  Implement the improvement completely. The change should, where appropriate:
+
+  - modify the relevant source code rather than adding a superficial wrapper;
+  - preserve backward compatibility unless a documented break is unavoidable;
+  - handle invalid input, boundary cases, filesystem/path errors, and useful
+    error messages;
+  - add focused regression and/or integration tests that would have failed before
+    the change;
+  - update user-facing documentation, examples, CLI help, configuration
+    reference, or changelog material when behavior changes;
+  - keep formatting, types, linting, and project conventions consistent.
+
+  Work iteratively and use the repository’s normal developer workflow:
+  inspect files, search for call sites, check git diff/status, run focused tests
+  while developing, then run the broadest relevant test/lint/type-check/build
+  commands that are practical. Investigate and fix failures caused by your
+  changes; do not suppress, skip, or weaken tests merely to obtain a passing run.
+
+  Do not use the network, do not alter files outside this repository, do not
+  rewrite unrelated files, and do not make speculative refactors. Finish only
+  when the working tree contains the implementation, tests, and documentation
+  needed for the change. In your final response, summarize the concrete behavior
+  changed, list every verification command and its result, and call out any
+  remaining limitation honestly.

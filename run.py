@@ -141,6 +141,11 @@ def configure_metagpt() -> None:
 
 
 def exec_in(directory: str, executable: str, args: list[str]) -> None:
+    # Make the shared tracer importable by the independently-launched
+    # workflow interpreter.  SWE-agent's local environment hook uses it to
+    # emit one resource span for every shell action.
+    existing_pythonpath = os.environ.get("PYTHONPATH", "")
+    os.environ["PYTHONPATH"] = f"{ROOT}{os.pathsep}{existing_pythonpath}" if existing_pythonpath else str(ROOT)
     with execution_node("workflow", directory):
         completed = subprocess.run([executable, *args], cwd=ROOT / directory, env=os.environ)
     raise SystemExit(completed.returncode)

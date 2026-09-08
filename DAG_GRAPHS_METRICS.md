@@ -114,3 +114,20 @@ cat traces/WORKFLOW-TIMESTAMP/critical-path.json
 
 The JSON graph files retain the raw per-node CPU, duration, and RSS fields when
 the workflow exits cleanly.
+
+## SWE-agent per-command resource metrics
+
+`setup.sh` also applies `swe-agent-step-resource-profiling.patch`.  Each
+SWE-agent `SWEEnv.communicate()` call now writes a `tool` node named
+`swe-agent.shell` to `execution.jsonl`, including the submitted shell command,
+elapsed duration, `cpu_ms`, `cpu_utilization_pct`, and resident-set start,
+end, delta, and sampled peak (`rss_start_bytes`, `rss_end_bytes`,
+`rss_delta_bytes`, and `peak_rss_bytes`).  CPU utilization is process CPU time
+divided by elapsed time, as a percent of one logical CPU; it can exceed 100%
+when waited-for local child processes run in parallel.
+
+RSS is a resident-memory measurement, not a strict operating-system working
+set estimate.  It is sampled for the SWE-agent process that drives the local
+runtime; `children_peak_rss_bytes` remains the OS high-water value for reaped
+children.  For exact command-process working-set attribution in a container or
+remote deployment, profile that runtime with cgroups/eBPF as a separate layer.

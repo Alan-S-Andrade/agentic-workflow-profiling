@@ -73,6 +73,17 @@ def _python_memory() -> tuple[int, int]:
     return current, peak
 
 
+def _cpu_utilization_percent(cpu_ms: float, duration_ms: float) -> float | None:
+    """Return CPU demand as a percentage of one logical CPU.
+
+    A process that keeps one CPU busy for the entire span reports 100. Values
+    above 100 are valid when its waited-for children ran in parallel.
+    """
+    if duration_ms <= 0:
+        return None
+    return round(cpu_ms * 100 / duration_ms, 3)
+
+
 def _sample_rss() -> None:
     global _sampler_started
     while True:
@@ -146,6 +157,8 @@ def execution_node(node_type: str, name: str, **metadata):
         yield span_id
     except BaseException as error:
         ended_ns = time.perf_counter_ns()
+        duration_ms = round((ended_ns - started_ns) / 1_000_000, 3)
+        cpu_ms = round((_cpu_ns() - started_cpu_ns) / 1_000_000, 3)
         ended_rss = _rss_bytes()
         ended_python, ended_python_peak = _python_memory()
         ended_resources = _resource_usage()
@@ -155,8 +168,9 @@ def execution_node(node_type: str, name: str, **metadata):
             **base,
             "event": "end",
             "ended_at": time.time(),
-            "duration_ms": round((ended_ns - started_ns) / 1_000_000, 3),
-            "cpu_ms": round((_cpu_ns() - started_cpu_ns) / 1_000_000, 3),
+            "duration_ms": duration_ms,
+            "cpu_ms": cpu_ms,
+            "cpu_utilization_pct": _cpu_utilization_percent(cpu_ms, duration_ms),
             "rss_start_bytes": started_rss,
             "rss_end_bytes": ended_rss,
             "rss_delta_bytes": ended_rss - started_rss if ended_rss is not None and started_rss is not None else None,
@@ -176,6 +190,8 @@ def execution_node(node_type: str, name: str, **metadata):
         raise
     else:
         ended_ns = time.perf_counter_ns()
+        duration_ms = round((ended_ns - started_ns) / 1_000_000, 3)
+        cpu_ms = round((_cpu_ns() - started_cpu_ns) / 1_000_000, 3)
         ended_rss = _rss_bytes()
         ended_python, ended_python_peak = _python_memory()
         ended_resources = _resource_usage()
@@ -185,8 +201,9 @@ def execution_node(node_type: str, name: str, **metadata):
             **base,
             "event": "end",
             "ended_at": time.time(),
-            "duration_ms": round((ended_ns - started_ns) / 1_000_000, 3),
-            "cpu_ms": round((_cpu_ns() - started_cpu_ns) / 1_000_000, 3),
+            "duration_ms": duration_ms,
+            "cpu_ms": cpu_ms,
+            "cpu_utilization_pct": _cpu_utilization_percent(cpu_ms, duration_ms),
             "rss_start_bytes": started_rss,
             "rss_end_bytes": ended_rss,
             "rss_delta_bytes": ended_rss - started_rss if ended_rss is not None and started_rss is not None else None,

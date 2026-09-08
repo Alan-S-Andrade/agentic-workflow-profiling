@@ -45,6 +45,7 @@ def make_graph(events: list[dict]) -> dict:
             "ended_at": float(event.get("started_at", 0)) + duration / 1000,
             "duration_ms": duration,
             "cpu_ms": event.get("cpu_ms"),
+            "cpu_utilization_pct": event.get("cpu_utilization_pct"),
             "peak_rss_bytes": event.get("peak_rss_bytes"),
         }
         nodes.append(node)

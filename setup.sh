@@ -35,6 +35,7 @@ apply_once() {
 
 apply_once metagpt "$ROOT/patches/metagpt-gpt5.patch"
 apply_once swe-agent "$ROOT/patches/swe-agent-local-gpt5.patch"
+apply_once swe-agent "$ROOT/patches/swe-agent-step-resource-profiling.patch"
 
 uv sync --directory browser-use
 uv run --directory browser-use playwright install chromium
