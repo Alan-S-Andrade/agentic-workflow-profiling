@@ -1,0 +1,44 @@
+You are maintaining the `redis/go-redis` repository. Implement an opt-in retry
+telemetry callback for client commands.
+
+Goal
+----
+Add a backward-compatible `OnRetry` callback to the appropriate client options
+type(s). When a command is going to be retried after a retryable failure, invoke
+the callback with enough context for an application to identify the command,
+the one-based retry attempt, and the error that caused the retry. The callback
+must be optional, must not alter retry policy or command results, and must not
+run for a final non-retried failure.
+
+Work like a production maintainer
+-------------------------------
+1. Read `AGENTS.md`, `CONTRIBUTING.md`, the relevant option definitions, retry
+   implementation, command-processing paths, and nearby hook/retry tests
+   before editing.
+2. Map the retry paths for standalone, cluster, and any other client modes
+   that share the relevant code. Decide and document briefly which paths should
+   receive the callback and why. Do not duplicate behavior unnecessarily.
+3. Write focused failing tests first. Include at least:
+   - a retryable error that produces the expected callback sequence;
+   - a successful command with no callback;
+   - a final failure/no-retry case with no callback;
+   - callback isolation: a callback must not change the command result;
+   - coverage for any distinct retry implementation you found (for example,
+     cluster routing).
+4. Implement the smallest idiomatic API and wiring needed to make those tests
+   pass. Preserve source compatibility and follow existing public-API,
+   concurrency, and error-handling conventions.
+5. Run `gofmt` only on touched Go files, then run focused tests, broader
+   package tests, and the repository-recommended test target when feasible.
+   If Docker/Redis infrastructure is unavailable, diagnose it, record the
+   exact limitation, and still run every meaningful non-integration check.
+6. Update user-facing documentation or a GoDoc comment only where the
+   repository's conventions call for it. Do not update generated artifacts or
+   unrelated files.
+7. Finish with `git diff --check`, `git status --short`, and a concise summary
+   of changed files, test commands/results, and any remaining limitation.
+
+Do not merely describe a patch: edit the repository and validate it. Avoid
+network-dependent work except dependency/test setup explicitly required by the
+repository. Do not create commits, open pull requests, or change global Git
+configuration.

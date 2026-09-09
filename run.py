@@ -73,6 +73,27 @@ def run_browser(task: str) -> None:
 def run_research(query: str) -> None:
     sys.path.insert(0, str(ROOT / "gpt-researcher"))
     from gpt_researcher import GPTResearcher
+    from gpt_researcher.scraper.scraper import Scraper
+    from gpt_researcher.skills.researcher import ResearchConductor
+
+    # GPT Researcher uses asyncio.gather for subqueries and URL retrieval. Wrap
+    # those boundaries in the shared tracer so its graph retains real fan-out
+    # rather than collapsing everything into one outer research span.
+    if not getattr(ResearchConductor, "_profile_instrumented", False):
+        ResearchConductor.plan_research = instrument_callable(
+            "control", "gpt-researcher.plan_research", ResearchConductor.plan_research
+        )
+        ResearchConductor._get_context_by_web_search = instrument_callable(
+            "control", "gpt-researcher.web_search", ResearchConductor._get_context_by_web_search
+        )
+        ResearchConductor._process_sub_query = instrument_callable(
+            "agent", "gpt-researcher.subquery", ResearchConductor._process_sub_query
+        )
+        Scraper.run = instrument_callable("tool", "gpt-researcher.scrape_batch", Scraper.run)
+        Scraper.extract_data_from_url = instrument_callable(
+            "tool", "gpt-researcher.scrape_url", Scraper.extract_data_from_url
+        )
+        ResearchConductor._profile_instrumented = True
 
     async def main() -> None:
         async with async_execution_node("agent", "gpt-researcher.conduct_research") as research_span:
@@ -221,11 +242,26 @@ def main() -> None:
         # requires a clean target when multiple runs share this smoke host.
         shutil.rmtree("/tmp/swe-agent-tools", ignore_errors=True)
         Path("/tmp/swe-agent-tools").mkdir(parents=True, exist_ok=True)
-        swe_target = "swe-default-target" if (ROOT / "swe-default-target/.git").exists() else "swe-smoke-target"
+        configured_target = os.getenv("SWE_TARGET")
+        target_path = (
+            Path(configured_target).expanduser().resolve()
+            if configured_target
+            else ROOT / ("swe-default-target" if (ROOT / "swe-default-target/.git").exists() else "swe-smoke-target")
+        )
+        if not (target_path / ".git").exists():
+            raise SystemExit(f"SWE_TARGET must be a Git working tree: {target_path}")
+        # LocalDeployment runs reset commands in the real host working tree.
+        # Refuse a dirty target rather than silently discarding user edits.
+        status = subprocess.run(
+            ["git", "-C", str(target_path), "status", "--porcelain"], text=True, stdout=subprocess.PIPE, check=False
+        )
+        if status.returncode or status.stdout.strip():
+            raise SystemExit(f"Refusing to run SWE-agent against a dirty target: {target_path}. Use a fresh clone via prepare-swe-go-redis-target.sh.")
+        swe_target = target_path.as_posix().lstrip("/")
         exec_in(
             "swe-agent",
             str(ROOT / "swe-agent/.venv/bin/python"),
-            [str(ROOT / "swe-agent/.venv/bin/sweagent"), "run", "--config", "config/default.yaml", "--agent.model.name", f"openai/{MODEL}", "--agent.model.api_base", os.environ["OPENAI_BASE_URL"], "--agent.model.litellm_model_registry", str(ROOT / "swe-agent-local-model-cost.json"), "--agent.model.max_output_tokens", "1024", "--agent.model.per_instance_cost_limit", "0", "--agent.model.total_cost_limit", "0", "--agent.tools.parse_function.type", "thought_action", "--env.deployment.type", "local", "--env.repo.type", "preexisting", "--env.repo.repo_name", f"users/alanuiuc/agentic-workflow-profiling/{swe_target}", "--problem_statement.text", task],
+            [str(ROOT / "swe-agent/.venv/bin/sweagent"), "run", "--config", "config/default.yaml", "--agent.model.name", f"openai/{MODEL}", "--agent.model.api_base", os.environ["OPENAI_BASE_URL"], "--agent.model.litellm_model_registry", str(ROOT / "swe-agent-local-model-cost.json"), "--agent.model.max_output_tokens", "1024", "--agent.model.per_instance_cost_limit", "0", "--agent.model.total_cost_limit", "0", "--agent.tools.parse_function.type", "thought_action", "--env.deployment.type", "local", "--env.repo.type", "preexisting", "--env.repo.repo_name", swe_target, "--problem_statement.text", task],
         )
     elif workflow == "openhands":
         os.environ.update(LLM_API_KEY=os.environ["OPENAI_API_KEY"], LLM_BASE_URL=os.environ["OPENAI_BASE_URL"], LLM_MODEL=f"openai/{MODEL}")

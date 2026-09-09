@@ -1,0 +1,5 @@
+source ~/.bashrc
+PROFILE_PROXY_UPSTREAM=https://api.openai.com \
+WORKFLOW_MODEL=gpt-5.6-luna \
+WORKFLOW_RUN_TIMEOUT=1800 \
+./profile-run.sh gpt-researcher "$(cat prompt_for_gpt_researcher.txt)"

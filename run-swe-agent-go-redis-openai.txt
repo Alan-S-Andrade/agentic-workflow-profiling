@@ -1,0 +1,13 @@
+source ~/.bashrc
+
+# Create a fresh target first:
+#   target="$(./prepare-swe-go-redis-target.sh)"
+# The runner refuses dirty targets because SWE-agent resets its local target.
+target="${1:?usage: bash run-swe-agent-go-redis-openai.txt /absolute/path/to/clean/go-redis-clone}"
+
+SWE_TARGET="$target" \
+PROFILE_PROCESS_TRACE=1 \
+PROFILE_PROXY_UPSTREAM=https://api.openai.com \
+WORKFLOW_MODEL=gpt-5.6-luna \
+WORKFLOW_RUN_TIMEOUT=3600 \
+./profile-run.sh swe-agent "$(cat prompt_for_swe_agent_go_redis.txt)"

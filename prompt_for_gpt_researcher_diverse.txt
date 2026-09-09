@@ -1,0 +1,17 @@
+Investigate the sudden collapse of a hypothetical online marketplace's seller
+fulfillment rate from 96% to 61% over six weeks. Treat this as an incident
+investigation, not a general explainer.
+
+Build and test at least five competing hypotheses spanning: warehouse capacity,
+carrier/network disruption, fraud-policy changes, payment holds, demand spikes,
+and seller-software outages. For every hypothesis, gather independent evidence
+from primary sources, industry reporting, operational metrics guidance, and
+postmortem-style case studies. Separate observed facts from inferences and
+explicitly identify contradictory evidence.
+
+Create a dated event timeline, a causal-factor matrix (hypothesis, supporting
+evidence, counterevidence, confidence, and leading indicators), and a
+prioritized 30/60/90-day remediation plan. Before writing the final report,
+perform a dedicated gap-analysis pass: list the three most consequential
+unknowns, explain how each could change the conclusion, and propose the next
+data collection step for each. Include citations throughout.

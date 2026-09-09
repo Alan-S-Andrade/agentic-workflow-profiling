@@ -1,0 +1,105 @@
+diff --git a/tools/diff_state/bin/_state_diff_state b/tools/diff_state/bin/_state_diff_state
+--- a/tools/diff_state/bin/_state_diff_state
++++ b/tools/diff_state/bin/_state_diff_state
+@@ -8,7 +8,7 @@ def main() -> None:
+ 
+     from registry import registry
+ 
+-    state_path = Path("/root/state.json")
++    state_path = Path("/tmp/swe-agent-home/state.json")
+     if state_path.exists():
+         state = json.loads(state_path.read_text())
+     else:
+@@ -16,7 +16,7 @@ def main() -> None:
+ 
+     repo_root = registry.get("ROOT", os.getenv("ROOT"))
+ 
+-    patch_path = Path("/root/model.patch")
++    patch_path = Path("/tmp/swe-agent-home/model.patch")
+ 
+     subprocess.run(
+         f"git add -A && git diff --cached > {patch_path}",
+@@ -36,7 +36,7 @@ def _del_diff():
+     from pathlib import Path
+     import json
+ 
+-    state_path = Path("/root/state.json")
++    state_path = Path("/tmp/swe-agent-home/state.json")
+     if state_path.exists():
+         state = json.loads(state_path.read_text())
+     else:
+diff --git a/tools/edit_anthropic/bin/_state_anthropic b/tools/edit_anthropic/bin/_state_anthropic
+--- a/tools/edit_anthropic/bin/_state_anthropic
++++ b/tools/edit_anthropic/bin/_state_anthropic
+@@ -6,7 +6,7 @@ from pathlib import Path
+ 
+ 
+ def main():
+-    state_path = Path("/root/state.json")
++    state_path = Path("/tmp/swe-agent-home/state.json")
+     if state_path.exists():
+         state = json.loads(state_path.read_text())
+     else:
+diff --git a/tools/registry/lib/registry.py b/tools/registry/lib/registry.py
+--- a/tools/registry/lib/registry.py
++++ b/tools/registry/lib/registry.py
+@@ -9,6 +9,6 @@ class EnvRegistry:
+     calls without using environment variables (which are problematic because you cannot
+     set them in a subprocess).
+ 
+-    The default file location is `/root/.swe-agent-env`, though this can be overridden
++    The default file location is `/tmp/swe-agent-home/.swe-agent-env`, though this can be overridden
+     by the `env_file` argument or the `SWE_AGENT_ENV_FILE` environment variable.
+     """
+@@ -19,7 +19,7 @@ class EnvRegistry:
+     @property
+     def env_file(self) -> Path:
+         if self._env_file is None:
+-            env_file = Path(os.environ.get("SWE_AGENT_ENV_FILE", "/root/.swe-agent-env"))
++            env_file = Path(os.environ.get("SWE_AGENT_ENV_FILE", "/tmp/swe-agent-home/.swe-agent-env"))
+         else:
+             env_file = self._env_file
+         if not env_file.exists():
+diff --git a/tools/windowed/bin/_state b/tools/windowed/bin/_state
+--- a/tools/windowed/bin/_state
++++ b/tools/windowed/bin/_state
+@@ -8,7 +8,7 @@ from registry import registry  # type: ignore
+ 
+ 
+ def main():
+-    state_path = Path("/root/state.json")
++    state_path = Path("/tmp/swe-agent-home/state.json")
+ 
+     if state_path.exists():
+         state = json.loads(state_path.read_text())
+diff --git a/tools/submit/bin/submit b/tools/submit/bin/submit
+--- a/tools/submit/bin/submit
++++ b/tools/submit/bin/submit
+@@ -2,12 +2,12 @@ main() {
+     cd $ROOT
+ 
+     # Check if the patch file exists and is non-empty
+-    if [ -s "/root/test.patch" ]; then
++    if [ -s "/tmp/swe-agent-home/test.patch" ]; then
+         # Apply the patch in reverse
+-        git apply -R < "/root/test.patch"
++        git apply -R < "/tmp/swe-agent-home/test.patch"
+     fi
+ 
+     git add -A
+-    git diff --cached > /root/model.patch
++    git diff --cached > /tmp/swe-agent-home/model.patch
+     echo "<<SWE_AGENT_SUBMISSION>>"
+ }
+diff --git a/tools/review_on_submit_m/bin/submit b/tools/review_on_submit_m/bin/submit
+--- a/tools/review_on_submit_m/bin/submit
++++ b/tools/review_on_submit_m/bin/submit
+@@ -18,7 +18,7 @@ def main() -> None:
+     repo_root = registry.get("ROOT", os.getenv("ROOT"))
+     assert repo_root
+ 
+-    patch_path = Path("/root/model.patch")
++    patch_path = Path("/tmp/swe-agent-home/model.patch")
+ 
+     subprocess.run(
+         f"git add -A && git diff --cached > {patch_path}",

@@ -36,27 +36,33 @@ apply_once() {
 apply_once metagpt "$ROOT/patches/metagpt-gpt5.patch"
 apply_once swe-agent "$ROOT/patches/swe-agent-local-gpt5.patch"
 apply_once swe-agent "$ROOT/patches/swe-agent-step-resource-profiling.patch"
+apply_once swe-agent "$ROOT/patches/swe-agent-unprivileged-tool-state.patch"
 
 uv sync --directory browser-use
-uv run --directory browser-use playwright install chromium
-uv venv --python 3.11 gpt-researcher/.venv
+UV_CACHE_DIR="${UV_CACHE_DIR:-$ROOT/.uv-cache}" uvx playwright install chromium
+uv venv --clear --python 3.11 gpt-researcher/.venv
 uv pip install --python gpt-researcher/.venv/bin/python -e gpt-researcher ddgs langchain-huggingface langchain-mcp-adapters sentence-transformers
 uv sync --directory autogpt/classic
 uv pip install --python autogpt/classic/.venv/bin/python -e autogpt/classic
-uv venv --python 3.10 metagpt/.venv
+uv venv --clear --python 3.10 metagpt/.venv
 uv pip install --python metagpt/.venv/bin/python -e metagpt
 uv pip install --python metagpt/.venv/bin/python 'click<8.2'
 uv sync --directory swe-agent
-uv venv --python 3.11 speculative-tools/.venv
+uv venv --clear --python 3.11 speculative-tools/.venv
 uv pip install --python speculative-tools/.venv/bin/python -e 'speculative-tools[openai]'
 
 mkdir -p .tools/openhands /tmp/swe-agent-home /tmp/swe-agent-tools
-NODE_BIN="$ROOT/.tools/node-v22.22.0-linux-x64/bin"
+case "$(uname -m)" in
+  x86_64|amd64) NODE_ARCH="x64" ;;
+  aarch64|arm64) NODE_ARCH="arm64" ;;
+  *) echo "Unsupported Node.js architecture: $(uname -m)" >&2; exit 1 ;;
+esac
+NODE_BIN="$ROOT/.tools/node-v22.22.0-linux-$NODE_ARCH/bin"
 if [[ ! -x "$NODE_BIN/node" ]] && { ! command -v node >/dev/null || [[ "$(node -p 'process.versions.node.split(".")[0]')" -lt 22 ]]; }; then
   command -v curl >/dev/null || { echo "curl is required to install Node.js 22" >&2; exit 1; }
   command -v tar >/dev/null || { echo "tar is required to install Node.js 22" >&2; exit 1; }
-  node_archive="/tmp/node-v22.22.0-linux-x64.tar.xz"
-  curl -fsSL https://nodejs.org/dist/v22.22.0/node-v22.22.0-linux-x64.tar.xz -o "$node_archive"
+  node_archive="/tmp/node-v22.22.0-linux-$NODE_ARCH.tar.xz"
+  curl -fsSL "https://nodejs.org/dist/v22.22.0/node-v22.22.0-linux-$NODE_ARCH.tar.xz" -o "$node_archive"
   tar -xJf "$node_archive" -C "$ROOT/.tools"
 fi
 if [[ -x "$NODE_BIN/node" ]]; then
