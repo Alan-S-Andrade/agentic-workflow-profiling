@@ -1,0 +1,4 @@
+Research and compare three approaches to profiling local AI-agent workflows:
+  system-call tracing, process/cgroup resource accounting, and application-level
+  span tracing. Collect independent sources for each approach, identify tradeoffs,
+  and produce a recommendation matrix with citations.
