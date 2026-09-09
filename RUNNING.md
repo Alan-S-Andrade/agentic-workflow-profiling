@@ -61,4 +61,8 @@ off by default. A `docker`/`podman` exec or namespace/cgroup boundary is
 evidence of container work. Host virtualization evidence does not by itself
 prove that an individual workflow step ran in a VM.
 
+The go-redis launcher caps SWE-agent at 14 action/observation iterations by
+default, enough for a diverse sample without a full repair trajectory. Override
+it when needed with `SWE_AGENT_MAX_STEPS=20 bash run-swe-agent-go-redis-openai.txt "$target"`.
+
 Run `./run-all-local-llama.sh` to profile all seven workflows through the already-running llama.cpp server. It checks the server health first and records each workflow under `traces/`. Each trace directory contains `execution.jsonl` with local agent/tool/control spans, `llm.jsonl` with LLM spans, `critical-path.json` with a candidate wall-clock critical path, and `graph.json`/`graph.dot` with the recorded and inferred workflow graph. Convert the DOT file with Graphviz, or generate Mermaid with `python3 export_graph.py traces/<run> --format mermaid`. Execution spans include elapsed time, process CPU, current/start/end/peak RSS, Python `tracemalloc` allocation state, and page-fault/context-switch counters. RSS is for the traced process; browser, llama.cpp, and other child-process memory must be profiled as separate processes.

@@ -1,0 +1,47 @@
+diff --git a/sweagent/agent/agents.py b/sweagent/agent/agents.py
+--- a/sweagent/agent/agents.py
++++ b/sweagent/agent/agents.py
+@@ -159,6 +159,8 @@ class DefaultAgentConfig(BaseModel):
+     """Maximum number of times to requery the model after an error, such as a
+     formatting error, a blocked action, or a bash syntax error.
+     """
++    max_steps: int = 0
++    """Maximum action/observation iterations. Zero disables the cap."""
+     action_sampler: ActionSamplerConfig | None = None
+ 
+     type: Literal["default"] = "default"
+@@ -449,6 +451,7 @@ class DefaultAgent(AbstractAgent):
+         history_processors: list[HistoryProcessor],
+         model: AbstractModel,
+         max_requeries: int = 3,
++        max_steps: int = 0,
+         name: str = "main",
+         _catch_errors: bool = True,
+         _always_require_zero_exit_code: bool = False,
+@@ -470,6 +473,7 @@ class DefaultAgent(AbstractAgent):
+             self.tools.config.parse_function = ActionOnlyParser()
+         self.history_processors = history_processors
+         self.max_requeries = max_requeries
++        self.max_steps = max_steps
+         self.logger = get_logger("swea-agent", emoji="🤠")
+         # Set in run method
+         self._env: SWEEnv | None = None
+@@ -510,6 +514,7 @@ class DefaultAgent(AbstractAgent):
+             history_processors=config.history_processors,
+             model=model,
+             max_requeries=config.max_requeries,
++            max_steps=config.max_steps,
+             action_sampler_config=config.action_sampler,
+         )
+ 
+@@ -1282,6 +1287,10 @@ class DefaultAgent(AbstractAgent):
+         self._chook.on_run_start()
+         step_output = StepOutput()
+         while not step_output.done:
++            if self.max_steps > 0 and len(self.trajectory) >= self.max_steps:
++                self.logger.info("Exiting action loop: max_steps=%s reached", self.max_steps)
++                self.info["exit_status"] = "exit_max_steps"
++                break
+             step_output = self.step()
+             self.save_trajectory()
+         self._chook.on_run_done(trajectory=self.trajectory, info=self.info)

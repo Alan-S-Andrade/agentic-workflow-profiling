@@ -37,6 +37,7 @@ apply_once metagpt "$ROOT/patches/metagpt-gpt5.patch"
 apply_once swe-agent "$ROOT/patches/swe-agent-local-gpt5.patch"
 apply_once swe-agent "$ROOT/patches/swe-agent-step-resource-profiling.patch"
 apply_once swe-agent "$ROOT/patches/swe-agent-unprivileged-tool-state.patch"
+apply_once swe-agent "$ROOT/patches/swe-agent-max-steps.patch"
 
 uv sync --directory browser-use
 UV_CACHE_DIR="${UV_CACHE_DIR:-$ROOT/.uv-cache}" uvx playwright install chromium

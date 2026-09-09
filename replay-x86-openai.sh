@@ -14,5 +14,5 @@ WORKFLOW_RUN_TIMEOUT=1800 ./profile-run.sh gpt-researcher "$(cat prompt_for_gpt_
 WORKFLOW_RUN_TIMEOUT=1800 ./profile-run.sh gpt-researcher "$(cat prompt_for_gpt_researcher_diverse.txt)"
 
 target="$(./prepare-swe-go-redis-target.sh)"
-SWE_TARGET="$target" PROFILE_PROCESS_TRACE=1 WORKFLOW_RUN_TIMEOUT=3600 \
+SWE_TARGET="$target" SWE_AGENT_MAX_STEPS="${SWE_AGENT_MAX_STEPS:-14}" PROFILE_PROCESS_TRACE=1 WORKFLOW_RUN_TIMEOUT=3600 \
   ./profile-run.sh swe-agent "$(cat prompt_for_swe_agent_go_redis.txt)"
