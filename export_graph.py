@@ -12,6 +12,61 @@ import json
 from pathlib import Path
 
 
+# Keep the diagram useful to someone reading it without the instrumented
+# source beside them.  These describe the work at each GPT Researcher tracing
+# boundary; they do not imply that the span contains only that work.
+NODE_DESCRIPTIONS = {
+    "gpt-researcher.plan_research": "Generate research subqueries (LLM)",
+    "gpt-researcher.web_search": "Fan out subqueries and collect context",
+    "gpt-researcher.subquery": "Search, scrape, and rank one subquery",
+    "gpt-researcher.scrape_batch": "Fetch candidate URLs concurrently",
+    "gpt-researcher.scrape_url": "Fetch and extract one web page",
+    "gpt-researcher.conduct_research": "Run the end-to-end research phase",
+    "gpt-researcher.write_report": "Compose the final cited report (LLM)",
+    "swe-agent": "Run the SWE-Agent task in the target repository",
+}
+
+
+def description_for_event(event: dict) -> str | None:
+    """Return a compact, action-oriented label for a traced operation."""
+    name = event.get("name", event.get("path", "llm"))
+    if name != "swe-agent.shell":
+        return NODE_DESCRIPTIONS.get(name)
+
+    command = event.get("command", "").strip()
+    if not command:
+        return "Invoke an agent shell action"
+    if "git fetch" in command and "git reset --hard" in command:
+        return "Refresh and reset the target repository"
+    if "swe-agent-tools/registry" in command:
+        return "Install the command-registry tool"
+    if "swe-agent-tools/edit_anthropic" in command:
+        return "Install the code-editing tool"
+    if "swe-agent-tools/review_on_submit" in command:
+        return "Install the submission-review tool"
+    if "PROBLEM_STATEMENT" in command:
+        return "Load the task specification"
+    if "_state_anthropic" in command:
+        return "Read the agent's current state"
+    if "find .. -name AGENTS.md" in command:
+        return "Locate project guidance and retry code"
+    if "repro_on_retry.py" in command:
+        return "Run a small repository-check script"
+    if "OnRetry func" in command:
+        return "Add the OnRetry callback API"
+    if "c.opt.OnRetry" in command:
+        return "Wire callback into the retry path"
+    if command.startswith("export "):
+        return "Configure the noninteractive shell"
+    if command == "pwd":
+        return "Print the current working directory"
+    if command == "ls":
+        return "List directory contents"
+    if command.startswith("cd "):
+        return "Change to the target working directory"
+    return "Run a shell command in the target repository"
+
+
 def load_events(trace_dir: Path) -> list[dict]:
     events = []
     for filename in ("execution.jsonl", "llm.jsonl"):
@@ -41,6 +96,7 @@ def make_graph(events: list[dict]) -> dict:
             "kind": event.get("kind", "unknown"),
             "node_type": event.get("node_type", "llm"),
             "name": event.get("name", event.get("path", "llm")),
+            "description": description_for_event(event),
             "started_at": event.get("started_at"),
             "ended_at": float(event.get("started_at", 0)) + duration / 1000,
             "duration_ms": duration,
@@ -72,13 +128,18 @@ def make_graph(events: list[dict]) -> dict:
         for source in dependencies:
             add_edge(source, target, "dependency", True)
 
-    # LLM requests are recorded by a separate proxy process. If their timing
-    # lies inside an execution span, retain that useful but inferred relation.
+    # LLM requests are recorded by a separate proxy process.  SWE-agent shell
+    # spans can likewise be emitted from a child interpreter without inheriting
+    # the launcher's context variable.  A workflow span is the top-level run
+    # boundary, so retain every temporally nested span as inferred containment.
+    # For smaller execution spans, limit inference to LLM requests: otherwise
+    # overlapping local instrumentation would manufacture false hierarchy.
     for outer in nodes:
         if outer["kind"] != "execution_node":
             continue
         for inner in nodes:
-            if inner["kind"] == "llm" and outer["started_at"] <= inner["started_at"] and inner["ended_at"] <= outer["ended_at"]:
+            should_contain = outer["node_type"] == "workflow" or inner["kind"] == "llm"
+            if should_contain and outer["started_at"] <= inner["started_at"] and inner["ended_at"] <= outer["ended_at"]:
                 add_edge(outer["id"], inner["id"], "contains", False)
 
     # Add ordering edges only for adjacent, non-overlapping nodes. These are
@@ -116,7 +177,10 @@ def dot(graph: dict) -> str:
         shape, fillcolor, color, category = node_styles.get(
             node["node_type"], ("box", "#E2E8F0", "#475569", node["node_type"].upper())
         )
-        label_lines = [category, node["name"], f"Duration: {node['duration_ms'] / 1000:.2f}s"]
+        label_lines = [category, node["name"]]
+        if node.get("description"):
+            label_lines.append(node["description"])
+        label_lines.append(f"Duration: {node['duration_ms'] / 1000:.2f}s")
         if node["kind"] == "execution_node":
             if node["cpu_utilization_pct"] is not None:
                 label_lines.append(f"CPU: {node['cpu_utilization_pct']:.0f}%")
@@ -154,7 +218,8 @@ def dot(graph: dict) -> str:
 def mermaid(graph: dict) -> str:
     lines = ["flowchart LR"]
     for node in graph["nodes"]:
-        label = f"{node['node_type']}: {node['name']} ({node['duration_ms']:.3f} ms)".replace('"', "'")
+        description = f" — {node['description']}" if node.get("description") else ""
+        label = f"{node['node_type']}: {node['name']}{description} ({node['duration_ms']:.3f} ms)".replace('"', "'")
         lines.append(f"  {node['id']}[\"{label}\"]")
     for edge in graph["edges"]:
         connector = "-->" if edge["recorded"] else "-.->"
