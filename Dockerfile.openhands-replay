@@ -1,0 +1,13 @@
+# Pinned runtime for the no-LLM OpenHands trajectory replay.  The source tree
+# is mounted at runtime; downloading its Go modules here makes replay steps
+# deterministic and permits Docker runs with networking disabled.
+FROM golang:1.24-bookworm
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends bash git ripgrep ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY swe-default-target/go.mod swe-default-target/go.sum /tmp/go-redis/
+RUN cd /tmp/go-redis && go mod download
+
+WORKDIR /workspace

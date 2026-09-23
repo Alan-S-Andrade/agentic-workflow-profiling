@@ -1,0 +1,15 @@
+{
+  "experiment": "traces/openhands-colocation-20260918T000000Z-fixed",
+  "sessions_measured": 48,
+  "aggregate_peak_pss_bytes": 1055708160,
+  "pss_per_session_bytes": 21993920.0,
+  "pss_per_session_mib": 20.97503662109375,
+  "host_gib": 251.7809181213379,
+  "reserve_percent": 15,
+  "usable_gib": 214.0137804031372,
+  "session_capacity": {
+    "1x_measured_pss": 10448,
+    "2x_measured_pss": 5224,
+    "4x_measured_pss": 2612
+  }
+}

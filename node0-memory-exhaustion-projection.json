@@ -1,0 +1,10 @@
+{
+  "observed_end_min": 10.700735683333333,
+  "memory_fit_intercept_gib": 0.5039102240950025,
+  "memory_fit_gib_per_session": 0.43828824742299105,
+  "capacity_sessions": 242.80282121351652,
+  "node0_threshold_gib": 106.921533203125,
+  "session_launch_rate_per_min": 2.28077521268704,
+  "projected_exhaustion_min": 103.56513548711152,
+  "projected_cpu_percent": 15.312669097231463
+}

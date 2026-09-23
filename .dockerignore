@@ -1,0 +1,11 @@
+.git
+.agents
+.codex
+openhands
+traces
+workspace
+__pycache__
+*.pyc
+*.png
+*.json
+*.log

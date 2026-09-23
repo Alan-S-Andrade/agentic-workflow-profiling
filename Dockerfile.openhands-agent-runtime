@@ -1,0 +1,17 @@
+# Persistent OpenHands session runtime for no-LLM trace replay.  This extends
+# the pinned Go tool image so the captured Go commands and a real OpenHands
+# agent-server framework share one cgroup and one mutable sandbox.
+FROM openhands-trace-replay:go1.24
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl tmux \
+    && curl -LsSf https://astral.sh/uv/install.sh | sh \
+    && /root/.local/bin/uv venv --python 3.12 /opt/openhands-agent \
+    && /root/.local/bin/uv pip install --python /opt/openhands-agent/bin/python \
+       openhands-agent-server==1.44.0 \
+       openhands-sdk==1.44.0 \
+       openhands-tools==1.44.0 \
+       openhands-workspace==1.44.0 \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV PATH=/opt/openhands-agent/bin:$PATH

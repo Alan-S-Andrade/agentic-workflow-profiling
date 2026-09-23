@@ -101,6 +101,8 @@ def create_conversation(base_url: str, session_key: str, workspace: Path, llm: d
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--base-url", default="http://127.0.0.1:18080")
+    parser.add_argument("--llm-base-url", default="http://127.0.0.1:18766/v1",
+                        help="OpenAI-compatible inference endpoint (normally the trace proxy)")
     parser.add_argument("--session-key", default=os.environ.get("OPENHANDS_SESSION_KEY"),
                         help="Agent-server session key (or OPENHANDS_SESSION_KEY environment variable)")
     parser.add_argument("--trace-dir", type=Path, required=True)
@@ -118,7 +120,7 @@ def main() -> None:
     llm = {
         "model": "openai/gpt-5.6-luna",
         "api_key": api_key,
-        "base_url": "http://127.0.0.1:18766/v1",
+        "base_url": args.llm_base_url,
         "max_output_tokens": 800,
         "temperature": 0,
     }
@@ -154,7 +156,11 @@ def main() -> None:
     final_status, recorded_turns, recovery_count = "finished", 0, 0
     attempt_path = args.trace_dir / "turn-attempts.jsonl"
     recovery_path = args.trace_dir / "session-recoveries.jsonl"
-    with record_path.open("w", encoding="utf-8") as record, attempt_path.open("w", encoding="utf-8") as attempts, recovery_path.open("w", encoding="utf-8") as recoveries:
+    event_path = args.trace_dir / "agent-events.jsonl"
+    # Keep an append-only, timestamped copy of *every* event returned by the
+    # agent server.  ``turns.jsonl`` is convenient for turn-level analysis,
+    # but this stream is the replay source for non-LLM actions.
+    with record_path.open("w", encoding="utf-8") as record, attempt_path.open("w", encoding="utf-8") as attempts, recovery_path.open("w", encoding="utf-8") as recoveries, event_path.open("w", encoding="utf-8") as event_stream:
         for index, text in enumerate(turns, start=1):
             logical_started, all_attempts = time.time(), []
             for attempt in range(1, args.max_recoveries + 2):
@@ -170,6 +176,15 @@ def main() -> None:
                         profiler.terminate()
                         profiler.wait(timeout=10)
                 attempt_record = {"turn_id": index, "attempt": attempt, "conversation_id": conversation_id, "started_at": started, "ended_at": time.time(), "status": turn_status, "events": turn_events}
+                for event in turn_events:
+                    event_stream.write(json.dumps({
+                        "turn_id": index,
+                        "attempt": attempt,
+                        "conversation_id": conversation_id,
+                        "observed_at": time.time(),
+                        "event": event,
+                    }) + "\n")
+                event_stream.flush()
                 all_attempts.append(attempt_record)
                 attempts.write(json.dumps(attempt_record) + "\n")
                 attempts.flush()
