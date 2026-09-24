@@ -1,0 +1,6 @@
+{
+  "turn_count": 20,
+  "model": "gpt-5.6-luna",
+  "reasoning_effort": "medium",
+  "target": "/users/alanuiuc/agentic-workflow-profiling/targets/mini-swe-session-target"
+}

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import asyncio
+import json
 import os
 import shutil
 import subprocess
@@ -42,7 +43,7 @@ def load_env() -> None:
         STRATEGIC_LLM=f"openai:{MODEL}",
         RETRIEVER="duckduckgo",
         EMBEDDING="huggingface:sentence-transformers/all-MiniLM-L6-v2",
-        REASONING_EFFORT="low",
+        REASONING_EFFORT=os.environ.get("REASONING_EFFORT", "low"),
     )
 
 
@@ -264,7 +265,7 @@ def main() -> None:
         exec_in(
             "swe-agent",
             str(ROOT / "swe-agent/.venv/bin/python"),
-            [str(ROOT / "swe-agent/.venv/bin/sweagent"), "run", "--config", "config/default.yaml", "--agent.model.name", f"openai/{MODEL}", "--agent.model.api_base", os.environ["OPENAI_BASE_URL"], "--agent.model.litellm_model_registry", str(ROOT / "swe-agent-local-model-cost.json"), "--agent.model.max_output_tokens", "1024", "--agent.max_steps", swe_max_steps, "--agent.model.per_instance_cost_limit", "0", "--agent.model.total_cost_limit", "0", "--agent.tools.parse_function.type", "thought_action", "--env.deployment.type", "local", "--env.repo.type", "preexisting", "--env.repo.repo_name", swe_target, "--problem_statement.text", task],
+            [str(ROOT / "swe-agent/.venv/bin/sweagent"), "run", "--config", "config/default.yaml", "--agent.model.name", f"openai/{MODEL}", "--agent.model.api_base", os.environ["OPENAI_BASE_URL"], "--agent.model.litellm_model_registry", str(ROOT / "swe-agent-local-model-cost.json"), "--agent.model.completion_kwargs", json.dumps({"reasoning_effort": os.environ.get("REASONING_EFFORT", "low")}), "--agent.model.max_output_tokens", "1024", "--agent.max_steps", swe_max_steps, "--agent.model.per_instance_cost_limit", "0", "--agent.model.total_cost_limit", "0", "--agent.tools.parse_function.type", "thought_action", "--env.deployment.type", "local", "--env.repo.type", "preexisting", "--env.repo.repo_name", swe_target, "--problem_statement.text", task],
         )
     elif workflow == "openhands":
         os.environ.update(LLM_API_KEY=os.environ["OPENAI_API_KEY"], LLM_BASE_URL=os.environ["OPENAI_BASE_URL"], LLM_MODEL=f"openai/{MODEL}")

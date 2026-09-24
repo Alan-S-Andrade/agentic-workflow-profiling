@@ -1,0 +1,12 @@
+You are reimplementing one historical go-redis change as a complete coding episode.
+
+Feature turn: {turn}
+Historical reference: {commit}
+Target behavior: {title}
+
+Treat this entire task as one semantic turn. Within it, work like a production
+maintainer: inspect the code and tests; design the smallest compatible change;
+write implementation and focused regression tests; compile; run targeted and
+broader tests; diagnose and fix failures; update GoDoc or README when warranted;
+then run git diff --check and summarize the result. Do not commit. Preserve
+existing work outside this feature.

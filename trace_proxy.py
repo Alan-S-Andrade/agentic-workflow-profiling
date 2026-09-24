@@ -28,8 +28,10 @@ class Handler(BaseHTTPRequestHandler):
         request_id = uuid.uuid4().hex
         body = self.rfile.read(int(self.headers.get("content-length", "0")))
         model = None
+        request_payload = None
         try:
-            model = json.loads(body).get("model") if body else None
+            request_payload = json.loads(body) if body else None
+            model = request_payload.get("model") if isinstance(request_payload, dict) else None
         except (ValueError, AttributeError):
             pass
 
@@ -64,7 +66,12 @@ class Handler(BaseHTTPRequestHandler):
                 "path": self.path,
                 "model": model,
                 "status": status,
+                "request": request_payload,
             }
+            try:
+                event["response"] = json.loads(response_body) if response_body else None
+            except (TypeError, ValueError):
+                event["response_text"] = response_body.decode("utf-8", errors="replace")
             with WRITE_LOCK, self.server.trace_path.open("a", encoding="utf-8") as stream:  # type: ignore[attr-defined]
                 stream.write(json.dumps(event, separators=(",", ":")) + "\n")
 

@@ -1,0 +1,202 @@
+[
+  {
+    "turn": 1,
+    "title": "feat(bloom): add cellSize param to cms init",
+    "commit": "97442700e4b1066274f0cd4e4f8954e24170fe2a",
+    "exit_status": 0,
+    "trace": "/users/alanuiuc/agentic-workflow-profiling/traces/swe-agent-20260924T141614Z",
+    "peak_pss_mb": 298.3330078125,
+    "mean_cpu_percent": 17.459857879927892,
+    "resident_sessions": 1
+  },
+  {
+    "turn": 2,
+    "title": "perf(command): co-allocate GET/SET args with the command",
+    "commit": "8ac2523e",
+    "exit_status": 0,
+    "trace": "/users/alanuiuc/agentic-workflow-profiling/traces/swe-agent-20260924T141950Z",
+    "peak_pss_mb": 290.0947265625,
+    "mean_cpu_percent": 20.368515874366953,
+    "resident_sessions": 1
+  },
+  {
+    "turn": 3,
+    "title": "feat(csc): Refresh and miss coalescing",
+    "commit": "f6ffe09a911c1545a5360d7cbbe4fd7c0d15f3f2",
+    "exit_status": 0,
+    "trace": "/users/alanuiuc/agentic-workflow-profiling/traces/swe-agent-20260924T142231Z",
+    "peak_pss_mb": 299.1748046875,
+    "mean_cpu_percent": 30.45595129540733,
+    "resident_sessions": 1
+  },
+  {
+    "turn": 4,
+    "title": "fix(probabilistic): tolerate new fields in INFO replies",
+    "commit": "48acccde4d68d687c46081077f04127506fa99c4",
+    "exit_status": 0,
+    "trace": "/users/alanuiuc/agentic-workflow-profiling/traces/swe-agent-20260924T142419Z",
+    "peak_pss_mb": 293.9384765625,
+    "mean_cpu_percent": 24.705465524918743,
+    "resident_sessions": 1
+  },
+  {
+    "turn": 5,
+    "title": "feat(otel): MultiDB metrics in redisotel-native",
+    "commit": "cb4b58117cf12ab38277212c65df75d24da6352c",
+    "exit_status": 0,
+    "trace": "/users/alanuiuc/agentic-workflow-profiling/traces/swe-agent-20260924T142649Z",
+    "peak_pss_mb": 300.4169921875,
+    "mean_cpu_percent": 31.733833073035704,
+    "resident_sessions": 1
+  },
+  {
+    "turn": 6,
+    "title": "fix(pool): honor a late retirement mark on put",
+    "commit": "9377b5b6caa1f1c70109c3337500f2cc5d57f99c",
+    "exit_status": 0,
+    "trace": "/users/alanuiuc/agentic-workflow-profiling/traces/swe-agent-20260924T142828Z",
+    "peak_pss_mb": 298.244140625,
+    "mean_cpu_percent": 32.442146568082244,
+    "resident_sessions": 1
+  },
+  {
+    "turn": 7,
+    "title": "fix(circuitbreaker): clear closed failures under lock",
+    "commit": "ccbb0c04f8b5e18717b70d39f9e1c943c28fe7be",
+    "exit_status": 0,
+    "trace": "/users/alanuiuc/agentic-workflow-profiling/traces/swe-agent-20260924T143002Z",
+    "peak_pss_mb": 293.9736328125,
+    "mean_cpu_percent": 28.805384442557433,
+    "resident_sessions": 1
+  },
+  {
+    "turn": 8,
+    "title": "fix(circuitbreaker): keep probe and command streaks apart",
+    "commit": "bc37b638b2c2bb8559481f9b2fd8dfbdc2804cfe",
+    "exit_status": 0,
+    "trace": "/users/alanuiuc/agentic-workflow-profiling/traces/swe-agent-20260924T143146Z",
+    "peak_pss_mb": 289.2490234375,
+    "mean_cpu_percent": 24.687975227594126,
+    "resident_sessions": 1
+  },
+  {
+    "turn": 9,
+    "title": "fix(circuitbreaker): admit under transition lock",
+    "commit": "bfb4e00d5335cd6be9ca2189388fa51de6198bfc",
+    "exit_status": 0,
+    "trace": "/users/alanuiuc/agentic-workflow-profiling/traces/swe-agent-20260924T143358Z",
+    "peak_pss_mb": 294.94140625,
+    "mean_cpu_percent": 22.93249243878666,
+    "resident_sessions": 1
+  },
+  {
+    "turn": 10,
+    "title": "fix(circuitbreaker): monotonic open-timeout clock",
+    "commit": "335073b0aefb1037d8beb07f1ae345d95774c20a",
+    "exit_status": 0,
+    "trace": "/users/alanuiuc/agentic-workflow-profiling/traces/swe-agent-20260924T143617Z",
+    "peak_pss_mb": 283.681640625,
+    "mean_cpu_percent": 30.349523820757632,
+    "resident_sessions": 1
+  },
+  {
+    "turn": 11,
+    "title": "refactor(autopipeline): document FD sharding, guard the pool",
+    "commit": "c13f42e3",
+    "exit_status": 0,
+    "trace": "/users/alanuiuc/agentic-workflow-profiling/traces/swe-agent-20260924T143731Z",
+    "peak_pss_mb": 303.8837890625,
+    "mean_cpu_percent": 25.526892007967557,
+    "resident_sessions": 1
+  },
+  {
+    "turn": 12,
+    "title": "feat(autopipeline): run Pipeline on the full-duplex connection",
+    "commit": "122e52945a455829903694327d6be4245948fc00",
+    "exit_status": 0,
+    "trace": "/users/alanuiuc/agentic-workflow-profiling/traces/swe-agent-20260924T143935Z",
+    "peak_pss_mb": 296.7431640625,
+    "mean_cpu_percent": 25.418063550452434,
+    "resident_sessions": 1
+  },
+  {
+    "turn": 13,
+    "title": "feat(autopipeline): full duplex flusher",
+    "commit": "d907b985fc8212a30380b84f3e2d472ebe3a9c2e",
+    "exit_status": 0,
+    "trace": "/users/alanuiuc/agentic-workflow-profiling/traces/swe-agent-20260924T144136Z",
+    "peak_pss_mb": 301.2216796875,
+    "mean_cpu_percent": 27.45993746991348,
+    "resident_sessions": 1
+  },
+  {
+    "turn": 14,
+    "title": "fix(autopipeline): correct the FD accumulation wait",
+    "commit": "098da2bcec83c13bdcf2a0d28f6ddb51f14b7b55",
+    "exit_status": 0,
+    "trace": "/users/alanuiuc/agentic-workflow-profiling/traces/swe-agent-20260924T144340Z",
+    "peak_pss_mb": 310.455078125,
+    "mean_cpu_percent": 24.03019761059268,
+    "resident_sessions": 1
+  },
+  {
+    "turn": 15,
+    "title": "fix: reverse error forwarding condition",
+    "commit": "4c553d0cbaa1ba7197cc94fddcf4e5fa6ed95abb",
+    "exit_status": 0,
+    "trace": "/users/alanuiuc/agentic-workflow-profiling/traces/swe-agent-20260924T144557Z",
+    "peak_pss_mb": 295.650390625,
+    "mean_cpu_percent": 27.063919007266446,
+    "resident_sessions": 1
+  },
+  {
+    "turn": 16,
+    "title": "fix: forward subscription and pong frames only on the same connection",
+    "commit": "f907f656ea02daa851db58b09ea381cfdbbcee49",
+    "exit_status": 0,
+    "trace": "/users/alanuiuc/agentic-workflow-profiling/traces/swe-agent-20260924T144746Z",
+    "peak_pss_mb": 291.4736328125,
+    "mean_cpu_percent": 24.271674537651975,
+    "resident_sessions": 1
+  },
+  {
+    "turn": 17,
+    "title": "feat(pubsub): reimplement the standalone pubsub engine",
+    "commit": "f933a4659736b4b5876d9b19b161d922175f4ada",
+    "exit_status": 0,
+    "trace": "/users/alanuiuc/agentic-workflow-profiling/traces/swe-agent-20260924T144950Z",
+    "peak_pss_mb": 304.3232421875,
+    "mean_cpu_percent": 21.69334606985989,
+    "resident_sessions": 1
+  },
+  {
+    "turn": 18,
+    "title": "fix(multidb): mark decorated transaction commands NoRetry",
+    "commit": "297ab0b76b76c8116fe4ab5a1a4db69bd243f077",
+    "exit_status": 0,
+    "trace": "/users/alanuiuc/agentic-workflow-profiling/traces/swe-agent-20260924T145219Z",
+    "peak_pss_mb": 293.5869140625,
+    "mean_cpu_percent": 32.112626988154595,
+    "resident_sessions": 1
+  },
+  {
+    "turn": 19,
+    "title": "fix(multidb): track executed commands by identity",
+    "commit": "b6b91f4b38b60d50375025314d50ca56289ce7b5",
+    "exit_status": 0,
+    "trace": "/users/alanuiuc/agentic-workflow-profiling/traces/swe-agent-20260924T145356Z",
+    "peak_pss_mb": 296.0751953125,
+    "mean_cpu_percent": 22.813807457010704,
+    "resident_sessions": 1
+  },
+  {
+    "turn": 20,
+    "title": "fix(multidb): close removed clients outside locks",
+    "commit": "c1042e982e61d630fa2baf437c8eb883e47ffb0b",
+    "exit_status": 0,
+    "trace": "/users/alanuiuc/agentic-workflow-profiling/traces/swe-agent-20260924T145620Z",
+    "peak_pss_mb": 289.6845703125,
+    "mean_cpu_percent": 29.02319082226498,
+    "resident_sessions": 1
+  }
+]

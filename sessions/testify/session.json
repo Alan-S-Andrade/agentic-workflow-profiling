@@ -1,0 +1,167 @@
+{
+  "project": "stretchr/testify",
+  "model": "gpt-5.6-luna",
+  "reasoning_effort": "medium",
+  "turns": [
+    {
+      "turn": 1,
+      "commit": "70270b760bffd4c7354924c06bb635a707f3ec7f",
+      "base_commit": "f35b8ab0b5a2cef36673838d662e249dd9c94686",
+      "title": "Retract github.com/stretchrcom/testify up to v1.2.3",
+      "prompt": "You are maintaining stretchr/testify. Reimplement one historical resolved change as a complete production coding episode.\n\nHistorical change: Retract github.com/stretchrcom/testify up to v1.2.3\nReference commit: 70270b760bffd4c7354924c06bb635a707f3ec7f\n\nDo not inspect, cherry-pick, or copy the reference commit. Infer the intended behavior from the current code, issue-style title, APIs, and tests. Inspect first; implement the smallest compatible change; write focused tests; compile; run targeted and broader tests; diagnose failures; add regression tests; update docs or GoDoc when warranted; and finish with git diff --check. Do not commit. This entire workflow is one semantic turn.\n",
+      "inference_budget": 14
+    },
+    {
+      "turn": 2,
+      "commit": "15f6826fe4614cc225c16903d2e9a1c966fb2332",
+      "base_commit": "c920f8006d656e11aea63d9d233e6591ceb95017",
+      "title": "assert: fix NotSubset error messages using %%#v instead of %%q",
+      "prompt": "You are maintaining stretchr/testify. Reimplement one historical resolved change as a complete production coding episode.\n\nHistorical change: assert: fix NotSubset error messages using %%#v instead of %%q\nReference commit: 15f6826fe4614cc225c16903d2e9a1c966fb2332\n\nDo not inspect, cherry-pick, or copy the reference commit. Infer the intended behavior from the current code, issue-style title, APIs, and tests. Inspect first; implement the smallest compatible change; write focused tests; compile; run targeted and broader tests; diagnose failures; add regression tests; update docs or GoDoc when warranted; and finish with git diff --check. Do not commit. This entire workflow is one semantic turn.\n",
+      "inference_budget": 14
+    },
+    {
+      "turn": 3,
+      "commit": "967a7b7071f62a382bb64259ff4baf18b07c4cda",
+      "base_commit": "101072d18a7d4d50c9001576279bde3f3e798c2b",
+      "title": "fix: update EventuallyWithTf comment examples and codegen",
+      "prompt": "You are maintaining stretchr/testify. Reimplement one historical resolved change as a complete production coding episode.\n\nHistorical change: fix: update EventuallyWithTf comment examples and codegen\nReference commit: 967a7b7071f62a382bb64259ff4baf18b07c4cda\n\nDo not inspect, cherry-pick, or copy the reference commit. Infer the intended behavior from the current code, issue-style title, APIs, and tests. Inspect first; implement the smallest compatible change; write focused tests; compile; run targeted and broader tests; diagnose failures; add regression tests; update docs or GoDoc when warranted; and finish with git diff --check. Do not commit. This entire workflow is one semantic turn.\n",
+      "inference_budget": 14
+    },
+    {
+      "turn": 4,
+      "commit": "556f9edbcca9b16c1e208f174d99008cc9e8cc5a",
+      "base_commit": "aaef048780ce04e761bba7cf62bc842873187685",
+      "title": "fix(require): correct CollectT references in comments",
+      "prompt": "You are maintaining stretchr/testify. Reimplement one historical resolved change as a complete production coding episode.\n\nHistorical change: fix(require): correct CollectT references in comments\nReference commit: 556f9edbcca9b16c1e208f174d99008cc9e8cc5a\n\nDo not inspect, cherry-pick, or copy the reference commit. Infer the intended behavior from the current code, issue-style title, APIs, and tests. Inspect first; implement the smallest compatible change; write focused tests; compile; run targeted and broader tests; diagnose failures; add regression tests; update docs or GoDoc when warranted; and finish with git diff --check. Do not commit. This entire workflow is one semantic turn.\n",
+      "inference_budget": 14
+    },
+    {
+      "turn": 5,
+      "commit": "38d9e83f5afaffee8c0a99d3e051ea5542e9f6c6",
+      "base_commit": "4f554a8833afff3cffb491138ba9c796ca4106b4",
+      "title": "Fix tests to work with go 1.19",
+      "prompt": "You are maintaining stretchr/testify. Reimplement one historical resolved change as a complete production coding episode.\n\nHistorical change: Fix tests to work with go 1.19\nReference commit: 38d9e83f5afaffee8c0a99d3e051ea5542e9f6c6\n\nDo not inspect, cherry-pick, or copy the reference commit. Infer the intended behavior from the current code, issue-style title, APIs, and tests. Inspect first; implement the smallest compatible change; write focused tests; compile; run targeted and broader tests; diagnose failures; add regression tests; update docs or GoDoc when warranted; and finish with git diff --check. Do not commit. This entire workflow is one semantic turn.\n",
+      "inference_budget": 14
+    },
+    {
+      "turn": 6,
+      "commit": "4f554a8833afff3cffb491138ba9c796ca4106b4",
+      "base_commit": "e8daaaca9cd5c11e45f7aada79cdea3fc9f2b4eb",
+      "title": "Fix #1399: Always report error message on PanicsWithError mismatch",
+      "prompt": "You are maintaining stretchr/testify. Reimplement one historical resolved change as a complete production coding episode.\n\nHistorical change: Fix #1399: Always report error message on PanicsWithError mismatch\nReference commit: 4f554a8833afff3cffb491138ba9c796ca4106b4\n\nDo not inspect, cherry-pick, or copy the reference commit. Infer the intended behavior from the current code, issue-style title, APIs, and tests. Inspect first; implement the smallest compatible change; write focused tests; compile; run targeted and broader tests; diagnose failures; add regression tests; update docs or GoDoc when warranted; and finish with git diff --check. Do not commit. This entire workflow is one semantic turn.\n",
+      "inference_budget": 14
+    },
+    {
+      "turn": 7,
+      "commit": "7b2204f8a306a98af7acf453e5d57c3647c3fc59",
+      "base_commit": "b7801fbf5cd58d201296d5d0e132d1849966dbd4",
+      "title": "fix(pkg-mock): avoid panic when expected type is nil in Arguments.Diff",
+      "prompt": "You are maintaining stretchr/testify. Reimplement one historical resolved change as a complete production coding episode.\n\nHistorical change: fix(pkg-mock): avoid panic when expected type is nil in Arguments.Diff\nReference commit: 7b2204f8a306a98af7acf453e5d57c3647c3fc59\n\nDo not inspect, cherry-pick, or copy the reference commit. Infer the intended behavior from the current code, issue-style title, APIs, and tests. Inspect first; implement the smallest compatible change; write focused tests; compile; run targeted and broader tests; diagnose failures; add regression tests; update docs or GoDoc when warranted; and finish with git diff --check. Do not commit. This entire workflow is one semantic turn.\n",
+      "inference_budget": 14
+    },
+    {
+      "turn": 8,
+      "commit": "af716f8bffb6c42f4d996f0776b43ffcf33b4bba",
+      "base_commit": "9fc264e324c587f876d486ce8339f45784a6c3a1",
+      "title": "CI: fix shebang in .ci.*.sh scripts",
+      "prompt": "You are maintaining stretchr/testify. Reimplement one historical resolved change as a complete production coding episode.\n\nHistorical change: CI: fix shebang in .ci.*.sh scripts\nReference commit: af716f8bffb6c42f4d996f0776b43ffcf33b4bba\n\nDo not inspect, cherry-pick, or copy the reference commit. Infer the intended behavior from the current code, issue-style title, APIs, and tests. Inspect first; implement the smallest compatible change; write focused tests; compile; run targeted and broader tests; diagnose failures; add regression tests; update docs or GoDoc when warranted; and finish with git diff --check. Do not commit. This entire workflow is one semantic turn.\n",
+      "inference_budget": 14
+    },
+    {
+      "turn": 9,
+      "commit": "111716d6f991105fb6093a34264fe14769f719f9",
+      "base_commit": "d338e951cfe023f3805b538be4a20e0d3c5a283a",
+      "title": "Merge pull request #1729 from siliconbrain/fix-subset-notsubset-mixed-type",
+      "prompt": "You are maintaining stretchr/testify. Reimplement one historical resolved change as a complete production coding episode.\n\nHistorical change: Merge pull request #1729 from siliconbrain/fix-subset-notsubset-mixed-type\nReference commit: 111716d6f991105fb6093a34264fe14769f719f9\n\nDo not inspect, cherry-pick, or copy the reference commit. Infer the intended behavior from the current code, issue-style title, APIs, and tests. Inspect first; implement the smallest compatible change; write focused tests; compile; run targeted and broader tests; diagnose failures; add regression tests; update docs or GoDoc when warranted; and finish with git diff --check. Do not commit. This entire workflow is one semantic turn.\n",
+      "inference_budget": 14
+    },
+    {
+      "turn": 10,
+      "commit": "2a9c44b1d87607c362de484a7a2f7a14098530bf",
+      "base_commit": "5ac6528bffc1ed7557980c3c563caf8308568446",
+      "title": "fix Subset/NotSubset when calling with mixed input types (array/slice list with map subset)",
+      "prompt": "You are maintaining stretchr/testify. Reimplement one historical resolved change as a complete production coding episode.\n\nHistorical change: fix Subset/NotSubset when calling with mixed input types (array/slice list with map subset)\nReference commit: 2a9c44b1d87607c362de484a7a2f7a14098530bf\n\nDo not inspect, cherry-pick, or copy the reference commit. Infer the intended behavior from the current code, issue-style title, APIs, and tests. Inspect first; implement the smallest compatible change; write focused tests; compile; run targeted and broader tests; diagnose failures; add regression tests; update docs or GoDoc when warranted; and finish with git diff --check. Do not commit. This entire workflow is one semantic turn.\n",
+      "inference_budget": 14
+    },
+    {
+      "turn": 11,
+      "commit": "5a5ac855517be61ce50dcdfe6c88c221491fc47e",
+      "base_commit": "f784abc221bc8b01ad8a38366cc8f8d9706716ea",
+      "title": "Merge pull request #1062 from lambdanis/fix-fail-message-formatting",
+      "prompt": "You are maintaining stretchr/testify. Reimplement one historical resolved change as a complete production coding episode.\n\nHistorical change: Merge pull request #1062 from lambdanis/fix-fail-message-formatting\nReference commit: 5a5ac855517be61ce50dcdfe6c88c221491fc47e\n\nDo not inspect, cherry-pick, or copy the reference commit. Infer the intended behavior from the current code, issue-style title, APIs, and tests. Inspect first; implement the smallest compatible change; write focused tests; compile; run targeted and broader tests; diagnose failures; add regression tests; update docs or GoDoc when warranted; and finish with git diff --check. Do not commit. This entire workflow is one semantic turn.\n",
+      "inference_budget": 14
+    },
+    {
+      "turn": 12,
+      "commit": "89cbdd9e7b39eb58896d316a7495597d3aba4371",
+      "base_commit": "07bac606be2191ae89a281195e58d01e0de7b5f8",
+      "title": "Merge pull request #1626 from arjun-1/fix-functional-options-diff-indirect-calls",
+      "prompt": "You are maintaining stretchr/testify. Reimplement one historical resolved change as a complete production coding episode.\n\nHistorical change: Merge pull request #1626 from arjun-1/fix-functional-options-diff-indirect-calls\nReference commit: 89cbdd9e7b39eb58896d316a7495597d3aba4371\n\nDo not inspect, cherry-pick, or copy the reference commit. Infer the intended behavior from the current code, issue-style title, APIs, and tests. Inspect first; implement the smallest compatible change; write focused tests; compile; run targeted and broader tests; diagnose failures; add regression tests; update docs or GoDoc when warranted; and finish with git diff --check. Do not commit. This entire workflow is one semantic turn.\n",
+      "inference_budget": 14
+    },
+    {
+      "turn": 13,
+      "commit": "a1b9c9efe3c25c50678b1e492045164b914e255f",
+      "base_commit": "89352f7958086841c72425ccd6f43ab299e1309c",
+      "title": "Merge pull request #1663 from ybrustin/master",
+      "prompt": "You are maintaining stretchr/testify. Reimplement one historical resolved change as a complete production coding episode.\n\nHistorical change: Merge pull request #1663 from ybrustin/master\nReference commit: a1b9c9efe3c25c50678b1e492045164b914e255f\n\nDo not inspect, cherry-pick, or copy the reference commit. Infer the intended behavior from the current code, issue-style title, APIs, and tests. Inspect first; implement the smallest compatible change; write focused tests; compile; run targeted and broader tests; diagnose failures; add regression tests; update docs or GoDoc when warranted; and finish with git diff --check. Do not commit. This entire workflow is one semantic turn.\n",
+      "inference_budget": 14
+    },
+    {
+      "turn": 14,
+      "commit": "822223ec3418f3f55230d59b2701b9d6dafff758",
+      "base_commit": "22d3bd5defb6f5dfe50062c22651669393ecdbc5",
+      "title": "fix name regression",
+      "prompt": "You are maintaining stretchr/testify. Reimplement one historical resolved change as a complete production coding episode.\n\nHistorical change: fix name regression\nReference commit: 822223ec3418f3f55230d59b2701b9d6dafff758\n\nDo not inspect, cherry-pick, or copy the reference commit. Infer the intended behavior from the current code, issue-style title, APIs, and tests. Inspect first; implement the smallest compatible change; write focused tests; compile; run targeted and broader tests; diagnose failures; add regression tests; update docs or GoDoc when warranted; and finish with git diff --check. Do not commit. This entire workflow is one semantic turn.\n",
+      "inference_budget": 14
+    },
+    {
+      "turn": 15,
+      "commit": "9c174eb41c6bd1d44d9aec62f68b8f1c514f3f5f",
+      "base_commit": "7efaf15f33b934e65819d2df2d74167272a4b8df",
+      "title": "fix: compare functional option names for indirect calls",
+      "prompt": "You are maintaining stretchr/testify. Reimplement one historical resolved change as a complete production coding episode.\n\nHistorical change: fix: compare functional option names for indirect calls\nReference commit: 9c174eb41c6bd1d44d9aec62f68b8f1c514f3f5f\n\nDo not inspect, cherry-pick, or copy the reference commit. Infer the intended behavior from the current code, issue-style title, APIs, and tests. Inspect first; implement the smallest compatible change; write focused tests; compile; run targeted and broader tests; diagnose failures; add regression tests; update docs or GoDoc when warranted; and finish with git diff --check. Do not commit. This entire workflow is one semantic turn.\n",
+      "inference_budget": 14
+    },
+    {
+      "turn": 16,
+      "commit": "6555fd4da6911f1a3a0e751fbe4fd61c22e809d5",
+      "base_commit": "a012e45d185128fe5bf3370e42b0854856e0998e",
+      "title": "Fix issue #1662 (comparing infs should fail)",
+      "prompt": "You are maintaining stretchr/testify. Reimplement one historical resolved change as a complete production coding episode.\n\nHistorical change: Fix issue #1662 (comparing infs should fail)\nReference commit: 6555fd4da6911f1a3a0e751fbe4fd61c22e809d5\n\nDo not inspect, cherry-pick, or copy the reference commit. Infer the intended behavior from the current code, issue-style title, APIs, and tests. Inspect first; implement the smallest compatible change; write focused tests; compile; run targeted and broader tests; diagnose failures; add regression tests; update docs or GoDoc when warranted; and finish with git diff --check. Do not commit. This entire workflow is one semantic turn.\n",
+      "inference_budget": 14
+    },
+    {
+      "turn": 17,
+      "commit": "e943930404ddd99e7481c92aabebbc589385b6b9",
+      "base_commit": "b074924938f86d417f1c9a845c7e8b0784d7f937",
+      "title": "fix(suite): test failures",
+      "prompt": "You are maintaining stretchr/testify. Reimplement one historical resolved change as a complete production coding episode.\n\nHistorical change: fix(suite): test failures\nReference commit: e943930404ddd99e7481c92aabebbc589385b6b9\n\nDo not inspect, cherry-pick, or copy the reference commit. Infer the intended behavior from the current code, issue-style title, APIs, and tests. Inspect first; implement the smallest compatible change; write focused tests; compile; run targeted and broader tests; diagnose failures; add regression tests; update docs or GoDoc when warranted; and finish with git diff --check. Do not commit. This entire workflow is one semantic turn.\n",
+      "inference_budget": 14
+    },
+    {
+      "turn": 18,
+      "commit": "4a90eff4ae12f3ed4bc9331e2f8ba368317fe86e",
+      "base_commit": "3ca01f4bc352e36e9d80f87d80b7de57d967fb7a",
+      "title": "fix",
+      "prompt": "You are maintaining stretchr/testify. Reimplement one historical resolved change as a complete production coding episode.\n\nHistorical change: fix\nReference commit: 4a90eff4ae12f3ed4bc9331e2f8ba368317fe86e\n\nDo not inspect, cherry-pick, or copy the reference commit. Infer the intended behavior from the current code, issue-style title, APIs, and tests. Inspect first; implement the smallest compatible change; write focused tests; compile; run targeted and broader tests; diagnose failures; add regression tests; update docs or GoDoc when warranted; and finish with git diff --check. Do not commit. This entire workflow is one semantic turn.\n",
+      "inference_budget": 14
+    },
+    {
+      "turn": 19,
+      "commit": "b074924938f86d417f1c9a845c7e8b0784d7f937",
+      "base_commit": "84619f5c3cc34b4aec7872962246d19f99abf81c",
+      "title": "assert: collect.FailNow() should not panic (#1481)",
+      "prompt": "You are maintaining stretchr/testify. Reimplement one historical resolved change as a complete production coding episode.\n\nHistorical change: assert: collect.FailNow() should not panic (#1481)\nReference commit: b074924938f86d417f1c9a845c7e8b0784d7f937\n\nDo not inspect, cherry-pick, or copy the reference commit. Infer the intended behavior from the current code, issue-style title, APIs, and tests. Inspect first; implement the smallest compatible change; write focused tests; compile; run targeted and broader tests; diagnose failures; add regression tests; update docs or GoDoc when warranted; and finish with git diff --check. Do not commit. This entire workflow is one semantic turn.\n",
+      "inference_budget": 14
+    },
+    {
+      "turn": 20,
+      "commit": "84619f5c3cc34b4aec7872962246d19f99abf81c",
+      "base_commit": "1b4fca7679ac5ddaf45491840c8a0cace9fc6d83",
+      "title": "fix: grammar in godoc for NotErrorIs(f) functions (#1607)",
+      "prompt": "You are maintaining stretchr/testify. Reimplement one historical resolved change as a complete production coding episode.\n\nHistorical change: fix: grammar in godoc for NotErrorIs(f) functions (#1607)\nReference commit: 84619f5c3cc34b4aec7872962246d19f99abf81c\n\nDo not inspect, cherry-pick, or copy the reference commit. Infer the intended behavior from the current code, issue-style title, APIs, and tests. Inspect first; implement the smallest compatible change; write focused tests; compile; run targeted and broader tests; diagnose failures; add regression tests; update docs or GoDoc when warranted; and finish with git diff --check. Do not commit. This entire workflow is one semantic turn.\n",
+      "inference_budget": 14
+    }
+  ]
+}

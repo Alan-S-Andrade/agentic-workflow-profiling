@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "session_id": "go-redis-historical-feature-session-20",
+  "semantic_turn_definition": "One turn is one complete feature episode: inspect, implement, compile, test, add regression coverage, document, and validate.",
+  "turns": [
+    {"turn": 1, "commit": "97442700e4b1066274f0cd4e4f8954e24170fe2a", "title": "feat(bloom): add cellSize param to cms init"},
+    {"turn": 2, "commit": "8ac2523e", "title": "perf(command): co-allocate GET/SET args with the command"},
+    {"turn": 3, "commit": "f6ffe09a911c1545a5360d7cbbe4fd7c0d15f3f2", "title": "feat(csc): Refresh and miss coalescing"},
+    {"turn": 4, "commit": "48acccde4d68d687c46081077f04127506fa99c4", "title": "fix(probabilistic): tolerate new fields in INFO replies"},
+    {"turn": 5, "commit": "cb4b58117cf12ab38277212c65df75d24da6352c", "title": "feat(otel): MultiDB metrics in redisotel-native"},
+    {"turn": 6, "commit": "9377b5b6caa1f1c70109c3337500f2cc5d57f99c", "title": "fix(pool): honor a late retirement mark on put"},
+    {"turn": 7, "commit": "ccbb0c04f8b5e18717b70d39f9e1c943c28fe7be", "title": "fix(circuitbreaker): clear closed failures under lock"},
+    {"turn": 8, "commit": "bc37b638b2c2bb8559481f9b2fd8dfbdc2804cfe", "title": "fix(circuitbreaker): keep probe and command streaks apart"},
+    {"turn": 9, "commit": "bfb4e00d5335cd6be9ca2189388fa51de6198bfc", "title": "fix(circuitbreaker): admit under transition lock"},
+    {"turn": 10, "commit": "335073b0aefb1037d8beb07f1ae345d95774c20a", "title": "fix(circuitbreaker): monotonic open-timeout clock"},
+    {"turn": 11, "commit": "c13f42e3", "title": "refactor(autopipeline): document FD sharding, guard the pool"},
+    {"turn": 12, "commit": "122e52945a455829903694327d6be4245948fc00", "title": "feat(autopipeline): run Pipeline on the full-duplex connection"},
+    {"turn": 13, "commit": "d907b985fc8212a30380b84f3e2d472ebe3a9c2e", "title": "feat(autopipeline): full duplex flusher"},
+    {"turn": 14, "commit": "098da2bcec83c13bdcf2a0d28f6ddb51f14b7b55", "title": "fix(autopipeline): correct the FD accumulation wait"},
+    {"turn": 15, "commit": "4c553d0cbaa1ba7197cc94fddcf4e5fa6ed95abb", "title": "fix: reverse error forwarding condition"},
+    {"turn": 16, "commit": "f907f656ea02daa851db58b09ea381cfdbbcee49", "title": "fix: forward subscription and pong frames only on the same connection"},
+    {"turn": 17, "commit": "f933a4659736b4b5876d9b19b161d922175f4ada", "title": "feat(pubsub): reimplement the standalone pubsub engine"},
+    {"turn": 18, "commit": "297ab0b76b76c8116fe4ab5a1a4db69bd243f077", "title": "fix(multidb): mark decorated transaction commands NoRetry"},
+    {"turn": 19, "commit": "b6b91f4b38b60d50375025314d50ca56289ce7b5", "title": "fix(multidb): track executed commands by identity"},
+    {"turn": 20, "commit": "c1042e982e61d630fa2baf437c8eb883e47ffb0b", "title": "fix(multidb): close removed clients outside locks"}
+  ]
+}
