@@ -3,6 +3,7 @@
 __pycache__/
 *.log
 /traces/
+/yig/
 /models/
 /llama-server.log
 
