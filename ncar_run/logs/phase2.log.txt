@@ -1,0 +1,354 @@
+== waiting for sweep pid 145401 (05:34:38)
+== main sweep finished 11:10:42; installing /home/cc/sdebench-mt-next
+== uva smoke test (--kv-cache-memory-bytes 37258811392 --cpu-offload-gb 8)
+== staging images to /tmp/cc-images
+43G	/tmp/cc-images
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/home/cc/.config/mini-swe-agent/.env'
+/home/cc/sdebench-mt/configs/mini.yaml
+== starting vLLM
+Sat Oct  3 11:10:43 AM UTC 2026
+before evict: node0/node1 FilePages MB = 215360.60/0.00, GPU used = 1 MiB
+evicted page cache of 119 files
+node1: FilePages 0 MiB, nothing to flush
+after evict: node0/node1 FilePages MB = 158782.05/0.00, GPU used = 8 MiB
+vLLM healthy after 850s
+KV cache tokens: 1055857 (minimum 780000), attempt 1
+memory.used [MiB], memory.total [MiB]
+80518 MiB, 97871 MiB
+(EngineCore pid=187802) INFO 10-03 11:23:14 [utils.py:320] Using LBNHC KV cache layout.
+(EngineCore pid=187802) INFO 10-03 11:24:18 [gpu_worker.py:559] Initial free memory 94.46 GiB, reserved 34.7 GiB memory for KV Cache as specified by kv_cache_memory_bytes config and skipped memory profiling. This does not respect the gpu_memory_utilization config. Only use kv_cache_memory_bytes config when you want manual control of KV cache memory size. If OOM'ed, check the difference of initial free memory between the current run and the previous run where kv_cache_memory_bytes is suggested and update it correspondingly.
+(EngineCore pid=187802) INFO 10-03 11:24:18 [kv_cache_utils.py:2395] GPU KV cache size: 1,055,857 tokens, Maximum concurrency for 131,072 tokens per request: 8.06x
+(EngineCore pid=187802) INFO 10-03 11:24:54 [core.py:372] init engine (profile, create kv cache, warmup model) took 100.00 s (compilation: 35.99 s)
+(EngineCore pid=187802) INFO 10-03 11:24:54 [kv_cache_utils.py:748] kv cache group sizes [1568, 1568, 1568, 1568]
+(APIServer pid=187489) INFO 10-03 11:11:55 [api_utils.py:286] non-default args: {'model_tag': '/models/Qwen3.8-27B', 'enable_auto_tool_choice': True, 'tool_call_parser': 'qwen3_xml', 'enable_prompt_tokens_details': True, 'host': '127.0.0.1', 'model': '/models/Qwen3.8-27B', 'max_model_len': 131072, 'served_model_name': ['qwen3.8-27b'], 'reasoning_parser': 'qwen3', 'gpu_memory_utilization': 0.85, 'kv_cache_memory_bytes': 37258811392, 'kv_cache_dtype': 'fp8', 'enable_prefix_caching': True, 'cpu_offload_gb': 8.0, 'limit_mm_per_prompt': {'image': 0, 'video': 0}, 'max_num_seqs': 64}
+(EngineCore pid=187802) INFO 10-03 11:14:42 [base.py:138] Offloader set to UVAOffloader
+(EngineCore pid=187802) INFO 10-03 11:15:18 [uva.py:67] Total CPU offloaded parameters: 8.01
+== chat + tool-call sanity
+tool_calls: [{'id': 'chatcmpl-tool-a28fbf865f6e3b50', 'type': 'function', 'function': {'name': 'bash', 'arguments': '{"command": "ls -la"}'}}]
+usage: {'prompt_tokens': 315, 'total_tokens': 383, 'completion_tokens': 68, 'prompt_tokens_details': {'cached_tokens': 0, 'created_cache_tokens': 0, 'multimodal_tokens': None}, 'completion_tokens_details': {'reasoning_tokens': 38}}
+== KV migration check
+Sat Oct  3 11:25:02 AM UTC 2026
+OFFLOAD_CHECK prompt=49986 tok | cold 11.811s cached=0 | gpu-hit 0.441s cached=48608 | after flood of 1306917 tok: 11.735s cached=0 external_hits+=0 -> RECOMPUTED (no CPU hit)
+OFFLOAD_BYTES stored 0.0 GB, loaded 0.00 GB during the check
+SWEEP_ID=20261003-0506  NS=16 32  ARMS=uva  OFFLOAD_GIB=64
+== staging images to /tmp/cc-images
+43G	/tmp/cc-images
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/home/cc/.config/mini-swe-agent/.env'
+/home/cc/sdebench-mt/configs/mini.yaml
+== starting vLLM
+Sat Oct  3 11:30:40 AM UTC 2026
+before evict: node0/node1 FilePages MB = 210216.89/0.00, GPU used = 3 MiB
+evicted page cache of 119 files
+node1: FilePages 0 MiB, nothing to flush
+after evict: node0/node1 FilePages MB = 158843.72/0.00, GPU used = 8 MiB
+vLLM healthy after 805s
+KV cache tokens: 1055857 (minimum 780000), attempt 1
+memory.used [MiB], memory.total [MiB]
+80173 MiB, 97871 MiB
+(EngineCore pid=190399) INFO 10-03 11:43:01 [utils.py:320] Using LBNHC KV cache layout.
+(EngineCore pid=190399) INFO 10-03 11:43:31 [gpu_worker.py:559] Initial free memory 94.46 GiB, reserved 34.7 GiB memory for KV Cache as specified by kv_cache_memory_bytes config and skipped memory profiling. This does not respect the gpu_memory_utilization config. Only use kv_cache_memory_bytes config when you want manual control of KV cache memory size. If OOM'ed, check the difference of initial free memory between the current run and the previous run where kv_cache_memory_bytes is suggested and update it correspondingly.
+(EngineCore pid=190399) INFO 10-03 11:43:31 [kv_cache_utils.py:2395] GPU KV cache size: 1,055,857 tokens, Maximum concurrency for 131,072 tokens per request: 8.06x
+(EngineCore pid=190399) INFO 10-03 11:44:06 [core.py:372] init engine (profile, create kv cache, warmup model) took 64.81 s (compilation: 1.67 s)
+(EngineCore pid=190399) INFO 10-03 11:44:06 [kv_cache_utils.py:748] kv cache group sizes [1568, 1568, 1568, 1568]
+(APIServer pid=190125) INFO 10-03 11:31:52 [api_utils.py:286] non-default args: {'model_tag': '/models/Qwen3.8-27B', 'enable_auto_tool_choice': True, 'tool_call_parser': 'qwen3_xml', 'enable_prompt_tokens_details': True, 'host': '127.0.0.1', 'model': '/models/Qwen3.8-27B', 'max_model_len': 131072, 'served_model_name': ['qwen3.8-27b'], 'reasoning_parser': 'qwen3', 'gpu_memory_utilization': 0.85, 'kv_cache_memory_bytes': 37258811392, 'kv_cache_dtype': 'fp8', 'enable_prefix_caching': True, 'cpu_offload_gb': 8.0, 'limit_mm_per_prompt': {'image': 0, 'video': 0}, 'max_num_seqs': 64}
+(EngineCore pid=190399) INFO 10-03 11:34:37 [base.py:138] Offloader set to UVAOffloader
+(EngineCore pid=190399) INFO 10-03 11:35:17 [uva.py:67] Total CPU offloaded parameters: 8.01
+== uva N=16 jobs=32
+Sat Oct  3 11:44:10 AM UTC 2026
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/home/cc/.config/mini-swe-agent/.env'
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/home/cc/.config/mini-swe-agent/.env'
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/home/cc/.config/mini-swe-agent/.env'
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/home/cc/.config/mini-swe-agent/.env'
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/home/cc/.config/mini-swe-agent/.env'
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/home/cc/.config/mini-swe-agent/.env'
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/home/cc/.config/mini-swe-agent/.env'
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/home/cc/.config/mini-swe-agent/.env'
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/home/cc/.config/mini-swe-agent/.env'
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/home/cc/.config/mini-swe-agent/.env'
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/home/cc/.config/mini-swe-agent/.env'
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/home/cc/.config/mini-swe-agent/.env'
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/home/cc/.config/mini-swe-agent/.env'
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/home/cc/.config/mini-swe-agent/.env'
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/home/cc/.config/mini-swe-agent/.env'
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/home/cc/.config/mini-swe-agent/.env'
+[    314s] 1/32 t007 django__django-16255 resolved=True wall=277s calls=18 
+[    572s] 2/32 t008 sympy__sympy-11618 resolved=True wall=530s calls=21 
+[    906s] 3/32 t013 sympy__sympy-23262 resolved=True wall=839s calls=48 
+[    919s] 4/32 t006 django__django-15380 resolved=True wall=887s calls=38 
+[   1250s] 5/32 t002 django__django-12262 resolved=True wall=1239s calls=32 
+[   1310s] 6/32 t000 django__django-10973 resolved=True wall=1308s calls=17 
+[   1375s] 7/32 t006 django__django-10973 resolved=True wall=456s calls=13 
+[   1420s] 8/32 t015 pytest-dev__pytest-5631 resolved=True wall=1344s calls=36 
+[   1512s] 9/32 t013 astropy__astropy-12907 resolved=True wall=606s calls=20 
+[   1524s] 10/32 t007 pytest-dev__pytest-6202 resolved=True wall=1211s calls=39 
+[   1895s] 11/32 t009 sympy__sympy-13757 resolved=True wall=1849s calls=62 
+[   1923s] 12/32 t007 django__django-15380 resolved=True wall=399s calls=20 
+[   2185s] 13/32 t005 django__django-14787 resolved=True wall=2159s calls=29 
+[   2339s] 14/32 t012 sympy__sympy-20916 resolved=False wall=2278s calls=34 
+[   2381s] 15/32 t000 django__django-12262 resolved=True wall=1072s calls=36 
+[   2392s] 16/32 t007 sympy__sympy-11618 resolved=True wall=469s calls=25 
+[   2473s] 17/32 t015 django__django-13821 resolved=True wall=1053s calls=25 
+[   2584s] 18/32 t009 django__django-16255 resolved=True wall=688s calls=38 
+[   2914s] 19/32 t011 sympy__sympy-18211 resolved=True wall=2857s calls=60 
+[   3155s] 20/32 t004 django__django-13821 resolved=True wall=3133s calls=41 
+[   3420s] 21/32 t010 sympy__sympy-15875 resolved=False wall=3369s calls=42 
+[   3425s] 22/32 t001 django__django-11749 resolved=True wall=3419s calls=52 
+[   3687s] 23/32 t014 pytest-dev__pytest-10051 resolved=True wall=3616s calls=21 
+[   3730s] 24/32 t005 sympy__sympy-13757 resolved=True wall=1545s calls=58 
+[   4135s] 25/32 t007 sympy__sympy-20916 resolved=False wall=1743s calls=37 
+[   4178s] 26/32 t008 pylint-dev__pylint-6528 resolved=False wall=3606s calls=26 
+[   4471s] 27/32 t003 django__django-13112 resolved=False wall=4455s calls=61 
+[   4729s] 28/32 t002 django__django-11749 resolved=True wall=3479s calls=42 
+[   5127s] 29/32 t013 django__django-14787 resolved=True wall=3615s calls=42 
+[   5135s] 30/32 t006 django__django-13112 resolved=True wall=3760s calls=52 
+[   5999s] 31/32 t000 sympy__sympy-18211 resolved=True wall=3618s calls=59 
+[   6005s] 32/32 t012 sympy__sympy-15875 resolved=False wall=3666s calls=51 
+SUMMARY {"tenants": 16, "jobs": 32, "resolved": 26, "makespan_s": 6005.805495500565, "errors": 0}
+PREFILL_COST t0=103 ms  a=208.1 us/tok  b=1034.87 ps/tok^2  fit MAPE=3.7%  rates(tok/s): n1568_c0=4,787, n1568_c65536=3,614, n8192_c0=4,710, n32768_c0=4,444, n98304_c0=3,862
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 16 | 32 | 26 | 0 | 100 | 19.2 | 1195 | 13.1 | 280 | 2.96e+03 | 181 | 0.507 | 7.39e-05 | 0.907 | 0 | 10.4 | 0 | 34 | 0.146 | 0.0169 | 0.516 | 377 | 451 | 0.907 | 0.00172 | 0.0188 | 0.924 | 0.477 | 1.52 | 298 |
+wrote /home/cc/sdebench-mt/runs/chi-uva_20261003-0506/summary.md /home/cc/sdebench-mt/runs/chi-uva_20261003-0506/sweep.png
+| N | arm | followup_calls | calls_evict_ge1block | frac_calls_evict | calls_any_recompute | recompute_tok_p50 | recompute_tok_p95 | computed_Mtok | evict_Mtok | tail_Mtok | new_Mtok | recompute_share_of_computed | srv_gpu_hit_Mtok | srv_cpu_hit_Mtok | offload_load_GB | offload_load_GBps | recompute_gpu_s | recompute_share_of_prefill_time | recompute_share_of_gpu_time | evict_share_of_gpu_time | recompute_share_of_call_p50 | recompute_share_of_call_p95 | cpu_hits_saved_gpu_s_est | preemptions |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 16 | uva | 1163 | 2 | 0.00172 | 1163 | 798 | 1.5e+03 | 1.65 | 0.0188 | 0.924 | 0.653 | 0.572 | 16.1 | 0 | 0 | nan | 210 | 0.574 | 0.035 | 0.000678 | 0.00906 | 0.049 | 0 | 0 |
+TIMELINE N=16 arm=uva minutes=100 kv_gpu_peak_pct=34 cpu_kv_fill_peak_gb=nan cpu_kv_buf_gb=13.1 vllm_other_peak_gb=3.74 vm_rss_peak_gb=6.89 n_vmm_peak=16 hbm_node_used_peak_gb=86.1
+== staging images to /tmp/cc-images
+43G	/tmp/cc-images
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/home/cc/.config/mini-swe-agent/.env'
+/home/cc/sdebench-mt/configs/mini.yaml
+== starting vLLM
+Sat Oct  3 01:27:56 PM UTC 2026
+before evict: node0/node1 FilePages MB = 215284.44/0.00, GPU used = 1 MiB
+evicted page cache of 119 files
+node1: FilePages 0 MiB, nothing to flush
+after evict: node0/node1 FilePages MB = 158906.32/0.00, GPU used = 8 MiB
+vLLM healthy after 820s
+KV cache tokens: 1055857 (minimum 780000), attempt 1
+memory.used [MiB], memory.total [MiB]
+80118 MiB, 97871 MiB
+(EngineCore pid=201101) INFO 10-03 13:40:34 [utils.py:320] Using LBNHC KV cache layout.
+(EngineCore pid=201101) INFO 10-03 13:41:04 [gpu_worker.py:559] Initial free memory 94.46 GiB, reserved 34.7 GiB memory for KV Cache as specified by kv_cache_memory_bytes config and skipped memory profiling. This does not respect the gpu_memory_utilization config. Only use kv_cache_memory_bytes config when you want manual control of KV cache memory size. If OOM'ed, check the difference of initial free memory between the current run and the previous run where kv_cache_memory_bytes is suggested and update it correspondingly.
+(EngineCore pid=201101) INFO 10-03 13:41:04 [kv_cache_utils.py:2395] GPU KV cache size: 1,055,857 tokens, Maximum concurrency for 131,072 tokens per request: 8.06x
+(EngineCore pid=201101) INFO 10-03 13:41:40 [core.py:372] init engine (profile, create kv cache, warmup model) took 65.21 s (compilation: 1.76 s)
+(EngineCore pid=201101) INFO 10-03 13:41:40 [kv_cache_utils.py:748] kv cache group sizes [1568, 1568, 1568, 1568]
+(APIServer pid=200587) INFO 10-03 13:29:08 [api_utils.py:286] non-default args: {'model_tag': '/models/Qwen3.8-27B', 'enable_auto_tool_choice': True, 'tool_call_parser': 'qwen3_xml', 'enable_prompt_tokens_details': True, 'host': '127.0.0.1', 'model': '/models/Qwen3.8-27B', 'max_model_len': 131072, 'served_model_name': ['qwen3.8-27b'], 'reasoning_parser': 'qwen3', 'gpu_memory_utilization': 0.85, 'kv_cache_memory_bytes': 37258811392, 'kv_cache_dtype': 'fp8', 'enable_prefix_caching': True, 'cpu_offload_gb': 8.0, 'limit_mm_per_prompt': {'image': 0, 'video': 0}, 'max_num_seqs': 64}
+(EngineCore pid=201101) INFO 10-03 13:31:54 [base.py:138] Offloader set to UVAOffloader
+(EngineCore pid=201101) INFO 10-03 13:32:33 [uva.py:67] Total CPU offloaded parameters: 8.01
+== uva N=32 jobs=64
+Sat Oct  3 01:41:43 PM UTC 2026
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/home/cc/.config/mini-swe-agent/.env'
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/home/cc/.config/mini-swe-agent/.env'
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/home/cc/.config/mini-swe-agent/.env'
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/home/cc/.config/mini-swe-agent/.env'
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/home/cc/.config/mini-swe-agent/.env'
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/home/cc/.config/mini-swe-agent/.env'
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/home/cc/.config/mini-swe-agent/.env'
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/home/cc/.config/mini-swe-agent/.env'
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/home/cc/.config/mini-swe-agent/.env'
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/home/cc/.config/mini-swe-agent/.env'
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/home/cc/.config/mini-swe-agent/.env'
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/home/cc/.config/mini-swe-agent/.env'
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/home/cc/.config/mini-swe-agent/.env'
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/home/cc/.config/mini-swe-agent/.env'
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/home/cc/.config/mini-swe-agent/.env'
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/home/cc/.config/mini-swe-agent/.env'
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/home/cc/.config/mini-swe-agent/.env'
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/home/cc/.config/mini-swe-agent/.env'
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/home/cc/.config/mini-swe-agent/.env'
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/home/cc/.config/mini-swe-agent/.env'
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/home/cc/.config/mini-swe-agent/.env'
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/home/cc/.config/mini-swe-agent/.env'
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/home/cc/.config/mini-swe-agent/.env'
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/home/cc/.config/mini-swe-agent/.env'
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/home/cc/.config/mini-swe-agent/.env'
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/home/cc/.config/mini-swe-agent/.env'
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/home/cc/.config/mini-swe-agent/.env'
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/home/cc/.config/mini-swe-agent/.env'
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/home/cc/.config/mini-swe-agent/.env'
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/home/cc/.config/mini-swe-agent/.env'
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/home/cc/.config/mini-swe-agent/.env'
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/home/cc/.config/mini-swe-agent/.env'
+[    498s] 1/64 t008 sympy__sympy-11618 resolved=True wall=456s calls=25 
+[    655s] 2/64 t007 django__django-16255 resolved=True wall=618s calls=31 
+[    731s] 3/64 t016 pytest-dev__pytest-6202 resolved=True wall=650s calls=26 
+[    773s] 4/64 t027 sympy__sympy-11618 resolved=True wall=636s calls=28 
+[    890s] 5/64 t026 django__django-16255 resolved=True wall=759s calls=25 
+[    970s] 6/64 t011 sympy__sympy-18211 resolved=True wall=914s calls=25 
+[    980s] 7/64 t018 astropy__astropy-12907 resolved=True wall=889s calls=19 
+[   1238s] 8/64 t012 sympy__sympy-20916 resolved=False wall=1176s calls=33 
+[   1264s] 9/64 t002 django__django-12262 resolved=True wall=1252s calls=26 
+[   1275s] 10/64 t031 sympy__sympy-20916 resolved=False wall=1118s calls=28 
+[   1366s] 11/64 t013 sympy__sympy-23262 resolved=True wall=1299s calls=48 
+[   1442s] 12/64 t025 django__django-15380 resolved=True wall=1316s calls=37 
+[   1456s] 13/64 t006 django__django-15380 resolved=True wall=1424s calls=45 
+[   1499s] 14/64 t023 django__django-13821 resolved=True wall=1382s calls=30 
+[   1556s] 15/64 t008 sympy__sympy-23262 resolved=True wall=1058s calls=38 
+[   1574s] 16/64 t027 pytest-dev__pytest-6202 resolved=True wall=801s calls=31 
+[   1604s] 17/64 t019 django__django-10973 resolved=True wall=1507s calls=22 
+[   1610s] 18/64 t011 astropy__astropy-12907 resolved=True wall=640s calls=21 
+[   1856s] 19/64 t004 django__django-13821 resolved=True wall=1834s calls=23 
+[   1909s] 20/64 t015 pytest-dev__pytest-5631 resolved=True wall=1833s calls=32 
+[   1912s] 21/64 t008 sympy__sympy-11618 resolved=True wall=356s calls=18 
+[   2046s] 22/64 t006 django__django-15380 resolved=True wall=590s calls=28 
+[   2081s] 23/64 t029 sympy__sympy-15875 resolved=False wall=1934s calls=39 
+[   2117s] 24/64 t023 django__django-16255 resolved=True wall=618s calls=28 
+[   2150s] 25/64 t000 django__django-10973 resolved=False wall=2148s calls=22 
+[   2178s] 26/64 t016 pytest-dev__pytest-5631 resolved=True wall=1447s calls=33 
+[   2237s] 27/64 t021 django__django-12262 resolved=True wall=2131s calls=35 
+[   2454s] 28/64 t002 django__django-12262 resolved=True wall=1190s calls=33 
+[   2628s] 29/64 t011 sympy__sympy-18211 resolved=True wall=1018s calls=31 
+[   2909s] 30/64 t015 sympy__sympy-23262 resolved=True wall=999s calls=40 
+[   2980s] 31/64 t027 sympy__sympy-13757 resolved=True wall=1406s calls=48 
+[   2980s] 32/64 t018 django__django-10973 resolved=True wall=2000s calls=22 
+[   3049s] 33/64 t006 pytest-dev__pytest-5631 resolved=True wall=1003s calls=22 
+[   3074s] 34/64 t010 sympy__sympy-15875 resolved=False wall=3022s calls=26 
+[   3130s] 35/64 t029 pytest-dev__pytest-6202 resolved=True wall=1049s calls=27 
+[   3426s] 36/64 t000 astropy__astropy-12907 resolved=True wall=1276s calls=30 
+[   3626s] 37/64 t014 pytest-dev__pytest-10051 resolved=True wall=3554s calls=25 
+[   3634s] 38/64 t018 django__django-15380 resolved=True wall=653s calls=26 
+[   3670s] 39/64 t009 sympy__sympy-13757 resolved=True wall=3623s calls=51 
+[   3741s] 40/64 t022 django__django-13112 resolved=False wall=3629s calls=57 
+[   3764s] 41/64 t003 django__django-13112 resolved=False wall=3747s calls=61 
+[   3818s] 42/64 t001 django__django-11749 resolved=True wall=3812s calls=23 
+[   3819s] 43/64 t008 pytest-dev__pytest-10051 resolved=True wall=1907s calls=28 
+[   3854s] 44/64 t005 django__django-14787 resolved=True wall=3828s calls=14 
+[   3880s] 45/64 t030 sympy__sympy-18211 resolved=False wall=3728s calls=20 
+[   3948s] 46/64 t013 django__django-13821 resolved=True wall=2582s calls=36 
+[   3996s] 47/64 t007 pytest-dev__pytest-10051 resolved=True wall=3341s calls=19 
+[   4166s] 48/64 t024 django__django-14787 resolved=False wall=4044s calls=10 
+[   4189s] 49/64 t002 django__django-12262 resolved=True wall=1735s calls=41 
+[   4256s] 50/64 t028 sympy__sympy-13757 resolved=True wall=4114s calls=45 
+[   4470s] 51/64 t015 django__django-13821 resolved=True wall=1561s calls=31 
+[   4541s] 52/64 t012 django__django-11749 resolved=True wall=3303s calls=47 
+[   4552s] 53/64 t017 pylint-dev__pylint-6528 resolved=False wall=4465s calls=22 
+[   4627s] 54/64 t004 sympy__sympy-20916 resolved=False wall=2772s calls=36 
+[   4684s] 55/64 t020 django__django-11749 resolved=True wall=4582s calls=37 
+[   4873s] 56/64 t026 pylint-dev__pylint-6528 resolved=False wall=3983s calls=22 
+[   5264s] 57/64 t031 django__django-13112 resolved=False wall=3990s calls=67 
+[   5306s] 58/64 t019 sympy__sympy-15875 resolved=False wall=3702s calls=12 
+[   5341s] 59/64 t025 django__django-14787 resolved=False wall=3898s calls=18 
+[   5900s] 60/64 t021 django__django-11749 resolved=True wall=3662s calls=29 
+[   6017s] 61/64 t027 django__django-14787 resolved=True wall=3038s calls=24 
+[   6038s] 62/64 t016 django__django-10973 resolved=True wall=3860s calls=14 
+[   6489s] 63/64 t023 pylint-dev__pylint-6528 resolved=False wall=4372s calls=38 
+[   6788s] 64/64 t011 django__django-13112 resolved=False wall=4160s calls=46 
+SUMMARY {"tenants": 32, "jobs": 64, "resolved": 47, "makespan_s": 6788.498328208923, "errors": 0}
+PREFILL_COST t0=95 ms  a=208.5 us/tok  b=1026.24 ps/tok^2  fit MAPE=3.5%  rates(tok/s): n1568_c0=4,778, n1568_c65536=3,616, n8192_c0=4,702, n32768_c0=4,439, n98304_c0=3,862
+| 16 | 32 | 26 | 0 | 100 | 19.2 | 1195 | 13.1 | 280 | 2.96e+03 | 181 | 0.507 | 7.39e-05 | 0.907 | 0 | 10.4 | 0 | 34 | 0.146 | 0.0169 | 0.516 | 377 | 451 | 0.907 | 0.00172 | 0.0188 | 0.924 | 0.477 | 1.52 | 298 |
+| 32 | 64 | 47 | 0 | 113 | 33.9 | 1974 | 17.2 | 347 | 3.71e+03 | 281 | 0.71 | 0.008 | 0.839 | 0 | 20.1 | 2 | 66.4 | 0.144 | 0.0107 | 0.516 | 389 | 438 | 0.839 | 0.0627 | 1.47 | 1.48 | 0.401 | 1.43 | 562 |
+wrote /home/cc/sdebench-mt/runs/chi-uva_20261003-0506/summary.md /home/cc/sdebench-mt/runs/chi-uva_20261003-0506/sweep.png
+| N | arm | followup_calls | calls_evict_ge1block | frac_calls_evict | calls_any_recompute | recompute_tok_p50 | recompute_tok_p95 | computed_Mtok | evict_Mtok | tail_Mtok | new_Mtok | recompute_share_of_computed | srv_gpu_hit_Mtok | srv_cpu_hit_Mtok | offload_load_GB | offload_load_GBps | recompute_gpu_s | recompute_share_of_prefill_time | recompute_share_of_gpu_time | evict_share_of_gpu_time | recompute_share_of_call_p50 | recompute_share_of_call_p95 | cpu_hits_saved_gpu_s_est | preemptions |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 16 | uva | 1163 | 2 | 0.00172 | 1163 | 798 | 1.5e+03 | 1.65 | 0.0188 | 0.924 | 0.653 | 0.572 | 16.1 | 0 | 0 | nan | 210 | 0.574 | 0.035 | 0.000678 | 0.00906 | 0.049 | 0 | 0 |
+| 32 | uva | 1915 | 120 | 0.0627 | 1914 | 811 | 5.51e+03 | 4.05 | 1.47 | 1.48 | 1.1 | 0.727 | 21.1 | 0 | 0 | nan | 646 | 0.727 | 0.0952 | 0.047 | 0.00744 | 0.049 | 0 | 0 |
+TIMELINE N=16 arm=uva minutes=100 kv_gpu_peak_pct=34 cpu_kv_fill_peak_gb=nan vllm_pinned_peak_gb=13.1 vllm_other_peak_gb=3.74 vm_rss_peak_gb=6.89 n_vmm_peak=16 hbm_node_used_peak_gb=86.1
+TIMELINE N=32 arm=uva minutes=113 kv_gpu_peak_pct=66.4 cpu_kv_fill_peak_gb=nan vllm_pinned_peak_gb=13.1 vllm_other_peak_gb=3.7 vm_rss_peak_gb=14.2 n_vmm_peak=32 hbm_node_used_peak_gb=87.3
+TIMELINE N=16 arm=baseline minutes=71.8 kv_gpu_peak_pct=48.6 cpu_kv_fill_peak_gb=nan vllm_pinned_peak_gb=0 vllm_other_peak_gb=nan vm_rss_peak_gb=7.94 n_vmm_peak=16 hbm_node_used_peak_gb=nan
+TIMELINE N=32 arm=baseline minutes=81.5 kv_gpu_peak_pct=89.7 cpu_kv_fill_peak_gb=nan vllm_pinned_peak_gb=0 vllm_other_peak_gb=nan vm_rss_peak_gb=13.6 n_vmm_peak=32 hbm_node_used_peak_gb=nan
+TIMELINE N=16 arm=offload minutes=64.6 kv_gpu_peak_pct=41.4 cpu_kv_fill_peak_gb=68.7 vllm_pinned_peak_gb=68.7 vllm_other_peak_gb=nan vm_rss_peak_gb=6.99 n_vmm_peak=16 hbm_node_used_peak_gb=nan
+TIMELINE N=32 arm=offload minutes=86 kv_gpu_peak_pct=91.2 cpu_kv_fill_peak_gb=68.7 vllm_pinned_peak_gb=68.7 vllm_other_peak_gb=nan vm_rss_peak_gb=14.1 n_vmm_peak=32 hbm_node_used_peak_gb=nan
+TIMELINE N=16 arm=uva minutes=100 kv_gpu_peak_pct=34 cpu_kv_fill_peak_gb=nan vllm_pinned_peak_gb=13.1 vllm_other_peak_gb=3.74 vm_rss_peak_gb=6.89 n_vmm_peak=16 hbm_node_used_peak_gb=86.1
+TIMELINE N=32 arm=uva minutes=113 kv_gpu_peak_pct=66.4 cpu_kv_fill_peak_gb=nan vllm_pinned_peak_gb=13.1 vllm_other_peak_gb=3.7 vm_rss_peak_gb=14.2 n_vmm_peak=32 hbm_node_used_peak_gb=87.3
+PHASE2-DONE 15:38:42

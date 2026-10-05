@@ -1,0 +1,33 @@
+== staging images to /tmp/cc-images
+43G	/tmp/cc-images
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/home/cc/.config/mini-swe-agent/.env'
+/home/cc/sdebench-mt/configs/mini.yaml
+== starting vLLM
+Fri Oct  2 11:59:20 PM UTC 2026
+before evict: node0/node1 FilePages MB = 198552.39/0.00, GPU used = 1 MiB
+evicted page cache of 119 files
+node1: FilePages 0 MiB, nothing to flush
+after evict: node0/node1 FilePages MB = 147179.22/0.00, GPU used = 8 MiB
+vLLM healthy after 850s
+KV cache tokens: 863618 (minimum 780000), attempt 1
+memory.used [MiB], memory.total [MiB]
+81868 MiB, 97871 MiB
+(EngineCore pid=125783) INFO 10-03 00:12:39 [kv_cache_utils.py:748] kv cache group sizes [1568, 1568, 1568, 1568]
+(EngineCore pid=125783) INFO 10-03 00:13:27 [gpu_worker.py:888] Free memory on device (94.46/95.0 GiB) on startup. Desired GPU memory utilization is (0.85, 80.75 GiB). Actual usage is 50.79 GiB for consumed memory (weights + non-torch), 1.58 GiB for peak activation, and 0.23 GiB for CUDAGraph memory. Replace gpu_memory_utilization config with `--kv-cache-memory=30068963328` (28.0 GiB) to fit into requested memory, or `--kv-cache-memory=44787099648` (41.71 GiB) to fully utilize gpu memory. Current kv cache memory in use is 28.38 GiB.
+(EngineCore pid=125783) INFO 10-03 00:13:32 [core.py:372] init engine (profile, create kv cache, warmup model) took 102.71 s (compilation: 1.92 s)
+(EngineCore pid=125783) INFO 10-03 00:13:32 [kv_cache_utils.py:748] kv cache group sizes [1568, 1568, 1568, 1568]
+(EngineCore pid=125783) INFO 10-03 00:13:32 [kv_cache_utils.py:748] kv cache group sizes [1568, 1568, 1568, 1568]
+(APIServer pid=125247) INFO 10-03 00:00:33 [api_utils.py:286] non-default args: {'model_tag': '/models/Qwen3.8-27B', 'enable_auto_tool_choice': True, 'tool_call_parser': 'qwen3_xml', 'enable_prompt_tokens_details': True, 'host': '127.0.0.1', 'model': '/models/Qwen3.8-27B', 'max_model_len': 131072, 'served_model_name': ['qwen3.8-27b'], 'reasoning_parser': 'qwen3', 'gpu_memory_utilization': 0.85, 'kv_cache_dtype': 'fp8', 'enable_prefix_caching': True, 'kv_offloading_size': 64.0, 'limit_mm_per_prompt': {'image': 0, 'video': 0}, 'max_num_seqs': 64}
+(EngineCore pid=125783) INFO 10-03 00:12:39 [factory.py:62] Creating v1 connector with name: OffloadingConnector and engine_id: f542da72-236a-4cc9-ad04-397c97c70bf8
+(EngineCore pid=125783) WARNING 10-03 00:12:39 [base.py:217] Initializing KVConnectorBase_V1. This API is experimental and subject to change in the future as we iterate the design.
+(EngineCore pid=125783) INFO 10-03 00:12:39 [factory.py:57] Creating offloading spec with name: CPUOffloadingSpec
+(EngineCore pid=125783) INFO 10-03 00:12:41 [shared_offload_region.py:140] Created mmap file /dev/shm/vllm_offload_f542da72-236a-4cc9-ad04-397c97c70bf8.mmap (68.70 GB)
+== chat + tool-call sanity
+tool_calls: [{'id': 'chatcmpl-tool-b0b635a9720eb522', 'type': 'function', 'function': {'name': 'bash', 'arguments': '{"command": "ls -la"}'}}]
+usage: {'prompt_tokens': 315, 'total_tokens': 383, 'completion_tokens': 68, 'prompt_tokens_details': {'cached_tokens': 0, 'created_cache_tokens': 0, 'multimodal_tokens': None}, 'completion_tokens_details': {'reasoning_tokens': 38}}
+== KV migration check
+Sat Oct  3 12:13:37 AM UTC 2026
+OFFLOAD_BYTES stored 47.1 GB, loaded 1.75 GB during the check
+SMOKE2-EXIT=0

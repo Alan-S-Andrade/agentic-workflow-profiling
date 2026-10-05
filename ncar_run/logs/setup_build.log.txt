@@ -1,0 +1,82 @@
+== apptainer: apptainer version 1.4.1
+== apptainer
+apptainer 1.4.1 already installed
+== python env (ghconfig.md §3, §9.1)
+Python 3.12.15
+== Cloud Hypervisor v53.0 + guest kernel (sha256 from ghconfig.md §3)
+vm/bin/cloud-hypervisor: OK
+vm/kernel/Image: OK
+== model (serve_vllm.sh binds $MT/models:/models)
+Qwen3.8-27B present
+== host checks
+KVM_RW=yes
+NVIDIA GH200 480GB, 580.178.04, 97871 MiB
+SETUP-DONE
+== instance metadata (SWE-bench_Verified @ 78f471bf)
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Generating test split:   0%|          | 0/500 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 500/500 [00:00<00:00, 10547.89 examples/s]
+wrote 19 instances
+== instance images
+/home/cc/sdebench-mt/vm/images/django__django-11749.ext4: 5919 MiB (content 2190 MiB)
+/home/cc/sdebench-mt/vm/images/django__django-13821.ext4: 5925 MiB (content 2195 MiB)
+IMG_OK django__django-11749
+/home/cc/sdebench-mt/vm/images/django__django-12262.ext4: 5919 MiB (content 2190 MiB)
+/home/cc/sdebench-mt/vm/images/django__django-10973.ext4: 5917 MiB (content 2189 MiB)
+/home/cc/sdebench-mt/vm/images/django__django-13112.ext4: 5924 MiB (content 2194 MiB)
+/home/cc/sdebench-mt/vm/images/django__django-14787.ext4: 6119 MiB (content 2344 MiB)
+IMG_OK django__django-13821
+IMG_OK django__django-10973
+IMG_OK django__django-12262
+IMG_OK django__django-13112
+IMG_OK django__django-14787
+/home/cc/sdebench-mt/vm/images/sympy__sympy-11618.ext4: 5763 MiB (content 2070 MiB)
+/home/cc/sdebench-mt/vm/images/sympy__sympy-13757.ext4: 5773 MiB (content 2078 MiB)
+IMG_OK sympy__sympy-11618
+IMG_OK sympy__sympy-13757
+/home/cc/sdebench-mt/vm/images/sympy__sympy-15875.ext4: 5778 MiB (content 2082 MiB)
+/home/cc/sdebench-mt/vm/images/sympy__sympy-18211.ext4: 5779 MiB (content 2083 MiB)
+IMG_OK sympy__sympy-15875
+/home/cc/sdebench-mt/vm/images/django__django-15380.ext4: 6120 MiB (content 2345 MiB)
+IMG_OK sympy__sympy-18211
+/home/cc/sdebench-mt/vm/images/django__django-16255.ext4: 6121 MiB (content 2346 MiB)
+IMG_OK django__django-15380
+IMG_OK django__django-16255
+/home/cc/sdebench-mt/vm/images/sympy__sympy-20916.ext4: 5782 MiB (content 2085 MiB)
+IMG_OK sympy__sympy-20916
+/home/cc/sdebench-mt/vm/images/sympy__sympy-23262.ext4: 5785 MiB (content 2087 MiB)
+/home/cc/sdebench-mt/vm/images/pytest-dev__pytest-10051.ext4: 5539 MiB (content 1898 MiB)
+/home/cc/sdebench-mt/vm/images/pytest-dev__pytest-5631.ext4: 5538 MiB (content 1897 MiB)
+/home/cc/sdebench-mt/vm/images/pytest-dev__pytest-6202.ext4: 5538 MiB (content 1897 MiB)
+IMG_OK sympy__sympy-23262
+/home/cc/sdebench-mt/vm/images/pylint-dev__pylint-6528.ext4: 5614 MiB (content 1956 MiB)
+IMG_OK pytest-dev__pytest-10051
+IMG_OK pytest-dev__pytest-5631
+IMG_OK pytest-dev__pytest-6202
+IMG_OK pylint-dev__pylint-6528
+/home/cc/sdebench-mt/vm/images/astropy__astropy-12907.ext4: 5906 MiB (content 2180 MiB)
+IMG_OK astropy__astropy-12907
+VLLM_SIF=ok 554520e5359809d0
+19 images, 116.139 GB apparent
+43G	vm/images
+== gold-patch check (every instance must resolve)
+GOLD django__django-14787 resolved=True reason=graded wall=56s
+GOLD django__django-10973 resolved=True reason=graded wall=57s
+GOLD django__django-12262 resolved=True reason=graded wall=57s
+GOLD django__django-11749 resolved=True reason=graded wall=57s
+GOLD django__django-13112 resolved=True reason=graded wall=57s
+GOLD django__django-13821 resolved=True reason=graded wall=57s
+GOLD sympy__sympy-11618 resolved=True reason=graded wall=5s
+GOLD sympy__sympy-13757 resolved=True reason=graded wall=9s
+GOLD sympy__sympy-15875 resolved=True reason=graded wall=12s
+GOLD sympy__sympy-20916 resolved=True reason=graded wall=6s
+GOLD sympy__sympy-18211 resolved=True reason=graded wall=12s
+GOLD django__django-15380 resolved=True reason=graded wall=19s
+GOLD django__django-16255 resolved=True reason=graded wall=18s
+GOLD sympy__sympy-23262 resolved=True reason=graded wall=8s
+GOLD pytest-dev__pytest-10051 resolved=True reason=graded wall=11s
+GOLD pytest-dev__pytest-5631 resolved=True reason=graded wall=11s
+GOLD pytest-dev__pytest-6202 resolved=True reason=graded wall=15s
+GOLD astropy__astropy-12907 resolved=True reason=graded wall=14s
+GOLD pylint-dev__pylint-6528 resolved=True reason=graded wall=25s
+GOLD resolved 19/19
+BUILD-EXIT=0

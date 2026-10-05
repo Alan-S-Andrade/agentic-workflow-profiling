@@ -1,0 +1,88 @@
+== staging images to /tmp/cc-images
+43G	/tmp/cc-images
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/home/cc/.config/mini-swe-agent/.env'
+/home/cc/sdebench-mt/configs/mini.yaml
+== starting vLLM
+Fri Oct  2 10:27:33 PM UTC 2026
+before evict: node0/node1 FilePages MB = 181448.50/0.00, GPU used = 4 MiB
+evicted page cache of 119 files
+node1: FilePages 0 MiB, nothing to flush
+after evict: node0/node1 FilePages MB = 86172.71/0.00, GPU used = 8 MiB
+vLLM healthy after 780s
+KV cache tokens: 809733 (minimum 780000), attempt 1
+memory.used [MiB], memory.total [MiB]
+80340 MiB, 97871 MiB
+(EngineCore pid=113672) INFO 10-02 22:41:14 [kv_cache_utils.py:748] kv cache group sizes [1568, 1568, 1568, 1568]
+(EngineCore pid=113672) INFO 10-02 22:42:05 [gpu_worker.py:888] Free memory on device (94.46/95.0 GiB) on startup. Desired GPU memory utilization is (0.85, 80.75 GiB). Actual usage is 51.09 GiB for consumed memory (weights + non-torch), 3.03 GiB for peak activation, and 0.2 GiB for CUDAGraph memory. Replace gpu_memory_utilization config with `--kv-cache-memory=28220690944` (26.28 GiB) to fit into requested memory, or `--kv-cache-memory=42938831360` (39.99 GiB) to fully utilize gpu memory. Current kv cache memory in use is 26.63 GiB.
+(EngineCore pid=113672) INFO 10-02 22:42:10 [core.py:372] init engine (profile, create kv cache, warmup model) took 148.83 s (compilation: 39.70 s)
+(EngineCore pid=113672) INFO 10-02 22:42:11 [kv_cache_utils.py:748] kv cache group sizes [1568, 1568, 1568, 1568]
+(EngineCore pid=113672) INFO 10-02 22:42:11 [kv_cache_utils.py:748] kv cache group sizes [1568, 1568, 1568, 1568]
+(APIServer pid=113194) INFO 10-02 22:30:22 [api_utils.py:286] non-default args: {'model_tag': '/models/Qwen3.8-27B', 'enable_auto_tool_choice': True, 'tool_call_parser': 'qwen3_xml', 'enable_prompt_tokens_details': True, 'host': '127.0.0.1', 'model': '/models/Qwen3.8-27B', 'max_model_len': 131072, 'served_model_name': ['qwen3.8-27b'], 'reasoning_parser': 'qwen3', 'gpu_memory_utilization': 0.85, 'kv_cache_dtype': 'fp8', 'enable_prefix_caching': True, 'kv_offloading_size': 64.0, 'limit_mm_per_prompt': {'image': 0, 'video': 0}, 'max_num_seqs': 64}
+(EngineCore pid=113672) INFO 10-02 22:41:14 [factory.py:62] Creating v1 connector with name: OffloadingConnector and engine_id: 6fa2184f-f18f-4e56-befa-0dfc6166d0e2
+(EngineCore pid=113672) WARNING 10-02 22:41:14 [base.py:217] Initializing KVConnectorBase_V1. This API is experimental and subject to change in the future as we iterate the design.
+(EngineCore pid=113672) INFO 10-02 22:41:14 [factory.py:57] Creating offloading spec with name: CPUOffloadingSpec
+(EngineCore pid=113672) INFO 10-02 22:41:16 [shared_offload_region.py:140] Created mmap file /dev/shm/vllm_offload_6fa2184f-f18f-4e56-befa-0dfc6166d0e2.mmap (68.70 GB)
+== chat + tool-call sanity
+tool_calls: [{'id': 'chatcmpl-tool-9b22d56121cf3c76', 'type': 'function', 'function': {'name': 'bash', 'arguments': '{"command": "ls -la"}'}}]
+usage: {'prompt_tokens': 315, 'total_tokens': 383, 'completion_tokens': 68, 'prompt_tokens_details': {'cached_tokens': 0, 'created_cache_tokens': 0, 'multimodal_tokens': None}, 'completion_tokens_details': {'reasoning_tokens': 38}}
+== KV migration check
+Fri Oct  2 10:42:17 PM UTC 2026
+OFFLOAD_CHECK prompt=49986 tok | cold 5.577s cached=0 | gpu-hit 0.323s cached=48608 | after flood of 2116741 tok: 5.471s cached=0 external_hits+=0 -> RECOMPUTED (no CPU hit)
+== N=1 single instance
+Fri Oct  2 10:46:27 PM UTC 2026
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/home/cc/.config/mini-swe-agent/.env'
+[    666s] 1/1 t000 django__django-10973 resolved=True wall=664s calls=21 
+SUMMARY {"tenants": 1, "jobs": 1, "resolved": 1, "makespan_s": 666.9455940723419, "errors": 0}
+== N=4 concurrency check
+Fri Oct  2 10:57:35 PM UTC 2026
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/home/cc/.config/mini-swe-agent/.env'
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/home/cc/.config/mini-swe-agent/.env'
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/home/cc/.config/mini-swe-agent/.env'
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/home/cc/.config/mini-swe-agent/.env'
+[    306s] 1/4 t002 django__django-12262 resolved=True wall=301s calls=23 
+[    410s] 2/4 t000 django__django-10973 resolved=True wall=408s calls=15 
+[    726s] 3/4 t001 django__django-11749 resolved=True wall=723s calls=43 
+[   2505s] 4/4 t003 django__django-13112 resolved=True wall=2498s calls=75 
+SUMMARY {"tenants": 4, "jobs": 4, "resolved": 4, "makespan_s": 2505.7872149944305, "errors": 0}
+max n_vmm 4 max running 4.0
+SMOKE-OFFLOAD-EXIT=0
+== staging images to /tmp/cc-images
+43G	/tmp/cc-images
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/home/cc/.config/mini-swe-agent/.env'
+/home/cc/sdebench-mt/configs/mini.yaml
+== starting vLLM
+Fri Oct  2 11:39:28 PM UTC 2026
+before evict: node0/node1 FilePages MB = 235992.62/0.00, GPU used = 81666 MiB
+evicted page cache of 119 files
+node1: FilePages 0 MiB, nothing to flush
+after evict: node0/node1 FilePages MB = 146126.79/0.00, GPU used = 14 MiB
+vLLM healthy after 850s
+KV cache tokens: 817015 (minimum 780000), attempt 1
+memory.used [MiB], memory.total [MiB]
+80604 MiB, 97871 MiB
+(EngineCore pid=122724) INFO 10-02 23:53:09 [gpu_worker.py:655] CUDA graph memory profiling is enabled (default since v0.21.0). The current --gpu-memory-utilization=0.8500 is equivalent to --gpu-memory-utilization=0.8461 without CUDA graph memory profiling. To maintain the same effective KV cache size as before, increase --gpu-memory-utilization to 0.8539. To disable, set VLLM_MEMORY_PROFILER_ESTIMATE_CUDAGRAPHS=0.
+(EngineCore pid=122724) INFO 10-02 23:53:09 [kv_cache_utils.py:2395] GPU KV cache size: 817,015 tokens, Maximum concurrency for 131,072 tokens per request: 6.23x
+(EngineCore pid=122724) INFO 10-02 23:53:33 [gpu_worker.py:888] Free memory on device (94.46/95.0 GiB) on startup. Desired GPU memory utilization is (0.85, 80.75 GiB). Actual usage is 50.96 GiB for consumed memory (weights + non-torch), 2.91 GiB for peak activation, and 0.27 GiB for CUDAGraph memory. Replace gpu_memory_utilization config with `--kv-cache-memory=28417823232` (26.47 GiB) to fit into requested memory, or `--kv-cache-memory=43135959552` (40.17 GiB) to fully utilize gpu memory. Current kv cache memory in use is 26.88 GiB.
+(EngineCore pid=122724) INFO 10-02 23:53:39 [core.py:372] init engine (profile, create kv cache, warmup model) took 111.73 s (compilation: 32.29 s)
+(EngineCore pid=122724) INFO 10-02 23:53:39 [kv_cache_utils.py:748] kv cache group sizes [1568, 1568, 1568, 1568]
+== chat + tool-call sanity
+tool_calls: [{'id': 'chatcmpl-tool-996a1b1367484cbb', 'type': 'function', 'function': {'name': 'bash', 'arguments': '{"command": "ls -la"}'}}]
+usage: {'prompt_tokens': 315, 'total_tokens': 383, 'completion_tokens': 68, 'prompt_tokens_details': {'cached_tokens': 0, 'created_cache_tokens': 0, 'multimodal_tokens': None}, 'completion_tokens_details': {'reasoning_tokens': 38}}
+== KV migration check
+Fri Oct  2 11:53:47 PM UTC 2026
+OFFLOAD_CHECK prompt=49986 tok | cold 5.57s cached=0 | gpu-hit 0.307s cached=48608 | after flood of 2116741 tok: 5.517s cached=0 external_hits+=0 -> RECOMPUTED (no CPU hit)
+SMOKE-BASELINE-EXIT=0

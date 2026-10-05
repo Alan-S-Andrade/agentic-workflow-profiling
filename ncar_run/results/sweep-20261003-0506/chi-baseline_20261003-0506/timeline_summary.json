@@ -1,0 +1,26 @@
+[
+ {
+  "N": 16,
+  "arm": "baseline",
+  "minutes": 71.79399647712708,
+  "kv_gpu_peak_pct": 48.561151079136685,
+  "cpu_kv_fill_peak_gb": NaN,
+  "vllm_pinned_peak_gb": 0.0,
+  "vllm_other_peak_gb": NaN,
+  "vm_rss_peak_gb": 7.941640192,
+  "n_vmm_peak": 16.0,
+  "hbm_node_used_peak_gb": NaN
+ },
+ {
+  "N": 32,
+  "arm": "baseline",
+  "minutes": 81.5153443813324,
+  "kv_gpu_peak_pct": 89.74820143884892,
+  "cpu_kv_fill_peak_gb": NaN,
+  "vllm_pinned_peak_gb": 0.0,
+  "vllm_other_peak_gb": NaN,
+  "vm_rss_peak_gb": 13.590183936,
+  "n_vmm_peak": 32.0,
+  "hbm_node_used_peak_gb": NaN
+ }
+]

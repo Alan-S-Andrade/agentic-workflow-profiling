@@ -1,0 +1,3 @@
+{"arm": "baseline", "tenants": 16, "jobs": 32, "extra_vllm_args": "--kv-cache-memory-bytes 28668876800",
+ "host": "gh200-dev-probe", "site": "CHI@NCAR", "driver": "580.178.04",
+ "started": "2026-10-03T06:24:12+00:00"}

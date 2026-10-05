@@ -1,0 +1,3 @@
+#!/bin/sh
+# No-op stand-in for the TACC `module` command so the original slurm/*.sh scripts run unchanged.
+exit 0

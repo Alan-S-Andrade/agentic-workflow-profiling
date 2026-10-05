@@ -1,0 +1,3 @@
+{"arm": "uva", "tenants": 32, "jobs": 64, "extra_vllm_args": "--kv-cache-memory-bytes 37258811392 --cpu-offload-gb 8",
+ "host": "gh200-dev-probe", "site": "CHI@NCAR", "driver": "580.178.04",
+ "started": "2026-10-03T13:27:56+00:00"}

@@ -1,0 +1,4 @@
+| N | arm | followup_calls | calls_evict_ge1block | frac_calls_evict | calls_any_recompute | recompute_tok_p50 | recompute_tok_p95 | computed_Mtok | evict_Mtok | tail_Mtok | new_Mtok | recompute_share_of_computed | srv_gpu_hit_Mtok | srv_cpu_hit_Mtok | offload_load_GB | offload_load_GBps | recompute_gpu_s | recompute_share_of_prefill_time | recompute_share_of_gpu_time | evict_share_of_gpu_time | recompute_share_of_call_p50 | recompute_share_of_call_p95 | cpu_hits_saved_gpu_s_est | preemptions |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 16 | baseline | 1215 | 10 | 0.00823 | 1215 | 784 | 1.52e+03 | 1.79 | 0.155 | 0.949 | 0.66 | 0.616 | 17.9 | 0 | 0 | nan | 106 | 0.619 | 0.0245 | 0.00327 | 0.00719 | 0.0431 | 0 | 0 |
+| 32 | baseline | 2269 | 433 | 0.191 | 2267 | 962 | 1.76e+04 | 8.93 | 5.89 | 1.76 | 1.24 | 0.857 | 24.9 | 0 | 0 | nan | 698 | 0.854 | 0.143 | 0.108 | 0.00801 | 0.11 | 0 | 0 |

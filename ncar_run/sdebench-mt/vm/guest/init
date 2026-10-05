@@ -1,0 +1,35 @@
+#!/bin/sh
+# PID 1 inside the microVM. vda = read-only rootfs (this file lives there),
+# vdb (optional) = blank ext4 used as the overlay upper layer so every tenant
+# gets a private writable root while sharing one base image.
+mount -t proc proc /proc
+mount -t sysfs sys /sys
+mount -t devtmpfs dev /dev 2>/dev/null
+if [ -b /dev/vdb ] && [ -z "$OVERLAY_DONE" ]; then
+  mkdir -p /mnt/upper /mnt/lower /mnt/root
+  mount -t ext4 /dev/vdb /mnt/upper
+  mkdir -p /mnt/upper/upper /mnt/upper/work
+  mount --bind / /mnt/lower
+  if mount -t overlay overlay -o lowerdir=/mnt/lower,upperdir=/mnt/upper/upper,workdir=/mnt/upper/work /mnt/root; then
+    umount /proc /sys /dev 2>/dev/null
+    export OVERLAY_DONE=1
+    exec chroot /mnt/root /sbin/replay-init
+  fi
+  echo "init: overlay mount failed; continuing on read-only root" >&2
+fi
+mount -t proc proc /proc 2>/dev/null
+mount -t sysfs sys /sys 2>/dev/null
+mount -t devtmpfs dev /dev 2>/dev/null
+mkdir -p /dev/pts /dev/shm /tmp /run
+mount -t devpts devpts /dev/pts 2>/dev/null
+mount -t tmpfs tmpfs /dev/shm 2>/dev/null
+mount -t tmpfs tmpfs /run 2>/dev/null
+chmod 1777 /tmp
+hostname tenant
+ip link set lo up 2>/dev/null || true
+echo "init: starting replay-agent" > /dev/console
+while true; do
+  /usr/local/bin/replay-agent > /dev/console 2>&1
+  echo "init: replay-agent exited, restarting" > /dev/console
+  sleep 1
+done

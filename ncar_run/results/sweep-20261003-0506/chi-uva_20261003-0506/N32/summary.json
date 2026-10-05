@@ -1,0 +1,7 @@
+{
+ "tenants": 32,
+ "jobs": 64,
+ "resolved": 47,
+ "makespan_s": 6788.498328208923,
+ "errors": 0
+}

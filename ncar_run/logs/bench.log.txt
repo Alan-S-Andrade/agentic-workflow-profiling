@@ -1,0 +1,21 @@
+21:38:18 start lat_in1k_out256
+21:39:27 done  lat_in1k_out256 (exit 0)
+21:39:27 start ttft_in4096
+21:39:45 done  ttft_in4096 (exit 0)
+21:39:45 start ttft_in16384
+21:40:08 done  ttft_in16384 (exit 0)
+21:40:08 start ttft_in65536
+21:40:55 done  ttft_in65536 (exit 0)
+21:40:55 start sweep_c1
+21:43:52 done  sweep_c1 (exit 0)
+21:43:53 start sweep_c8
+21:44:56 done  sweep_c8 (exit 0)
+21:44:56 start sweep_c32
+21:46:12 done  sweep_c32 (exit 0)
+21:46:12 start sweep_c64
+21:47:50 done  sweep_c64 (exit 0)
+21:47:50 start sweep_c128
+21:50:22 done  sweep_c128 (exit 0)
+21:50:22 start sweep_c256
+21:55:01 done  sweep_c256 (exit 0)
+results in /home/cc/bench/20261002-2138

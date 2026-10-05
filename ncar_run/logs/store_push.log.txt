@@ -1,0 +1,10 @@
+22:43:10
+2026/10/02 22:49:47 NOTICE: Swift container sdebench-mt path vm/bin: 0 differences found
+2026/10/02 22:49:47 NOTICE: Swift container sdebench-mt path vm/bin: 2 matching files
+2026/10/02 22:49:54 NOTICE: Swift container sdebench-mt path images: 0 differences found
+2026/10/02 22:49:54 NOTICE: Swift container sdebench-mt path images: 19 matching files
+
+real	6m43.892s
+user	13m20.151s
+sys	4m12.546s
+STORE-EXIT=0

@@ -1,0 +1,80 @@
+
+Running kernel seems to be up-to-date.
+
+The processor microcode seems to be up-to-date.
+
+No services need to be restarted.
+
+No containers need to be restarted.
+
+No user sessions are running outdated binaries.
+
+No VM guests are running outdated hypervisor (qemu) binaries on this host.
+ GEN GO DEP /tmp/apptainer-build/apptainer-1.4.1/builddir/starter.deps
+ GEN GO DEP /tmp/apptainer-build/apptainer-1.4.1/builddir/apptainer.deps
+ GEN /tmp/apptainer-build/apptainer-1.4.1/scripts/go-generate
+ GO /tmp/apptainer-build/apptainer-1.4.1/builddir/apptainer
+    [+] GO_TAGS "containers_image_openpgp sylog oci_engine apptainer_engine fakeroot_engine apparmor selinux seccomp libsubid"
+ GEN /tmp/apptainer-build/apptainer-1.4.1/builddir/bash-completion/completions/apptainer
+ GEN /tmp/apptainer-build/apptainer-1.4.1/builddir/bash-completion/completions/singularity
+ GEN /tmp/apptainer-build/apptainer-1.4.1/builddir/apptainer.conf from /usr/local/etc/apptainer/apptainer.conf
+ MAN /tmp/apptainer-build/apptainer-1.4.1/builddir/usr/local/share/man/man1
+[34mINFO:   [0m Creating Apptainer man pages at /tmp/apptainer-build/apptainer-1.4.1/builddir/usr/local/share/man/man1
+ CNI PLUGIN dhcp
+ CNI PLUGIN host-local
+ CNI PLUGIN static
+ CNI PLUGIN bridge
+ CNI PLUGIN host-device
+ CNI PLUGIN ipvlan
+ CNI PLUGIN loopback
+ CNI PLUGIN macvlan
+ CNI PLUGIN ptp
+ CNI PLUGIN vlan
+ CNI PLUGIN bandwidth
+ CNI PLUGIN firewall
+ CNI PLUGIN portmap
+ CNI PLUGIN sbr
+ CNI PLUGIN tuning
+ CNI PLUGIN vrf
+ GO clean -cache
+ GO /tmp/apptainer-build/apptainer-1.4.1/builddir/cmd/starter/c/starter
+ CC /tmp/apptainer-build/apptainer-1.4.1/builddir/offsetpreload.so
+ GEN /tmp/apptainer-build/apptainer-1.4.1/scripts/go-test
+ INSTALL /usr/local/bin/apptainer
+ INSTALL /usr/local/bin/singularity
+ INSTALL /usr/local/share/bash-completion/completions/apptainer
+ INSTALL /usr/local/share/bash-completion/completions/singularity
+ INSTALL /usr/local/etc/apptainer/apptainer.conf
+ INSTALL /usr/local/etc/apptainer/remote.yaml
+ INSTALL /usr/local/share/man/man1
+ INSTALL CNI PLUGIN /usr/local/libexec/apptainer/cni/dhcp
+ INSTALL CNI PLUGIN /usr/local/libexec/apptainer/cni/host-local
+ INSTALL CNI PLUGIN /usr/local/libexec/apptainer/cni/static
+ INSTALL CNI PLUGIN /usr/local/libexec/apptainer/cni/bridge
+ INSTALL CNI PLUGIN /usr/local/libexec/apptainer/cni/host-device
+ INSTALL CNI PLUGIN /usr/local/libexec/apptainer/cni/ipvlan
+ INSTALL CNI PLUGIN /usr/local/libexec/apptainer/cni/loopback
+ INSTALL CNI PLUGIN /usr/local/libexec/apptainer/cni/macvlan
+ INSTALL CNI PLUGIN /usr/local/libexec/apptainer/cni/ptp
+ INSTALL CNI PLUGIN /usr/local/libexec/apptainer/cni/vlan
+ INSTALL CNI PLUGIN /usr/local/libexec/apptainer/cni/bandwidth
+ INSTALL CNI PLUGIN /usr/local/libexec/apptainer/cni/firewall
+ INSTALL CNI PLUGIN /usr/local/libexec/apptainer/cni/portmap
+ INSTALL CNI PLUGIN /usr/local/libexec/apptainer/cni/sbr
+ INSTALL CNI PLUGIN /usr/local/libexec/apptainer/cni/tuning
+ INSTALL CNI PLUGIN /usr/local/libexec/apptainer/cni/vrf
+ INSTALL CNI CONFIGURATION FILES
+ INSTALL /usr/local/libexec/apptainer/bin/starter
+ INSTALL /usr/local/libexec/apptainer/lib/offsetpreload.so
+ INSTALL /usr/local/var/apptainer/mnt/session
+ INSTALL /usr/local/bin/run-singularity
+ INSTALL /usr/local/etc/apptainer/capability.json
+ INSTALL /usr/local/etc/apptainer/ecl.toml
+ INSTALL /usr/local/etc/apptainer/seccomp-profiles/default.json
+ INSTALL /usr/local/etc/apptainer/nvliblist.conf
+ INSTALL /usr/local/etc/apptainer/rocmliblist.conf
+ INSTALL /usr/local/etc/apptainer/cgroups/cgroups.toml
+ INSTALL /usr/local/etc/apptainer/global-pgp-public
+ INSTALL /usr/local/etc/apptainer/dmtcp-conf.yaml
+ DONE
+apptainer version 1.4.1

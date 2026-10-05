@@ -1,0 +1,60 @@
+== staging images to /tmp/cc-images
+43G	/tmp/cc-images
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/home/cc/.config/mini-swe-agent/.env'
+/home/cc/sdebench-mt/configs/mini.yaml
+== starting vLLM
+Sat Oct  3 02:27:10 AM UTC 2026
+before evict: node0/node1 FilePages MB = 210095.11/0.00, GPU used = 1 MiB
+evicted page cache of 119 files
+node1: FilePages 0 MiB, nothing to flush
+after evict: node0/node1 FilePages MB = 158721.95/0.00, GPU used = 8 MiB
+vLLM healthy after 835s
+KV cache tokens: 811190 (minimum 780000), attempt 1
+memory.used [MiB], memory.total [MiB]
+80086 MiB, 97871 MiB
+(EngineCore pid=135425) INFO 10-03 02:40:08 [kv_cache_utils.py:2395] GPU KV cache size: 811,190 tokens, Maximum concurrency for 131,072 tokens per request: 6.19x
+(EngineCore pid=135425) INFO 10-03 02:40:08 [kv_cache_utils.py:748] kv cache group sizes [1568, 1568, 1568, 1568]
+(EngineCore pid=135425) INFO 10-03 02:41:07 [core.py:372] init engine (profile, create kv cache, warmup model) took 88.12 s (compilation: 1.91 s)
+(EngineCore pid=135425) INFO 10-03 02:41:07 [kv_cache_utils.py:748] kv cache group sizes [1568, 1568, 1568, 1568]
+(EngineCore pid=135425) INFO 10-03 02:41:07 [kv_cache_utils.py:748] kv cache group sizes [1568, 1568, 1568, 1568]
+SYNTH done: 856 calls in 900s with 32 tenants
+PREFILL_COST t0=96 ms  a=81.3 us/tok  b=1016.99 ps/tok^2  fit MAPE=5.9%  rates(tok/s): n1568_c0=12,178, n1568_c65536=6,722, n8192_c0=11,698, n32768_c0=10,206, n98304_c0=7,616
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 32 | 0 | 0 | 0 | 15.5 | 0 | 856 | 26.2 | 56.2 | 2.72e+04 | 277 | 9.71 | 8.8 | 0.0511 | 14 | 18.8 | 17 | 100 | nan | 0 | nan | nan | 407 | 0.844 | 0.0503 | 1.55 | 0.626 | 1.12 | 1.73 | 1.6e+03 |
+wrote /home/cc/sdebench-mt/runs/chi-synth-offload_20261003-0227/summary.md /home/cc/sdebench-mt/runs/chi-synth-offload_20261003-0227/sweep.png
+| N | arm | followup_calls | calls_evict_ge1block | frac_calls_evict | calls_any_recompute | recompute_tok_p50 | recompute_tok_p95 | computed_Mtok | evict_Mtok | tail_Mtok | new_Mtok | recompute_share_of_computed | srv_gpu_hit_Mtok | srv_cpu_hit_Mtok | offload_load_GB | offload_load_s | recompute_gpu_s | recompute_share_of_prefill_time | recompute_share_of_gpu_time | evict_share_of_gpu_time | recompute_share_of_call_p50 | recompute_share_of_call_p95 | cpu_hits_saved_gpu_s_est | preemptions |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 32 | offload | 815 | 41 | 0.0503 | 815 | 792 | 1.57e+03 | 3.94 | 1.55 | 0.626 | 1.61 | 0.553 | 1.29 | 20 | 778 | 5.87 | 230 | 0.544 | 0.247 | 0.173 | 0.00289 | 0.0102 | 2.06e+05 | 14 |
+SYNTH-OFFLOAD-EXIT=0
+== staging images to /tmp/cc-images
+43G	/tmp/cc-images
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/home/cc/.config/mini-swe-agent/.env'
+/home/cc/sdebench-mt/configs/mini.yaml
+== starting vLLM
+Sat Oct  3 02:58:32 AM UTC 2026
+before evict: node0/node1 FilePages MB = 244346.85/0.00, GPU used = 83684 MiB
+evicted page cache of 119 files
+node1: FilePages 0 MiB, nothing to flush
+after evict: node0/node1 FilePages MB = 160650.36/0.00, GPU used = 13 MiB
+vLLM healthy after 820s
+KV cache tokens: 811190 (minimum 780000), attempt 1
+memory.used [MiB], memory.total [MiB]
+80076 MiB, 97871 MiB
+(EngineCore pid=139537) INFO 10-03 03:11:09 [utils.py:320] Using LBNHC KV cache layout.
+(EngineCore pid=139537) INFO 10-03 03:11:39 [gpu_worker.py:559] Initial free memory 94.46 GiB, reserved 26.7 GiB memory for KV Cache as specified by kv_cache_memory_bytes config and skipped memory profiling. This does not respect the gpu_memory_utilization config. Only use kv_cache_memory_bytes config when you want manual control of KV cache memory size. If OOM'ed, check the difference of initial free memory between the current run and the previous run where kv_cache_memory_bytes is suggested and update it correspondingly.
+(EngineCore pid=139537) INFO 10-03 03:11:39 [kv_cache_utils.py:2395] GPU KV cache size: 811,190 tokens, Maximum concurrency for 131,072 tokens per request: 6.19x
+(EngineCore pid=139537) INFO 10-03 03:12:12 [core.py:372] init engine (profile, create kv cache, warmup model) took 62.71 s (compilation: 1.97 s)
+(EngineCore pid=139537) INFO 10-03 03:12:12 [kv_cache_utils.py:748] kv cache group sizes [1568, 1568, 1568, 1568]
+SYNTH done: 479 calls in 900s with 32 tenants
+PREFILL_COST t0=100 ms  a=81.0 us/tok  b=1024.59 ps/tok^2  fit MAPE=5.4%  rates(tok/s): n1568_c0=12,221, n1568_c65536=6,713, n8192_c0=11,735, n32768_c0=10,224, n98304_c0=7,611
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 32 | 0 | 0 | 0 | 15.7 | 0 | 479 | 59.3 | 108 | 9.61e+03 | 152 | 10.9 | 7.63 | 0.162 | 17 | 24.5 | 13 | 100 | nan | 0 | nan | nan | 471 | 0.162 | 0.709 | 6.28 | 0.335 | 0.681 | 1.2 | 985 |
+wrote /home/cc/sdebench-mt/runs/chi-synth-baseline_20261003-0258/summary.md /home/cc/sdebench-mt/runs/chi-synth-baseline_20261003-0258/sweep.png
+| N | arm | followup_calls | calls_evict_ge1block | frac_calls_evict | calls_any_recompute | recompute_tok_p50 | recompute_tok_p95 | computed_Mtok | evict_Mtok | tail_Mtok | new_Mtok | recompute_share_of_computed | srv_gpu_hit_Mtok | srv_cpu_hit_Mtok | offload_load_GB | offload_load_GBps | recompute_gpu_s | recompute_share_of_prefill_time | recompute_share_of_gpu_time | evict_share_of_gpu_time | recompute_share_of_call_p50 | recompute_share_of_call_p95 | cpu_hits_saved_gpu_s_est | preemptions |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 32 | baseline | 447 | 317 | 0.709 | 447 | 1.63e+04 | 3.03e+04 | 7.6 | 6.28 | 0.335 | 0.877 | 0.87 | 1.47 | 0 | 0 | nan | 620 | 0.864 | 0.658 | 0.622 | 0.0208 | 0.0348 | 0 | 17 |
+SYNTH-BASELINE-EXIT=0

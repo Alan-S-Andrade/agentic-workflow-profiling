@@ -1,0 +1,29 @@
+Bootstrap: docker
+From: buildpack-deps:jammy
+
+# Approximates swebench's base Dockerfile (harness/dockerfiles) for aarch64 without
+# real root: Vista has no /etc/subuid, so apptainer --fakeroot uses a root-mapped
+# namespace where apt's privilege drop fails. buildpack-deps already ships git,
+# build-essential, curl, wget and common -dev libraries; extra apt packages are
+# best-effort. The vsock replay-agent runs on miniconda's python.
+
+%files
+    guest/replay-agent /usr/local/bin/replay-agent
+    guest/init /sbin/replay-init
+
+%post
+    export DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC
+    echo 'APT::Sandbox::User "root";' > /etc/apt/apt.conf.d/00no-sandbox
+    (apt-get update -qq && apt-get install -y -qq --no-install-recommends \
+        jq locales-all tzdata libtiff-dev iproute2 patch > /dev/null) \
+        || echo "WARN: optional apt packages not installed"
+    rm -rf /var/lib/apt/lists/*
+    wget -q https://repo.anaconda.com/miniconda/Miniconda3-py311_23.11.0-2-Linux-aarch64.sh -O /tmp/mc.sh
+    bash /tmp/mc.sh -b -p /opt/miniconda3 && rm /tmp/mc.sh
+    /opt/miniconda3/bin/conda init --all > /dev/null
+    /opt/miniconda3/bin/conda config --system --append channels conda-forge
+    sed -i '1s|.*|#!/opt/miniconda3/bin/python3|' /usr/local/bin/replay-agent
+    chmod 755 /usr/local/bin/replay-agent /sbin/replay-init
+    mkdir -p /testbed /mnt/upper /mnt/lower /mnt/root
+    git config --system --add safe.directory '*' && git config --system user.email tenant@local && git config --system user.name tenant
+    git --version; gcc --version | head -1; /opt/miniconda3/bin/python3 --version

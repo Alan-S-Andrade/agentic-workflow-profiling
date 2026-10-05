@@ -1,0 +1,16 @@
+Baremetal	https://chi.hpc.ucar.edu:6385
+Baremetal Introspection	https://chi.hpc.ucar.edu:5050
+Cep	https://chi.hpc.ucar.edu:8910
+Cloudformation	https://chi.hpc.ucar.edu:8000/v1
+Compute	https://chi.hpc.ucar.edu:8774/v2.1
+Compute_Legacy	https://chi.hpc.ucar.edu:8774/v2/12b223bd6fb04c30a33bf45033f2f484
+Identity	https://chi.hpc.ucar.edu:5000
+Image	https://chi.hpc.ucar.edu:9292
+Inventory	https://chi.hpc.ucar.edu:8100
+Metric	https://chi.hpc.ucar.edu:8041
+Network	https://chi.hpc.ucar.edu:9696
+Object Store	https://chi.hpc.ucar.edu:7480/swift/v1/AUTH_12b223bd6fb04c30a33bf45033f2f484
+Orchestration	https://chi.hpc.ucar.edu:8004/v1/12b223bd6fb04c30a33bf45033f2f484
+Placement	https://chi.hpc.ucar.edu:8780
+Reservation	https://chi.hpc.ucar.edu:1234/v1
+

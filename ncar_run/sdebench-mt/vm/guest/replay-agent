@@ -1,0 +1,67 @@
+#!/usr/bin/env python3
+"""Guest-side vsock exec service (port 52), one JSON line per request.
+
+Protocol (compatible with agentic-workflow-profiling MICROVM_REPLAY_EXPERIMENT.md):
+  {"op":"exec","cwd":"/testbed","command":"...","timeout":600,"env":{...}}
+    -> {"exit_status":int,"stdout":str,"stderr":str,"duration_ms":float}
+  {"op":"write_file","path":"/tmp/x","content":"..."} -> {"ok":true}
+  {"op":"ping"} -> {"ok":true,"uptime_s":float}
+Each connection may carry many requests; requests on a connection are serial.
+"""
+import json, os, socket, subprocess, threading, time
+
+PORT = int(os.environ.get("REPLAY_AGENT_PORT", "52"))
+BASE_ENV = {
+    "PATH": "/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    "HOME": "/root", "LANG": "C.UTF-8", "TERM": "dumb", "PAGER": "cat",
+    "PIP_PROGRESS_BAR": "off", "TQDM_DISABLE": "1",
+}
+
+
+def handle(req):
+    op = req.get("op")
+    if op == "ping":
+        return {"ok": True, "mono_s": time.monotonic()}
+    if op == "write_file":
+        os.makedirs(os.path.dirname(req["path"]) or "/", exist_ok=True)
+        with open(req["path"], "w") as f:
+            f.write(req["content"])
+        return {"ok": True}
+    if op == "exec":
+        env = dict(BASE_ENV, **(req.get("env") or {}))
+        t0 = time.time()
+        try:
+            p = subprocess.run(["bash", "-c", req["command"]], cwd=req.get("cwd") or "/",
+                               env=env, capture_output=True, timeout=req.get("timeout") or 600)
+            rc, out, err = p.returncode, p.stdout, p.stderr
+        except subprocess.TimeoutExpired as e:
+            rc, out, err = -9, e.stdout or b"", (e.stderr or b"") + b"\n[replay-agent] timeout"
+        return {"exit_status": rc, "stdout": out.decode(errors="replace"),
+                "stderr": err.decode(errors="replace"), "duration_ms": (time.time() - t0) * 1000}
+    return {"error": f"unknown op {op!r}"}
+
+
+def serve(conn):
+    with conn, conn.makefile("rwb") as f:
+        for line in f:
+            try:
+                resp = handle(json.loads(line))
+            except Exception as e:  # report, keep serving
+                resp = {"error": repr(e)}
+            f.write(json.dumps(resp).encode() + b"\n")
+            f.flush()
+
+
+def main():
+    s = socket.socket(socket.AF_VSOCK, socket.SOCK_STREAM)
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    s.bind((socket.VMADDR_CID_ANY, PORT))
+    s.listen(16)
+    print(f"replay-agent listening on vsock port {PORT}", flush=True)
+    while True:
+        conn, _ = s.accept()
+        threading.Thread(target=serve, args=(conn,), daemon=True).start()
+
+
+if __name__ == "__main__":
+    main()

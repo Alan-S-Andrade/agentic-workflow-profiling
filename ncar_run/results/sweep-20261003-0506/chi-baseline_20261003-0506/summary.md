@@ -1,0 +1,4 @@
+| N | jobs | resolved | errors | makespan_min | jobs_per_hour | llm_calls | llm_p50_s | llm_p95_s | prompt_tok_s | gen_tok_s | ttft_mean_s | queue_mean_s | prefix_hit | preemptions | running_mean | waiting_max | kv_max_pct | tool_p50_s | tool_share | boot_mean_s | vmm_rss_mean_mb | host_avail_min_gb | prefix_hit_tok | evicted_frac | recomputed_Mtok | align_recompute_Mtok | conv_kv_p50_gib | conv_kv_max_gib | ws_max_ktok |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 16 | 32 | 25 | 0 | 71.8 | 26.7 | 1246 | 7.39 | 174 | 4.56e+03 | 320 | 0.316 | 0.000625 | 0.909 | 0 | 8.66 | 0 | 48.6 | 0.154 | 0.0397 | 0.517 | 423 | 462 | 0.909 | 0.00823 | 0.155 | 0.949 | 0.525 | 1.72 | 330 |
+| 32 | 64 | 50 | 0 | 81.5 | 47.1 | 2329 | 10.3 | 183 | 6.92e+03 | 431 | 0.675 | 0.027 | 0.736 | 0 | 18.5 | 3 | 89.7 | 0.148 | 0.0266 | 0.517 | 394 | 450 | 0.736 | 0.191 | 5.89 | 1.76 | 0.439 | 1.63 | 560 |
