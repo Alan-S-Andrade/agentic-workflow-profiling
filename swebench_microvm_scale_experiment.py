@@ -300,31 +300,6 @@ def ensure_overlay_initramfs(kernel: Path) -> Path:
         existing = modules.read_text() if modules.exists() else ""
         if not re.search(r"(?m)^overlay(?:\s|$)", existing):
             modules.write_text(existing.rstrip() + "\noverlay\n")
-        overlay_candidates = sorted(
-            Path("/lib/modules", kernel_release).glob("**/overlay.ko*")
-        )
-        if not overlay_candidates:
-            overlay_candidates = sorted(
-                Path("/usr/lib/modules", kernel_release).glob("**/overlay.ko*")
-            )
-        if not overlay_candidates:
-            raise SystemExit(
-                f"could not locate overlay.ko for kernel {kernel_release}"
-            )
-        overlay_module = overlay_candidates[0]
-        # Some restricted hosts have incomplete module metadata, so the
-        # modules file alone does not make mkinitramfs include OverlayFS.
-        # Add a hook that both asks initramfs-tools to resolve dependencies and
-        # explicitly copies overlay.ko when that resolution is unavailable.
-        overlay_hook = config / "hooks" / "swebench-overlay"
-        overlay_hook.write_text(
-            "#!/bin/sh\n"
-            "set -eu\n"
-            ". /usr/share/initramfs-tools/hook-functions\n"
-            "manual_add_modules overlay || true\n"
-            f"copy_file module {overlay_module} || true\n"
-        )
-        overlay_hook.chmod(0o755)
         built = temp / target.name
         # This host may expose a read-only /var/tmp and protected files under
         # /etc (for example the iSCSI initiator file).  Build as root and force
