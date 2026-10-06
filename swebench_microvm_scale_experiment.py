@@ -301,7 +301,15 @@ def ensure_overlay_initramfs(kernel: Path) -> Path:
         if not re.search(r"(?m)^overlay(?:\s|$)", existing):
             modules.write_text(existing.rstrip() + "\noverlay\n")
         built = temp / target.name
-        sudo("mkinitramfs", "-d", str(config), "-o", str(built), kernel_release)
+        # This host may expose a read-only /var/tmp and protected files under
+        # /etc (for example the iSCSI initiator file).  Build as root and force
+        # initramfs-tools to use the writable shared scratch directory.
+        sudo("env", "TMPDIR=/tmp", "mkinitramfs", "-d", str(config),
+             "-o", str(built), kernel_release)
+        # mkinitramfs commonly leaves a root-readable-only output file.  The
+        # validation below runs as the invoking user, so make the image
+        # readable before inspecting it and caching it in the workspace.
+        sudo("chmod", "0644", str(built))
         if not initramfs_contains_overlay(built):
             raise RuntimeError(f"mkinitramfs produced an image without overlay.ko: {built}")
         target.parent.mkdir(parents=True, exist_ok=True)
