@@ -23,6 +23,7 @@ from __future__ import annotations
 import argparse
 import base64
 import hashlib
+import http.server
 import ipaddress
 import json
 import os
@@ -43,6 +44,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 DEFAULT_STAGES = (1, 2, 4, 8, 16, 32, 64, 128)
 DEFAULT_INFERENCE_ENDPOINT = "http://130.127.133.251:8080/v1/inference"
+DEFAULT_TRACE_ROOT = ROOT / "yig"
 
 
 class MemoryGuard(Exception):
@@ -337,6 +339,166 @@ def image_name(instance_id: str) -> str:
     return f"swebench/sweb.eval.x86_64.{instance_id.replace('__', '_1776_').lower()}:latest"
 
 
+def trace_workflow(trace: Path) -> tuple[str, list[dict]]:
+    """Load one trajectory for the server; its contents never leave the server."""
+    data = json.loads(trace.read_text())
+    instance_id = data["instance_id"]
+    assistant_turns = [message for message in data.get("messages", [])
+                       if message.get("role") == "assistant" and message.get("tool_calls")]
+    turns = []
+    for index, timing in enumerate(data.get("step_timings", [])):
+        commands = []
+        calls = assistant_turns[index].get("tool_calls", []) if index < len(assistant_turns) else []
+        for call_data in calls:
+            function = call_data.get("function", {})
+            if function.get("name") != "bash":
+                continue
+            arguments = function.get("arguments", {})
+            try:
+                arguments = json.loads(arguments) if isinstance(arguments, str) else arguments
+                command = arguments["command"]
+            except (KeyError, TypeError, json.JSONDecodeError) as exc:
+                raise ValueError(f"invalid bash call in {trace}") from exc
+            if isinstance(command, str):
+                commands.append(command)
+        turns.append({
+            "commands": commands,
+            "inference_seconds": float(timing.get("inference", {}).get("elapsed_s", 0.0)),
+        })
+    if not turns:
+        raise ValueError(f"trajectory has no timed turns: {trace}")
+    return instance_id, turns
+
+
+def load_server_workflows(trace_root: Path) -> dict[str, list[dict]]:
+    """Index one trace per instance ID for the remote trace-serving process."""
+    workflows: dict[str, list[dict]] = {}
+    for trace in sorted(trace_root.glob("*/results/*/*.traj.json")):
+        instance_id, turns = trace_workflow(trace)
+        workflows.setdefault(instance_id, turns)
+    if not workflows:
+        raise SystemExit(f"no SWE-bench trajectories found under {trace_root}")
+    return workflows
+
+
+class TraceRequestError(Exception):
+    def __init__(self, status: int, message: str) -> None:
+        super().__init__(message)
+        self.status = status
+
+
+class TraceService:
+    """Thread-safe, session-pinned access to the server's YIG trajectories."""
+
+    def __init__(self, workflows: dict[str, list[dict]]) -> None:
+        self.workflows = workflows
+        self.sessions: dict[str, dict] = {}
+        self.lock = threading.Lock()
+
+    def instances(self) -> list[str]:
+        return sorted(self.workflows)
+
+    def inference(self, request: object) -> dict:
+        if not isinstance(request, dict):
+            raise TraceRequestError(400, "request must be a JSON object")
+        session_id = request.get("session_id")
+        requested_instance = request.get("instance_id")
+        turn = request.get("turn")
+        if not isinstance(session_id, str) or not session_id:
+            raise TraceRequestError(400, "session_id is required")
+        if requested_instance is not None and not isinstance(requested_instance, str):
+            raise TraceRequestError(400, "instance_id must be a string")
+        if not isinstance(turn, int) or isinstance(turn, bool) or turn < 1:
+            raise TraceRequestError(400, "turn must be a positive integer")
+        with self.lock:
+            state = self.sessions.get(session_id)
+            if state is None:
+                instance_id = requested_instance
+                if not instance_id or instance_id not in self.workflows:
+                    raise TraceRequestError(404, "unknown instance_id")
+                state = {"instance_id": instance_id, "next_turn": 1, "responses": {}}
+                self.sessions[session_id] = state
+            elif requested_instance and requested_instance != state["instance_id"]:
+                raise TraceRequestError(409, "session is already bound to another instance_id")
+            if turn in state["responses"]:
+                return state["responses"][turn]
+            if turn != state["next_turn"]:
+                raise TraceRequestError(409, f"expected turn {state['next_turn']}")
+            turns = self.workflows[state["instance_id"]]
+            if turn > len(turns):
+                raise TraceRequestError(409, "trajectory is already complete")
+            saved = turns[turn - 1]
+            response = {
+                "turn": turn,
+                "commands": saved["commands"],
+                "done": turn == len(turns),
+                "inference_seconds": saved["inference_seconds"],
+            }
+            state["responses"][turn] = response
+            state["next_turn"] += 1
+            return response
+
+
+class TraceRequestHandler(http.server.BaseHTTPRequestHandler):
+    service: TraceService
+
+    def _json(self, status: int, payload: object) -> None:
+        encoded = json.dumps(payload).encode("utf-8")
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(encoded)))
+        self.send_header("Connection", "close")
+        self.end_headers()
+        self.wfile.write(encoded)
+
+    def do_GET(self) -> None:
+        if self.path == "/healthz":
+            self._json(200, {"ok": True, "instances": len(self.service.workflows)})
+        elif self.path == "/v1/instances":
+            self._json(200, {"instances": self.service.instances()})
+        else:
+            self._json(404, {"error": "not found"})
+
+    def do_POST(self) -> None:
+        if self.path != "/v1/inference":
+            self._json(404, {"error": "not found"})
+            return
+        try:
+            length = int(self.headers.get("Content-Length", "-1"))
+            if length < 0 or length > 1_048_576:
+                raise TraceRequestError(413, "request body is missing or too large")
+            request = json.loads(self.rfile.read(length).decode("utf-8"))
+            self._json(200, self.service.inference(request))
+        except TraceRequestError as exc:
+            self._json(exc.status, {"error": str(exc)})
+        except (ValueError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+            self._json(400, {"error": f"invalid JSON request: {exc}"})
+        except Exception as exc:
+            self._json(500, {"error": f"server error: {exc}"})
+
+    def log_message(self, format: str, *args: object) -> None:
+        print(f"{self.address_string()} - {format % args}", flush=True)
+
+
+def serve_traces(trace_root: Path, host: str, port: int) -> None:
+    """Run the multithreaded origin service used by the microVM clients."""
+    service = TraceService(load_server_workflows(trace_root))
+
+    class Handler(TraceRequestHandler):
+        pass
+
+    Handler.service = service
+    server = http.server.ThreadingHTTPServer((host, port), Handler)
+    server.daemon_threads = True
+    print(f"serving {len(service.workflows)} YIG workflows on http://{host}:{port}", flush=True)
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        server.server_close()
+
+
 def catalog_url(inference_endpoint: str) -> str:
     """Derive the default instance catalog URL from the inference endpoint."""
     parsed = urllib.parse.urlsplit(inference_endpoint)
@@ -376,8 +538,6 @@ def load_instance_ids(inference_endpoint: str, catalog: str | None,
     if not all(isinstance(value, str) and re.fullmatch(r"[A-Za-z0-9_.-]+", value) for value in values):
         raise SystemExit("remote instance identifiers must contain only letters, digits, '.', '_' or '-'")
     unique = list(dict.fromkeys(values))
-    if len(unique) < 100:
-        raise SystemExit(f"expected at least 100 unique remote instances; found {len(unique)}")
     return unique
 
 
@@ -618,7 +778,9 @@ def sessions_for_stage(unique: list[dict], count: int, rng: random.Random) -> li
         return [dict(manifest, repetition=0) for manifest in unique[:count]]
     result = [dict(manifest, repetition=0) for manifest in unique]
     for manifest in rng.choices(unique, k=count - len(unique)):
-        copy = dict(manifest); copy["repetition"] = 1; result.append(copy)
+        copy = dict(manifest)
+        copy["repetition"] = 1
+        result.append(copy)
     return result
 
 
@@ -723,7 +885,14 @@ def run_stage(stage_dir: Path, manifests: list[dict], args, rootfs: Path, kernel
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--output", type=Path,
+                        help="experiment output directory (required for --run/plan; not needed by --serve)")
+    parser.add_argument("--serve", action="store_true",
+                        help="serve YIG workflows as the remote inference origin")
+    parser.add_argument("--trace-root", type=Path, default=DEFAULT_TRACE_ROOT,
+                        help="YIG trace root used by --serve")
+    parser.add_argument("--serve-host", default="0.0.0.0")
+    parser.add_argument("--serve-port", type=int, default=8080)
     parser.add_argument("--inference-endpoint", default=os.environ.get(
         "MICROVM_INFERENCE_ENDPOINT", DEFAULT_INFERENCE_ENDPOINT),
         help="remote trace-backed inference endpoint (default: %(default)s)")
@@ -754,6 +923,15 @@ def main() -> None:
                         help="permit host and VM swap; default runs require swap to be disabled")
     parser.add_argument("--run", action="store_true")
     args = parser.parse_args()
+    if args.serve:
+        if args.run:
+            raise SystemExit("--serve and --run are mutually exclusive")
+        if not 1 <= args.serve_port <= 65535:
+            raise SystemExit("serve port must be in [1, 65535]")
+        serve_traces(args.trace_root, args.serve_host, args.serve_port)
+        return
+    if args.output is None:
+        raise SystemExit("--output is required unless --serve is used")
     if tuple(args.stages) != DEFAULT_STAGES: raise SystemExit(f"stages must be exactly {DEFAULT_STAGES}")
     if args.sample_interval_seconds <= 0: raise SystemExit("sample interval must be positive")
     if not 1.0 <= args.memory_threshold_percent < 100.0: raise SystemExit("memory threshold must be in [1, 100)")
@@ -765,15 +943,20 @@ def main() -> None:
     initramfs = ensure_overlay_initramfs(kernel)
     # Provisioning the guest image is deliberately independent of the remote
     # corpus. A run/plan needs the catalog only to choose OCI instance images.
-    instance_ids = [] if args.prepare_guest and not args.run else load_instance_ids(
-        args.inference_endpoint, args.instance_catalog_url, args.instance_ids_file, args.instance_ids)
+    if args.prepare_guest and not args.run:
+        instance_ids = []
+    else:
+        instance_ids = load_instance_ids(args.inference_endpoint, args.instance_catalog_url,
+                                         args.instance_ids_file, args.instance_ids)
+    if args.run and not instance_ids:
+        raise SystemExit("the remote catalog must contain at least one trace")
     unique = [{"instance_id": instance_id, "repetition": 0} for instance_id in instance_ids]
     rng = random.Random(args.seed); rng.shuffle(unique)
     args.output.mkdir(parents=True, exist_ok=False)
     plan = {"stages": list(args.stages), "remote_instances": len(unique), "seed": args.seed,
             "inference_endpoint": args.inference_endpoint,
             "instance_catalog_url": args.instance_catalog_url or catalog_url(args.inference_endpoint),
-            "selection": "distinct sessions within every stage; 128 uses all 100 unique traces plus 28 seeded repeats",
+            "selection": "distinct traces until the remote pool is exhausted; seeded trace repeats above pool size",
             "guest_execution": "remote turn-by-turn inference; returned bash tools execute locally",
             "guest_storage": "shared read-only per-image block image plus per-VM guest tmpfs overlay; no trace data packaged",
             "guest_network": {"subnet": args.network_subnet, "nat_destination": urllib.parse.urlsplit(args.inference_endpoint).hostname},
