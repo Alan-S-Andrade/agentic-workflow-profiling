@@ -293,7 +293,7 @@ def ensure_overlay_initramfs(kernel: Path) -> Path:
         if not re.search(r"(?m)^overlay(?:\s|$)", existing):
             modules.write_text(existing.rstrip() + "\noverlay\n")
         built = temp / target.name
-        call("mkinitramfs", "-d", str(config), "-o", str(built), kernel_release)
+        sudo("mkinitramfs", "-d", str(config), "-o", str(built), kernel_release)
         if not initramfs_contains_overlay(built):
             raise RuntimeError(f"mkinitramfs produced an image without overlay.ko: {built}")
         target.parent.mkdir(parents=True, exist_ok=True)
