@@ -97,6 +97,9 @@ def main():
         failures += turn_failures
         turn_record = {'turn': turn, 'started_at': started, 'finished_at': time.time(), 'inference_elapsed_seconds': inference_elapsed, 'server_inference_seconds': response.get('inference_seconds'), 'tool_commands': len(response.get('commands', [])), 'tool_failures': turn_failures}
         turn_records.write(json.dumps(turn_record) + '\n'); turn_records.flush()
+        # The upper layer is a private ext4 disk. Flush each completed turn so
+        # a guest power event cannot leave the turn only in page cache.
+        os.sync()
         serial.write('REPLAY_TURN ' + base64.b64encode(json.dumps(turn_record).encode()).decode() + '\n')
         if response.get('done', False): break
         turn += 1
@@ -116,7 +119,7 @@ GUEST_INIT = r'''#!/bin/bash
 mount -t proc proc /proc
 mount -t sysfs sysfs /sys
 mount -t devtmpfs devtmpfs /dev
-mkdir -p /run /tmp /lower /overlay /rw
+mkdir -p /run /tmp /lower /upper /rw
 cmdline=$(cat /proc/cmdline)
 getarg() { printf '%s\n' "$cmdline" | sed -n "s/.* $1=\([^ ]*\).*/\1/p"; }
 instance_id=$(getarg microvm_instance)
@@ -144,11 +147,11 @@ if ! "$ip_bin" link set lo up || ! "$ip_bin" link set "$netdev" up || ! "$ip_bin
     exit 3
 fi
 mount -t ext4 -o ro /dev/vdb /lower
-mount -t tmpfs -o nosuid,nodev tmpfs /overlay
-mkdir -p /overlay/upper /overlay/work /overlay/upper/replay
-if ! mount -t overlay overlay -o lowerdir=/lower,upperdir=/overlay/upper,workdir=/overlay/work /rw; then
+mount -t ext4 -o rw /dev/vdc /upper
+mkdir -p /upper/overlay-upper /upper/overlay-work /upper/overlay-upper/replay
+if ! mount -t overlay overlay -o lowerdir=/lower,upperdir=/upper/overlay-upper,workdir=/upper/overlay-work /rw; then
     echo "OVERLAYFS_FAILED" > /dev/ttyS0
-    echo "overlayfs is required; refusing the full-image tmpfs fallback" >&2
+    echo "overlayfs is required; refusing the full-image fallback" >&2
     /bin/busybox poweroff -f
     exit 3
 fi
@@ -551,7 +554,7 @@ def prepare_guest(rootfs_tree: Path, rootfs: Path) -> None:
         sudo("rm", "-rf", str(rootfs_tree / "replay-manifests"))
         sudo("install", "-m", "0755", str(runner), str(rootfs_tree / "usr/local/bin/swebench-remote-inference.py"))
         sudo("install", "-m", "0755", str(init), str(rootfs_tree / "sbin/init"))
-        for mountpoint in ("/lower", "/overlay", "/rw", "/tmp"):
+        for mountpoint in ("/lower", "/upper", "/rw", "/tmp"):
             sudo("install", "-d", "-m", "0755", str(rootfs_tree / mountpoint.lstrip("/")))
         if not (rootfs_tree / "sbin/ip").is_file() and not (rootfs_tree / "usr/sbin/ip").is_file():
             raise SystemExit("the guest rootfs needs iproute2 (/sbin/ip or /usr/sbin/ip) for remote inference networking")
@@ -645,21 +648,39 @@ class StageNetwork:
 
 
 class VM:
-    def __init__(self, run_dir: Path, image_root: Path, session: int, manifest: dict,
+    def __init__(self, run_dir: Path, session: int, manifest: dict,
                  memory_ceiling_mib: int, allow_swap: bool) -> None:
         self.run_dir, self.session, self.manifest = run_dir, session, manifest
         self.vm_dir = run_dir / "vms" / f"session-{session:03d}"; self.vm_dir.mkdir(parents=True)
         image = image_name(manifest["instance_id"])
         image_key = hashlib.sha256(image.encode()).hexdigest()[:24]
-        self.disk = image_root / f"{image_key}.raw"
+        # The OCI/Docker source may be cached, but each VM gets a distinct
+        # materialized SWE-bench lower disk; no raw guest disk is shared.
+        self.disk = self.vm_dir / f"swebench-{image_key}.raw"
+        self.upper_disk = self.vm_dir / "upper.ext4"
         self.cgroup = Path(f"/sys/fs/cgroup/swebench-microvm-{os.getpid()}-{session}")
         self.memory_ceiling_mib = memory_ceiling_mib
         self.allow_swap = allow_swap
         self.proc: subprocess.Popen | None = None
 
+    def prepare_upper_disk(self, size_gib: int) -> None:
+        """Create this VM's private writable OverlayFS upper disk."""
+        if self.upper_disk.exists():
+            return
+        if size_gib < 1:
+            raise ValueError("guest upper disk size must be positive")
+        temporary = self.upper_disk.with_suffix(".ext4.tmp")
+        try:
+            call("truncate", "-s", f"{size_gib}G", str(temporary))
+            call("mkfs.ext4", "-F", "-q", "-b", "4096",
+                 "-E", "lazy_itable_init=1,lazy_journal_init=1", str(temporary))
+            os.replace(temporary, self.upper_disk)
+        finally:
+            temporary.unlink(missing_ok=True)
+
     def build_disk(self, staging: Path, memory_threshold_bytes: int) -> None:
         if self.disk.exists():
-            return
+            raise RuntimeError(f"private SWE-bench disk already exists: {self.disk}")
         image = image_name(self.manifest["instance_id"])
         image_key = hashlib.sha256(image.encode()).hexdigest()[:24]
         root = staging / f"image-{image_key}"
@@ -673,7 +694,7 @@ class VM:
                 raise RuntimeError(f"failed to export {image}")
             kib = int(subprocess.check_output(["sudo", "-n", "du", "-sk", str(root)], text=True).split()[0])
             if host_used_bytes() >= memory_threshold_bytes:
-                raise MemoryGuard(f"shared image for session {self.session} reached the {memory_threshold_bytes} byte host-memory guard")
+                raise MemoryGuard(f"private SWE-bench disk for session {self.session} reached the {memory_threshold_bytes} byte host-memory guard")
             self.disk.parent.mkdir(parents=True, exist_ok=True)
             call("truncate", "-s", f"{kib + 1024 * 1024}K", str(self.disk))
             sudo("mkfs.ext4", "-F", "-q", "-d", str(root), str(self.disk))
@@ -695,6 +716,7 @@ class VM:
         command = ["taskset", "-c", cpu_arg, "numactl", "--interleave=all", "cloud-hypervisor",
                    "--kernel", str(kernel), "--initramfs", str(initramfs),
                    "--disk", f"path={rootfs},image_type=raw,readonly=on", "--disk", f"path={self.disk},image_type=raw,readonly=on",
+                   "--disk", f"path={self.upper_disk},image_type=raw",
                    "--net", f"tap={network['tap']},mac={network['mac']}",
                    "--memory", "size=0", "--memory-zone", f"size={self.memory_ceiling_mib}M,id=mem0",
                    "--numa", f"guest_numa_id=0,cpus={cpu_arg},memory_zones=mem0", "--cpus", f"boot={len(cpus)},max={len(cpus)}",
@@ -791,14 +813,15 @@ def run_stage(stage_dir: Path, manifests: list[dict], args, rootfs: Path, kernel
     scratch_dir = args.scratch_root / f"swebench-scale-scratch-{os.getpid()}-{len(manifests)}"
     staging = scratch_dir / "staging"; staging.mkdir(parents=True)
     memory_ceiling = args.guest_memory_ceiling_mib or host_memory_bytes() // 1024**2
-    vms = [VM(stage_dir, args.shared_image_root, index + 1, manifest, memory_ceiling, args.allow_swap)
+    vms = [VM(stage_dir, index + 1, manifest, memory_ceiling, args.allow_swap)
            for index, manifest in enumerate(manifests)]
     (stage_dir / "run-plan.json").write_text(json.dumps({"concurrency": len(vms), "sessions": [v.manifest for v in vms], "seed": args.seed,
         "guest_visible_vcpus": len(cpuset()), "guest_memory_ceiling_mib": memory_ceiling,
         "resource_policy": "no per-session CPU or memory quota; shared all-NUMA host capacity",
         "host_memory_threshold_percent": args.memory_threshold_percent,
         "swap_policy": "allow" if args.allow_swap else "disabled",
-        "guest_storage_policy": "shared read-only image plus per-VM guest tmpfs overlay",
+        "guest_storage_policy": "per-VM private read-only SWE-bench disk plus per-VM private disk-backed OverlayFS upper layer",
+        "guest_upper_disk_gib": args.guest_upper_disk_gib,
         "host_numa_nodes": [node.name for node in numa_nodes()]}, indent=2) + "\n")
     try:
         for image in sorted({image_name(v.manifest["instance_id"]) for v in vms}):
@@ -806,6 +829,7 @@ def run_stage(stage_dir: Path, manifests: list[dict], args, rootfs: Path, kernel
                 raise MemoryGuard("host memory guard reached while preparing images")
             sudo("docker", "pull", image)
         for vm in vms: vm.build_disk(staging, memory_threshold_bytes)
+        for vm in vms: vm.prepare_upper_disk(args.guest_upper_disk_gib)
     except BaseException:
         shutil.rmtree(scratch_dir, ignore_errors=True)
         raise
@@ -878,7 +902,8 @@ def run_stage(stage_dir: Path, manifests: list[dict], args, rootfs: Path, kernel
               "peak_host_used_bytes": peak_host_used[0],
               "peak_aggregate_cgroup_memory_bytes": max((sum(r["cgroup_memory_bytes"] for r in group) for group in zip(*samples.values())), default=0)}
     (stage_dir / "summary.json").write_text(json.dumps(result, indent=2) + "\n")
-    # Guest overlays disappear with the VM; reclaim only the regular staging tree.
+    # Keep each VM's disk-backed lower and upper disks with its stage output;
+    # reclaim only the temporary image-export staging tree.
     shutil.rmtree(scratch_dir, ignore_errors=True)
     return result
 
@@ -908,10 +933,10 @@ def main() -> None:
     parser.add_argument("--ram-root", type=Path, default=Path("/dev/shm"))
     parser.add_argument("--scratch-root", type=Path, default=Path("/tmp"),
                         help="regular filesystem used while exporting OCI images")
-    parser.add_argument("--shared-image-root", type=Path,
-                        help="regular filesystem cache for shared read-only Docker images")
     parser.add_argument("--memory-threshold-percent", type=float, default=90.0)
     parser.add_argument("--guest-memory-ceiling-mib", type=int)
+    parser.add_argument("--guest-upper-disk-gib", type=int, default=8,
+                        help="private per-VM ext4 OverlayFS upper-layer size (default: 8 GiB)")
     parser.add_argument("--inference-timeout-seconds", type=float, default=120.0)
     parser.add_argument("--max-turns", type=int, default=1000)
     parser.add_argument("--network-subnet", default="10.250.0.0/24",
@@ -937,6 +962,7 @@ def main() -> None:
     if not 1.0 <= args.memory_threshold_percent < 100.0: raise SystemExit("memory threshold must be in [1, 100)")
     if args.inference_timeout_seconds <= 0: raise SystemExit("inference timeout must be positive")
     if args.max_turns <= 0: raise SystemExit("max-turns must be positive")
+    if args.guest_upper_disk_gib <= 0: raise SystemExit("guest upper disk size must be positive")
     validate_inference_endpoint(args.inference_endpoint)
     rootfs_tree, rootfs = ROOT / "microvm-assets/rootfs-tree", ROOT / "microvm-assets/replay-rootfs.img"
     kernel = Path(os.environ.get("MICROVM_KERNEL", ROOT / "microvm-assets/vmlinuz"))
@@ -958,7 +984,8 @@ def main() -> None:
             "instance_catalog_url": args.instance_catalog_url or catalog_url(args.inference_endpoint),
             "selection": "distinct traces until the remote pool is exhausted; seeded trace repeats above pool size",
             "guest_execution": "remote turn-by-turn inference; returned bash tools execute locally",
-            "guest_storage": "shared read-only per-image block image plus per-VM guest tmpfs overlay; no trace data packaged",
+            "guest_storage": "per-VM private read-only SWE-bench disk plus per-VM private disk-backed OverlayFS upper layer; no trace data packaged",
+            "guest_upper_disk_gib": args.guest_upper_disk_gib,
             "guest_network": {"subnet": args.network_subnet, "nat_destination": urllib.parse.urlsplit(args.inference_endpoint).hostname},
             "guest_initramfs": str(initramfs),
             "memory_threshold_percent": args.memory_threshold_percent,
@@ -969,7 +996,6 @@ def main() -> None:
     # Rebuild on every execution run so the guest behavior and host-side
     # result parser always match.  `--prepare-guest` supports a separate
     # provisioning-only invocation.
-    args.shared_image_root = args.shared_image_root or args.output / "shared-images"
     if args.prepare_guest or args.run: prepare_guest(rootfs_tree, rootfs)
     if not args.run: print(args.output); return
     if not Path("/dev/kvm").exists() or not rootfs.is_file() or not kernel.is_file() or not initramfs.is_file(): raise SystemExit("--run requires /dev/kvm, a kernel, an OverlayFS initramfs, and a prepared replay rootfs")
