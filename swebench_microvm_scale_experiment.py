@@ -44,7 +44,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 DEFAULT_STAGES = (1, 2, 4, 8, 16, 32, 64, 128)
 DEFAULT_INFERENCE_ENDPOINT = "http://130.127.133.251:8080/v1/inference"
-DEFAULT_TRACE_ROOT = ROOT / "yig"
+DEFAULT_TRACE_ROOT = ROOT / "yig_traces"
 
 
 class MemoryGuard(Exception):

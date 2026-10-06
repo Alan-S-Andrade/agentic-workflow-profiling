@@ -76,3 +76,28 @@ It returns the exact turn's Bash commands and a completion flag:
 The guest records actual request latency; it does not sleep on
 `inference_seconds`. The host therefore measures remote inference as a real
 networked dependency rather than simulating a saved model delay.
+
+Start the threaded trace server on the inference node:
+
+```bash
+python3 swebench_microvm_scale_experiment.py \
+  --serve \
+  --trace-root /path/to/yig \
+  --serve-host 0.0.0.0 \
+  --serve-port 8080
+```
+
+Then start the microVM client host. The client selects a different instance ID
+for every VM in a stage and keeps that assignment for the VM's full trace:
+
+```bash
+python3 swebench_microvm_scale_experiment.py \
+  --output traces/remote-swebench-scale \
+  --inference-endpoint http://130.127.133.251:8080/v1/inference \
+  --run
+```
+
+Nginx may reverse-proxy `/v1/instances`, `/v1/inference`, and `/healthz` to the
+threaded Python origin, but it is not required for concurrency or session
+pinning. A stage uses each trace at most once until the trace pool is
+exhausted; higher concurrency uses seeded repeats from that pool.
