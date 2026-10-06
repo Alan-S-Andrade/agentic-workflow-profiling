@@ -1,15 +1,30 @@
 #!/usr/bin/env python3
-"""Autonomous `/yig` SWE-bench replay at fixed concurrency points.
+"""SWE-bench microVM scale experiment with remote trace-backed inference.
 
 Runs 1, 2, 4, 8, 16, 32, 64, and 128 simultaneous Cloud Hypervisor sessions.
-The host never controls a guest after launch.  Each guest sleeps for recorded
-model time, executes its recorded commands locally, and powers itself off.
+The VM contains only the official SWE-bench environment.  At runtime its guest
+agent requests one turn at a time from a remote inference service, executes the
+returned tool calls locally, and powers itself off when the service marks the
+trajectory complete.  No trajectory, replay manifest, or simulated inference
+delay is copied into a VM or the shared rootfs.
+
+The remote service contract is intentionally small and trace-friendly:
+
+  POST /v1/inference
+  {"instance_id": "...", "session_id": "...", "turn": 1}
+  {"turn": 1, "commands": ["..."], "done": false,
+   "inference_seconds": 0.0}
+
+``inference_seconds`` is optional metadata for measurement; the guest never
+sleeps on it.  The network round trip is the inference work in this experiment.
 """
 from __future__ import annotations
 
 import argparse
+import base64
+import hashlib
+import ipaddress
 import json
-import math
 import os
 import random
 import re
@@ -19,49 +34,125 @@ import subprocess
 import tempfile
 import threading
 import time
+import urllib.error
+import urllib.parse
+import urllib.request
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parent
 DEFAULT_STAGES = (1, 2, 4, 8, 16, 32, 64, 128)
+DEFAULT_INFERENCE_ENDPOINT = "http://130.127.133.251:8080/v1/inference"
 
 
 class MemoryGuard(Exception):
     """Admission stopped before the host reached the configured OOM guard."""
-GUEST_REPLAY = r'''#!/usr/bin/env python3
-import json, os, subprocess, sys, tempfile, time
+GUEST_INFERENCE = r'''#!/usr/bin/env python3
+import base64, json, os, subprocess, sys, tempfile, time
 from pathlib import Path
+from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
 MAX_CAPTURE = 65536
 def command(cmd):
     begun = time.time()
     with tempfile.TemporaryFile() as out, tempfile.TemporaryFile() as err:
         result = subprocess.run(["chroot", "/rw", "/bin/bash", "-lc", "cd /testbed && " + cmd], stdin=subprocess.DEVNULL, stdout=out, stderr=err, check=False)
         osize, esize = out.tell(), err.tell(); out.seek(0); err.seek(0)
-        return {"command": cmd, "started_at": begun, "finished_at": time.time(), "elapsed_seconds": time.time() - begun, "returncode": result.returncode, "stdout": out.read(MAX_CAPTURE).decode("utf-8", "replace"), "stderr": err.read(MAX_CAPTURE).decode("utf-8", "replace"), "stdout_truncated": osize > MAX_CAPTURE, "stderr_truncated": esize > MAX_CAPTURE}
+        return {'command': cmd, 'started_at': begun, 'finished_at': time.time(), 'elapsed_seconds': time.time() - begun, 'returncode': result.returncode, 'stdout': out.read(MAX_CAPTURE).decode('utf-8', 'replace'), 'stderr': err.read(MAX_CAPTURE).decode('utf-8', 'replace'), 'stdout_truncated': osize > MAX_CAPTURE, 'stderr_truncated': esize > MAX_CAPTURE}
+def request_turn(endpoint, instance_id, session_id, turn, timeout):
+    payload = json.dumps({'instance_id': instance_id, 'session_id': session_id, 'turn': turn}).encode()
+    request = Request(endpoint, data=payload, headers={'Content-Type': 'application/json', 'Accept': 'application/json'}, method='POST')
+    try:
+        with urlopen(request, timeout=timeout) as response:
+            result = json.loads(response.read().decode('utf-8'))
+    except (HTTPError, URLError, TimeoutError, OSError, ValueError) as exc:
+        raise RuntimeError('remote inference request failed: ' + str(exc)) from exc
+    if not isinstance(result, dict):
+        raise RuntimeError('remote inference response must be a JSON object')
+    if int(result.get('turn', turn)) != turn:
+        raise RuntimeError('remote inference returned an unexpected turn')
+    commands = result.get('commands', [])
+    if not isinstance(commands, list) or not all(isinstance(item, str) for item in commands):
+        raise RuntimeError('remote inference response commands must be a string list')
+    return result
 def main():
-    manifest_path = Path('/rw/replay/manifest.json'); manifest = json.loads(manifest_path.read_text()); replay = manifest_path.parent
+    instance_id = os.environ['MICROVM_INSTANCE_ID']; session_id = os.environ['MICROVM_SESSION_ID']
+    endpoint = os.environ['MICROVM_INFERENCE_ENDPOINT']; timeout = float(os.environ.get('MICROVM_INFERENCE_TIMEOUT', '120'))
+    max_turns = int(os.environ.get('MICROVM_MAX_TURNS', '1000'))
+    replay = Path('/rw/replay'); replay.mkdir(parents=True, exist_ok=True)
     tool_records = (replay / 'guest-tools.jsonl').open('w'); turn_records = (replay / 'guest-turns.jsonl').open('w')
-    failures = tools = 0
-    for turn in manifest['turns']:
-        started = time.time(); time.sleep(max(0.0, float(turn['inference_seconds'])))
+    failures = tools = 0; turn = 1
+    serial = open('/dev/ttyS0', 'w', buffering=1)
+    try:
+      while turn <= max_turns:
+        started = time.time(); inference_started = time.monotonic()
+        response = request_turn(endpoint, instance_id, session_id, turn, timeout)
+        inference_elapsed = time.monotonic() - inference_started
         turn_failures = 0
-        for action, cmd in enumerate(turn['commands'], 1):
-            record = command(cmd); record.update({'turn': turn['turn'], 'action': action}); tool_records.write(json.dumps(record) + '\n'); tool_records.flush()
+        for action, cmd in enumerate(response.get('commands', []), 1):
+            record = command(cmd); record.update({'turn': turn, 'action': action}); tool_records.write(json.dumps(record) + '\n'); tool_records.flush()
             tools += 1; turn_failures += record['returncode'] != 0
         failures += turn_failures
-        turn_records.write(json.dumps({'turn': turn['turn'], 'started_at': started, 'finished_at': time.time(), 'recorded_inference_seconds': turn['inference_seconds'], 'tool_commands': len(turn['commands']), 'tool_failures': turn_failures}) + '\n'); turn_records.flush()
-    tool_records.close(); turn_records.close()
-    (replay / 'summary.json').write_text(json.dumps({'instance_id': manifest['instance_id'], 'source_trajectory': manifest['source_trajectory'], 'tools': tools, 'tool_failures': failures, 'turns': len(manifest['turns'])}, indent=2) + '\n'); os.sync()
+        turn_record = {'turn': turn, 'started_at': started, 'finished_at': time.time(), 'inference_elapsed_seconds': inference_elapsed, 'server_inference_seconds': response.get('inference_seconds'), 'tool_commands': len(response.get('commands', [])), 'tool_failures': turn_failures}
+        turn_records.write(json.dumps(turn_record) + '\n'); turn_records.flush()
+        serial.write('REPLAY_TURN ' + base64.b64encode(json.dumps(turn_record).encode()).decode() + '\n')
+        if response.get('done', False): break
+        turn += 1
+      else:
+        raise RuntimeError('remote inference exceeded MICROVM_MAX_TURNS')
+    except Exception as exc:
+      error = {'instance_id': instance_id, 'turn': turn, 'error': str(exc)}
+      serial.write('REPLAY_ERROR ' + base64.b64encode(json.dumps(error).encode()).decode() + '\n')
+      raise
+    finally:
+      tool_records.close(); turn_records.close()
+    serial.write('REPLAY_DONE\n'); serial.close()
+    (replay / 'summary.json').write_text(json.dumps({'instance_id': instance_id, 'session_id': session_id, 'inference_endpoint': endpoint, 'tools': tools, 'tool_failures': failures, 'turns': turn}, indent=2) + '\n'); os.sync()
 if __name__ == '__main__': main()
 '''
 GUEST_INIT = r'''#!/bin/bash
 mount -t proc proc /proc
 mount -t sysfs sysfs /sys
 mount -t devtmpfs devtmpfs /dev
-mkdir -p /run /tmp /rw
-mount -t ext4 /dev/vdb /rw
+mkdir -p /run /tmp /lower /overlay /rw
+cmdline=$(cat /proc/cmdline)
+getarg() { printf '%s\n' "$cmdline" | sed -n "s/.* $1=\([^ ]*\).*/\1/p"; }
+instance_id=$(getarg microvm_instance)
+session_id=$(getarg microvm_session)
+inference_endpoint=$(getarg microvm_inference)
+guest_ip=$(getarg microvm_ip)
+gateway_ip=$(getarg microvm_gateway)
+inference_timeout=$(getarg microvm_timeout)
+max_turns=$(getarg microvm_max_turns)
+netdev=
+for netpath in /sys/class/net/*; do
+    name=${netpath##*/}
+    if [ "$name" != lo ]; then netdev=$name; break; fi
+done
+if [ -z "$netdev" ] || [ -z "$guest_ip" ] || [ -z "$gateway_ip" ]; then
+    echo "missing guest network configuration" >&2
+    /bin/busybox poweroff -f
+    exit 2
+fi
+ip_bin=/sbin/ip
+[ -x "$ip_bin" ] || ip_bin=/usr/sbin/ip
+if ! "$ip_bin" link set lo up || ! "$ip_bin" link set "$netdev" up || ! "$ip_bin" addr add "$guest_ip/24" dev "$netdev" || ! "$ip_bin" route add default via "$gateway_ip"; then
+    echo "guest network setup failed" >&2
+    /bin/busybox poweroff -f
+    exit 3
+fi
+mount -t ext4 -o ro /dev/vdb /lower
+mount -t tmpfs -o nosuid,nodev tmpfs /overlay
+mkdir -p /overlay/upper /overlay/work /overlay/upper/replay
+if ! mount -t overlay overlay -o lowerdir=/lower,upperdir=/overlay/upper,workdir=/overlay/work /rw; then
+    echo "OVERLAYFS_FAILED" > /dev/ttyS0
+    echo "overlayfs is required; refusing the full-image tmpfs fallback" >&2
+    /bin/busybox poweroff -f
+    exit 3
+fi
+echo "OVERLAYFS_READY" > /dev/ttyS0
 mount -t tmpfs -o nosuid,nodev tmpfs /tmp
-/usr/bin/python3 /usr/local/bin/swebench-local-replay.py
+MICROVM_INSTANCE_ID="$instance_id" MICROVM_SESSION_ID="$session_id" MICROVM_INFERENCE_ENDPOINT="$inference_endpoint" MICROVM_INFERENCE_TIMEOUT="${inference_timeout:-120}" MICROVM_MAX_TURNS="${max_turns:-1000}" /usr/bin/python3 /usr/local/bin/swebench-remote-inference.py
 status=$?
 sync
 /bin/busybox poweroff -f
@@ -160,6 +251,54 @@ def swap_bytes() -> int:
     return total
 
 
+def initramfs_contains_overlay(initramfs: Path) -> bool:
+    """Return whether an initramfs contains the guest OverlayFS module."""
+    probe = subprocess.run(["lsinitramfs", str(initramfs)], text=True,
+                           stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
+                           check=False)
+    return probe.returncode == 0 and bool(re.search(r"(?:^|/)overlay\.ko(?:$|[./])", probe.stdout))
+
+
+def ensure_overlay_initramfs(kernel: Path) -> Path:
+    """Build a private initramfs that explicitly carries overlay.ko.
+
+    The host's generic initramfs does not currently include the OverlayFS
+    module even though the host kernel has it installed.  Cloud Hypervisor
+    boots that initramfs as the guest initramfs, so the module must be put in
+    the image explicitly.  A private image keeps the experiment independent
+    of the host boot image.
+    """
+    requested = os.environ.get("MICROVM_INITRAMFS")
+    if requested:
+        initramfs = Path(requested).expanduser().resolve()
+        if not initramfs.is_file() or not initramfs_contains_overlay(initramfs):
+            raise SystemExit(f"MICROVM_INITRAMFS must contain overlay.ko: {initramfs}")
+        return initramfs
+
+    kernel_release = os.uname().release
+    target = ROOT / "microvm-assets" / f"initrd-overlay-{kernel_release}.img"
+    if target.is_file() and initramfs_contains_overlay(target):
+        return target
+    if not shutil.which("mkinitramfs"):
+        raise SystemExit("mkinitramfs is required to build the guest OverlayFS initramfs")
+
+    with tempfile.TemporaryDirectory(prefix="swebench-initramfs-") as temp_name:
+        temp = Path(temp_name)
+        config = temp / "initramfs-tools"
+        shutil.copytree("/etc/initramfs-tools", config)
+        modules = config / "modules"
+        existing = modules.read_text() if modules.exists() else ""
+        if not re.search(r"(?m)^overlay(?:\s|$)", existing):
+            modules.write_text(existing.rstrip() + "\noverlay\n")
+        built = temp / target.name
+        call("mkinitramfs", "-d", str(config), "-o", str(built), kernel_release)
+        if not initramfs_contains_overlay(built):
+            raise RuntimeError(f"mkinitramfs produced an image without overlay.ko: {built}")
+        target.parent.mkdir(parents=True, exist_ok=True)
+        os.replace(built, target)
+    return target
+
+
 def filesystem_type(path: Path) -> str:
     return subprocess.check_output(["findmnt", "-T", str(path), "-no", "FSTYPE"], text=True).strip()
 
@@ -198,65 +337,172 @@ def image_name(instance_id: str) -> str:
     return f"swebench/sweb.eval.x86_64.{instance_id.replace('__', '_1776_').lower()}:latest"
 
 
-def manifest_for_trace(trace: Path, repetition: int) -> dict:
-    trace = trace.resolve()
-    data = json.loads(trace.read_text())
-    tool_turns = [m for m in data["messages"] if m.get("role") == "assistant" and m.get("tool_calls")]
-    turns = []
-    for index, timing in enumerate(data.get("step_timings", [])):
-        commands = []
-        calls = tool_turns[index].get("tool_calls", []) if index < len(tool_turns) else []
-        for call_data in calls:
-            function = call_data.get("function", {})
-            if function.get("name") != "bash":
-                continue
-            try:
-                command = json.loads(function["arguments"])["command"]
-            except (KeyError, TypeError, json.JSONDecodeError) as exc:
-                raise ValueError(f"invalid bash call in {trace}") from exc
-            if isinstance(command, str):
-                commands.append(command)
-        turns.append({"turn": timing.get("step", index + 1),
-                      "inference_seconds": float(timing.get("inference", {}).get("elapsed_s", 0.0)),
-                      "commands": commands})
-    return {"instance_id": data["instance_id"], "source_trajectory": str(trace.relative_to(ROOT)),
-            "repetition": repetition, "turns": turns}
+def catalog_url(inference_endpoint: str) -> str:
+    """Derive the default instance catalog URL from the inference endpoint."""
+    parsed = urllib.parse.urlsplit(inference_endpoint)
+    path = parsed.path.rsplit("/", 1)[0] + "/instances"
+    return urllib.parse.urlunsplit((parsed.scheme, parsed.netloc, path, "", ""))
 
 
-def load_traces(trace_root: Path) -> list[tuple[Path, dict]]:
-    trace_root = trace_root.resolve()
-    selected, ids = [], set()
-    for trace in sorted(trace_root.glob("*/results/*/*.traj.json")):
-        manifest = manifest_for_trace(trace, 0)
-        if manifest["instance_id"] not in ids:
-            selected.append((trace, manifest)); ids.add(manifest["instance_id"])
-    if len(selected) < 100:
-        raise SystemExit(f"expected at least 100 unique traces under {trace_root}; found {len(selected)}")
-    return selected
+def validate_inference_endpoint(endpoint: str) -> None:
+    parsed = urllib.parse.urlsplit(endpoint)
+    if parsed.scheme not in {"http", "https"} or not parsed.hostname or any(char.isspace() for char in endpoint):
+        raise SystemExit("--inference-endpoint must be an http(s) URL without whitespace")
+
+
+def fetch_json(url: str) -> object:
+    request = urllib.request.Request(url, headers={"Accept": "application/json"})
+    try:
+        with urllib.request.urlopen(request, timeout=15) as response:
+            return json.loads(response.read().decode("utf-8"))
+    except (urllib.error.HTTPError, urllib.error.URLError, TimeoutError, OSError, json.JSONDecodeError) as exc:
+        raise SystemExit(f"could not fetch remote inference metadata from {url}: {exc}") from exc
+
+
+def load_instance_ids(inference_endpoint: str, catalog: str | None,
+                      ids_file: Path | None, explicit_ids: list[str]) -> list[str]:
+    """Load only instance identifiers; trajectory contents stay on the remote node."""
+    values = list(explicit_ids)
+    if ids_file:
+        values.extend(line.strip() for line in ids_file.read_text().splitlines()
+                      if line.strip() and not line.lstrip().startswith("#"))
+    if not values:
+        payload = fetch_json(catalog or catalog_url(inference_endpoint))
+        if isinstance(payload, dict):
+            payload = payload.get("instances", payload.get("instance_ids"))
+        if not isinstance(payload, list):
+            raise SystemExit("remote instance catalog must be a JSON list or an object with an 'instances' list")
+        values = payload
+    if not all(isinstance(value, str) and re.fullmatch(r"[A-Za-z0-9_.-]+", value) for value in values):
+        raise SystemExit("remote instance identifiers must contain only letters, digits, '.', '_' or '-'")
+    unique = list(dict.fromkeys(values))
+    if len(unique) < 100:
+        raise SystemExit(f"expected at least 100 unique remote instances; found {len(unique)}")
+    return unique
 
 
 def prepare_guest(rootfs_tree: Path, rootfs: Path) -> None:
-    """Install the embedded local runner and rebuild the shared read-only disk."""
+    """Install the networked inference runner and rebuild the shared base disk."""
     with tempfile.TemporaryDirectory(prefix="swebench-guest-") as temp:
         temp = Path(temp)
-        runner, init = temp / "swebench-local-replay.py", temp / "init"
-        runner.write_text(GUEST_REPLAY); init.write_text(GUEST_INIT)
-        sudo("install", "-m", "0755", str(runner), str(rootfs_tree / "usr/local/bin/swebench-local-replay.py"))
+        runner, init = temp / "swebench-remote-inference.py", temp / "init"
+        runner.write_text(GUEST_INFERENCE); init.write_text(GUEST_INIT)
+        sudo("rm", "-f", str(rootfs_tree / "usr/local/bin/swebench-local-replay.py"))
+        sudo("rm", "-rf", str(rootfs_tree / "replay-manifests"))
+        sudo("install", "-m", "0755", str(runner), str(rootfs_tree / "usr/local/bin/swebench-remote-inference.py"))
         sudo("install", "-m", "0755", str(init), str(rootfs_tree / "sbin/init"))
+        for mountpoint in ("/lower", "/overlay", "/rw", "/tmp"):
+            sudo("install", "-d", "-m", "0755", str(rootfs_tree / mountpoint.lstrip("/")))
+        if not (rootfs_tree / "sbin/ip").is_file() and not (rootfs_tree / "usr/sbin/ip").is_file():
+            raise SystemExit("the guest rootfs needs iproute2 (/sbin/ip or /usr/sbin/ip) for remote inference networking")
         sudo("mkfs.ext4", "-F", "-q", "-d", str(rootfs_tree), str(rootfs))
 
 
+def default_uplink() -> str:
+    for line in subprocess.check_output(["ip", "-4", "route", "show", "default"], text=True).splitlines():
+        fields = line.split()
+        if "dev" in fields:
+            return fields[fields.index("dev") + 1]
+    raise SystemExit("could not determine the host uplink; pass --network-interface")
+
+
+class StageNetwork:
+    """Give stage VMs a private bridge with NAT limited to the inference host."""
+
+    def __init__(self, subnet: str, inference_endpoint: str, interface: str | None,
+                 pid: int, sessions: list[int]) -> None:
+        self.network = ipaddress.ip_network(subnet, strict=True)
+        self.endpoint_ip = urllib.parse.urlsplit(inference_endpoint).hostname
+        if not self.endpoint_ip:
+            raise SystemExit("inference endpoint must include a host IP address")
+        try:
+            ipaddress.ip_address(self.endpoint_ip)
+        except ValueError as exc:
+            raise SystemExit("inference endpoint hostname must be an IP address so guests need no DNS") from exc
+        hosts = list(self.network.hosts())
+        if len(hosts) < len(sessions) + 1:
+            raise SystemExit(f"--network-subnet {subnet} does not have enough guest addresses")
+        self.gateway_ip = str(hosts[0])
+        self.sessions = sessions
+        self.uplink = interface or default_uplink()
+        self.bridge = f"swebr{pid % 100000000:08d}"[:15]
+        self.taps = {session: f"swet{pid % 1000000:06d}{session:03d}"[:15] for session in sessions}
+        self.guest_ips = {session: str(hosts[index + 1]) for index, session in enumerate(sessions)}
+        self.forwarding_before = Path("/proc/sys/net/ipv4/ip_forward").read_text().strip()
+        self.rules: list[list[str]] = []
+        self.ready = False
+
+    def setup(self) -> None:
+        prefix = self.network.prefixlen
+        sudo("ip", "link", "add", self.bridge, "type", "bridge")
+        sudo("ip", "addr", "add", f"{self.gateway_ip}/{prefix}", "dev", self.bridge)
+        sudo("ip", "link", "set", self.bridge, "up")
+        self.ready = True
+        for session in self.sessions:
+            tap = self.taps[session]
+            sudo("ip", "tuntap", "add", "dev", tap, "mode", "tap", "user", str(os.getuid()))
+            sudo("ip", "link", "set", tap, "master", self.bridge)
+            sudo("ip", "link", "set", tap, "up")
+        sudo("sysctl", "-w", "net.ipv4.ip_forward=1")
+        nat_rule = ["-t", "nat", "-A", "POSTROUTING", "-s", str(self.network), "-d", self.endpoint_ip,
+                    "-o", self.uplink, "-j", "MASQUERADE"]
+        forward_out = ["-A", "FORWARD", "-i", self.bridge, "-o", self.uplink, "-d", self.endpoint_ip, "-j", "ACCEPT"]
+        forward_in = ["-A", "FORWARD", "-i", self.uplink, "-o", self.bridge, "-s", self.endpoint_ip,
+                      "-m", "conntrack", "--ctstate", "ESTABLISHED,RELATED", "-j", "ACCEPT"]
+        for rule in (nat_rule, forward_out, forward_in):
+            sudo("iptables", *rule)
+            self.rules.append(rule)
+
+    def config(self, session: int) -> dict[str, str]:
+        # Cloud Hypervisor's virtio-net device gets the first non-loopback name.
+        return {"tap": self.taps[session], "ip": self.guest_ips[session],
+                "gateway": self.gateway_ip, "mac": f"02:fc:00:{session // 256:02x}:{session % 256:02x}:01"}
+
+    def close(self) -> None:
+        if not self.ready:
+            return
+        for rule in reversed(self.rules):
+            delete = rule.copy()
+            delete[delete.index("-A")] = "-D"
+            try:
+                sudo("iptables", *delete)
+            except subprocess.CalledProcessError:
+                pass
+        for tap in self.taps.values():
+            try:
+                sudo("ip", "link", "delete", tap)
+            except subprocess.CalledProcessError:
+                pass
+        try:
+            sudo("ip", "link", "delete", self.bridge)
+        except subprocess.CalledProcessError:
+            pass
+        try:
+            sudo("sysctl", "-w", f"net.ipv4.ip_forward={self.forwarding_before}")
+        except subprocess.CalledProcessError:
+            pass
+        self.ready = False
+
+
 class VM:
-    def __init__(self, run_dir: Path, ram_dir: Path, session: int, manifest: dict, memory_ceiling_mib: int) -> None:
+    def __init__(self, run_dir: Path, image_root: Path, session: int, manifest: dict,
+                 memory_ceiling_mib: int, allow_swap: bool) -> None:
         self.run_dir, self.session, self.manifest = run_dir, session, manifest
         self.vm_dir = run_dir / "vms" / f"session-{session:03d}"; self.vm_dir.mkdir(parents=True)
-        self.disk = ram_dir / "disks" / f"session-{session:03d}.raw"
+        image = image_name(manifest["instance_id"])
+        image_key = hashlib.sha256(image.encode()).hexdigest()[:24]
+        self.disk = image_root / f"{image_key}.raw"
         self.cgroup = Path(f"/sys/fs/cgroup/swebench-microvm-{os.getpid()}-{session}")
         self.memory_ceiling_mib = memory_ceiling_mib
+        self.allow_swap = allow_swap
         self.proc: subprocess.Popen | None = None
 
     def build_disk(self, staging: Path, memory_threshold_bytes: int) -> None:
-        image, root = image_name(self.manifest["instance_id"]), staging / f"session-{self.session:03d}"
+        if self.disk.exists():
+            return
+        image = image_name(self.manifest["instance_id"])
+        image_key = hashlib.sha256(image.encode()).hexdigest()[:24]
+        root = staging / f"image-{image_key}"
         root.mkdir(parents=True, exist_ok=False)
         container = subprocess.check_output(["sudo", "-n", "docker", "create", image, "/bin/true"], text=True).strip()
         try:
@@ -265,16 +511,10 @@ class VM:
             assert exported.stdout is not None; exported.stdout.close()
             if exported.wait() or extracted.returncode:
                 raise RuntimeError(f"failed to export {image}")
-            host_manifest = self.vm_dir / "manifest.json"; host_manifest.write_text(json.dumps(self.manifest, indent=2) + "\n")
-            sudo("install", "-D", "-m", "0644", str(host_manifest), str(root / "replay/manifest.json"))
             kib = int(subprocess.check_output(["sudo", "-n", "du", "-sk", str(root)], text=True).split()[0])
-            disk_bytes = (kib + 1024 * 1024) * 1024
-            if host_used_bytes() + disk_bytes >= memory_threshold_bytes:
-                raise MemoryGuard(f"session {self.session} disk would cross the {memory_threshold_bytes} byte host-memory guard")
+            if host_used_bytes() >= memory_threshold_bytes:
+                raise MemoryGuard(f"shared image for session {self.session} reached the {memory_threshold_bytes} byte host-memory guard")
             self.disk.parent.mkdir(parents=True, exist_ok=True)
-            free_tmpfs = shutil.disk_usage(self.disk.parent).free
-            if disk_bytes >= free_tmpfs:
-                raise MemoryGuard(f"session {self.session} disk needs {disk_bytes} bytes but only {free_tmpfs} bytes remain in {self.disk.parent}")
             call("truncate", "-s", f"{kib + 1024 * 1024}K", str(self.disk))
             sudo("mkfs.ext4", "-F", "-q", "-d", str(root), str(self.disk))
         finally:
@@ -284,19 +524,22 @@ class VM:
     def prepare_cgroup(self) -> None:
         sudo("mkdir", "-p", str(self.cgroup))
         swap_limit = self.cgroup / "memory.swap.max"
-        if swap_limit.exists():
+        if swap_limit.exists() and not self.allow_swap:
             sudo("sh", "-c", f"echo 0 > {swap_limit}")
 
-    def start(self, rootfs: Path, kernel: Path) -> None:
+    def start(self, rootfs: Path, kernel: Path, initramfs: Path,
+              network: dict[str, str], inference_endpoint: str,
+              inference_timeout: float, max_turns: int) -> None:
         cpus = cpuset()
         cpu_arg = format_cpu_list(cpus)
         command = ["taskset", "-c", cpu_arg, "numactl", "--interleave=all", "cloud-hypervisor",
-                   "--kernel", str(kernel), "--initramfs", f"/boot/initrd.img-{os.uname().release}",
-                   "--disk", f"path={rootfs},image_type=raw,readonly=on", "--disk", f"path={self.disk},image_type=raw",
+                   "--kernel", str(kernel), "--initramfs", str(initramfs),
+                   "--disk", f"path={rootfs},image_type=raw,readonly=on", "--disk", f"path={self.disk},image_type=raw,readonly=on",
+                   "--net", f"tap={network['tap']},mac={network['mac']}",
                    "--memory", "size=0", "--memory-zone", f"size={self.memory_ceiling_mib}M,id=mem0",
                    "--numa", f"guest_numa_id=0,cpus={cpu_arg},memory_zones=mem0", "--cpus", f"boot={len(cpus)},max={len(cpus)}",
                    "--console", "off", "--serial", f"file={self.vm_dir / 'serial.log'}",
-                   "--cmdline", "root=/dev/vda rootfstype=ext4 rw fsck.mode=skip init=/sbin/init console=ttyS0 panic=-1"]
+                   "--cmdline", f"root=/dev/vda rootfstype=ext4 ro fsck.mode=skip init=/sbin/init console=ttyS0 panic=-1 microvm_instance={self.manifest['instance_id']} microvm_session={self.session} microvm_inference={inference_endpoint} microvm_ip={network['ip']} microvm_gateway={network['gateway']} microvm_timeout={inference_timeout} microvm_max_turns={max_turns}"]
         self.proc = subprocess.Popen(command, stdout=(self.vm_dir / "vmm.stdout").open("w"), stderr=subprocess.STDOUT, start_new_session=True)
         sudo("sh", "-c", f"echo {self.proc.pid} > {self.cgroup}/cgroup.procs")
 
@@ -309,11 +552,39 @@ class VM:
         return self.proc is not None and self.proc.poll() is not None
 
     def read_jsonl(self, guest_path: str) -> list[dict]:
-        try:
-            text = subprocess.check_output(["debugfs", "-R", f"cat {guest_path}", str(self.disk)], text=True, stderr=subprocess.DEVNULL)
-            return [json.loads(line) for line in text.splitlines() if line]
-        except (subprocess.CalledProcessError, json.JSONDecodeError):
+        if guest_path != "/replay/guest-turns.jsonl":
             return []
+        rows = []
+        try:
+            text = (self.vm_dir / "serial.log").read_text(errors="replace")
+            for encoded in re.findall(r"REPLAY_TURN ([A-Za-z0-9+/=]+)", text):
+                rows.append(json.loads(base64.b64decode(encoded).decode()))
+        except (FileNotFoundError, ValueError, json.JSONDecodeError):
+            pass
+        return rows
+
+    def overlay_ready(self) -> bool:
+        try:
+            serial = (self.vm_dir / "serial.log").read_text(errors="replace")
+        except FileNotFoundError:
+            return False
+        return "OVERLAYFS_READY" in serial and "OVERLAYFS_FAILED" not in serial
+
+    def replay_complete(self) -> bool:
+        try:
+            return "REPLAY_DONE" in (self.vm_dir / "serial.log").read_text(errors="replace")
+        except FileNotFoundError:
+            return False
+
+    def replay_error(self) -> str | None:
+        try:
+            serial = (self.vm_dir / "serial.log").read_text(errors="replace")
+            encoded = re.findall(r"REPLAY_ERROR ([A-Za-z0-9+/=]+)", serial)
+            if encoded:
+                return json.loads(base64.b64decode(encoded[-1]).decode()).get("error", "unknown guest error")
+        except (FileNotFoundError, ValueError, json.JSONDecodeError):
+            pass
+        return None
 
     def stop(self) -> None:
         if self.proc is not None and self.proc.poll() is None:
@@ -342,27 +613,30 @@ def summarize_turns(vm: VM, samples: list[dict]) -> list[dict]:
     return rows
 
 
-def sessions_for_stage(unique: list[tuple[Path, dict]], count: int, rng: random.Random) -> list[dict]:
+def sessions_for_stage(unique: list[dict], count: int, rng: random.Random) -> list[dict]:
     if count <= len(unique):
-        return [dict(manifest, repetition=0) for _, manifest in unique[:count]]
-    result = [dict(manifest, repetition=0) for _, manifest in unique]
-    for _, manifest in rng.choices(unique, k=count - len(unique)):
+        return [dict(manifest, repetition=0) for manifest in unique[:count]]
+    result = [dict(manifest, repetition=0) for manifest in unique]
+    for manifest in rng.choices(unique, k=count - len(unique)):
         copy = dict(manifest); copy["repetition"] = 1; result.append(copy)
     return result
 
 
 def run_stage(stage_dir: Path, manifests: list[dict], args, rootfs: Path, kernel: Path,
+              initramfs: Path,
               memory_threshold_bytes: int) -> dict:
     stage_dir.mkdir(parents=True)
-    ram_dir = args.ram_root / f"swebench-scale-{os.getpid()}-{len(manifests)}"
     scratch_dir = args.scratch_root / f"swebench-scale-scratch-{os.getpid()}-{len(manifests)}"
     staging = scratch_dir / "staging"; staging.mkdir(parents=True)
     memory_ceiling = args.guest_memory_ceiling_mib or host_memory_bytes() // 1024**2
-    vms = [VM(stage_dir, ram_dir, index + 1, manifest, memory_ceiling) for index, manifest in enumerate(manifests)]
+    vms = [VM(stage_dir, args.shared_image_root, index + 1, manifest, memory_ceiling, args.allow_swap)
+           for index, manifest in enumerate(manifests)]
     (stage_dir / "run-plan.json").write_text(json.dumps({"concurrency": len(vms), "sessions": [v.manifest for v in vms], "seed": args.seed,
         "guest_visible_vcpus": len(cpuset()), "guest_memory_ceiling_mib": memory_ceiling,
         "resource_policy": "no per-session CPU or memory quota; shared all-NUMA host capacity",
         "host_memory_threshold_percent": args.memory_threshold_percent,
+        "swap_policy": "allow" if args.allow_swap else "disabled",
+        "guest_storage_policy": "shared read-only image plus per-VM guest tmpfs overlay",
         "host_numa_nodes": [node.name for node in numa_nodes()]}, indent=2) + "\n")
     try:
         for image in sorted({image_name(v.manifest["instance_id"]) for v in vms}):
@@ -371,7 +645,7 @@ def run_stage(stage_dir: Path, manifests: list[dict], args, rootfs: Path, kernel
             sudo("docker", "pull", image)
         for vm in vms: vm.build_disk(staging, memory_threshold_bytes)
     except BaseException:
-        sudo("rm", "-rf", str(ram_dir)); shutil.rmtree(scratch_dir, ignore_errors=True)
+        shutil.rmtree(scratch_dir, ignore_errors=True)
         raise
     samples: dict[int, list[dict]] = {vm.session: [] for vm in vms}; stop = threading.Event()
     oom_guard = threading.Event()
@@ -390,6 +664,13 @@ def run_stage(stage_dir: Path, manifests: list[dict], args, rootfs: Path, kernel
                                              "threshold_bytes": memory_threshold_bytes}) + "\n")
                     stream.flush()
     for vm in vms: vm.prepare_cgroup()
+    network = StageNetwork(args.network_subnet, args.inference_endpoint, args.network_interface,
+                           os.getpid(), [vm.session for vm in vms])
+    try:
+        network.setup()
+    except BaseException:
+        network.close()
+        raise
     monitor_thread = threading.Thread(target=monitor, daemon=True); monitor_thread.start()
     started = time.time()
     try:
@@ -400,7 +681,8 @@ def run_stage(stage_dir: Path, manifests: list[dict], args, rootfs: Path, kernel
         def launch(vm: VM) -> None:
             try:
                 launch_gate.wait()
-                vm.start(rootfs, kernel)
+                vm.start(rootfs, kernel, initramfs, network.config(vm.session), args.inference_endpoint,
+                         args.inference_timeout_seconds, args.max_turns)
             except BaseException as exc:
                 launch_errors.append(exc)
         launchers = [threading.Thread(target=launch, args=(vm,)) for vm in vms]
@@ -413,11 +695,20 @@ def run_stage(stage_dir: Path, manifests: list[dict], args, rootfs: Path, kernel
                     if not vm.done(): vm.stop()
                 break
             time.sleep(0.2)
+        if not oom_guard.is_set():
+            invalid = [vm.session for vm in vms if not vm.overlay_ready()]
+            if invalid:
+                raise RuntimeError(f"guest OverlayFS was not mounted for sessions {invalid}")
+            errors = {vm.session: vm.replay_error() for vm in vms if vm.replay_error()}
+            incomplete = [vm.session for vm in vms if not vm.replay_complete()]
+            if errors or incomplete:
+                raise RuntimeError(f"remote inference failed: errors={errors}, incomplete_sessions={incomplete}")
     finally:
         stop.set(); monitor_thread.join(timeout=2)
         for vm in vms:
             samples[vm.session].append(vm.sample())
             vm.stop()
+        network.close()
     turn_rows = [row for vm in vms for row in summarize_turns(vm, samples[vm.session])]
     (stage_dir / "turn-resource.jsonl").write_text("".join(json.dumps(row) + "\n" for row in turn_rows))
     result = {"concurrency": len(vms), "elapsed_seconds": time.time() - started, "sessions_completed": sum(vm.done() for vm in vms),
@@ -425,37 +716,68 @@ def run_stage(stage_dir: Path, manifests: list[dict], args, rootfs: Path, kernel
               "peak_host_used_bytes": peak_host_used[0],
               "peak_aggregate_cgroup_memory_bytes": max((sum(r["cgroup_memory_bytes"] for r in group) for group in zip(*samples.values())), default=0)}
     (stage_dir / "summary.json").write_text(json.dumps(result, indent=2) + "\n")
-    # Results have been extracted to stage_dir. Reclaim every temporary
-    # tmpfs-backed instance disk before preparing the next concurrency point.
-    sudo("rm", "-rf", str(ram_dir)); shutil.rmtree(scratch_dir, ignore_errors=True)
+    # Guest overlays disappear with the VM; reclaim only the regular staging tree.
+    shutil.rmtree(scratch_dir, ignore_errors=True)
     return result
 
 
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", type=Path, required=True)
-    parser.add_argument("--trace-root", type=Path, default=ROOT / "yig")
+    parser.add_argument("--inference-endpoint", default=os.environ.get(
+        "MICROVM_INFERENCE_ENDPOINT", DEFAULT_INFERENCE_ENDPOINT),
+        help="remote trace-backed inference endpoint (default: %(default)s)")
+    parser.add_argument("--instance-catalog-url",
+                        help="GET endpoint returning the remote instance-id list; defaults to /v1/instances")
+    parser.add_argument("--instance-ids-file", type=Path,
+                        help="optional newline-delimited instance IDs; no local traces are read")
+    parser.add_argument("--instance-id", dest="instance_ids", action="append", default=[],
+                        help="explicit remote instance ID (repeatable; no local traces are read)")
     parser.add_argument("--stages", type=int, nargs="+", default=DEFAULT_STAGES)
     parser.add_argument("--seed", type=int, default=20261001)
     parser.add_argument("--sample-interval-seconds", type=float, default=0.25)
     parser.add_argument("--ram-root", type=Path, default=Path("/dev/shm"))
     parser.add_argument("--scratch-root", type=Path, default=Path("/tmp"),
                         help="regular filesystem used while exporting OCI images")
+    parser.add_argument("--shared-image-root", type=Path,
+                        help="regular filesystem cache for shared read-only Docker images")
     parser.add_argument("--memory-threshold-percent", type=float, default=90.0)
     parser.add_argument("--guest-memory-ceiling-mib", type=int)
+    parser.add_argument("--inference-timeout-seconds", type=float, default=120.0)
+    parser.add_argument("--max-turns", type=int, default=1000)
+    parser.add_argument("--network-subnet", default="10.250.0.0/24",
+                        help="private per-stage VM subnet; it is NATed only to the inference host")
+    parser.add_argument("--network-interface",
+                        help="host uplink for inference NAT; defaults to the default IPv4 route")
     parser.add_argument("--prepare-guest", action="store_true")
+    parser.add_argument("--allow-swap", action="store_true",
+                        help="permit host and VM swap; default runs require swap to be disabled")
     parser.add_argument("--run", action="store_true")
     args = parser.parse_args()
     if tuple(args.stages) != DEFAULT_STAGES: raise SystemExit(f"stages must be exactly {DEFAULT_STAGES}")
     if args.sample_interval_seconds <= 0: raise SystemExit("sample interval must be positive")
     if not 1.0 <= args.memory_threshold_percent < 100.0: raise SystemExit("memory threshold must be in [1, 100)")
+    if args.inference_timeout_seconds <= 0: raise SystemExit("inference timeout must be positive")
+    if args.max_turns <= 0: raise SystemExit("max-turns must be positive")
+    validate_inference_endpoint(args.inference_endpoint)
     rootfs_tree, rootfs = ROOT / "microvm-assets/rootfs-tree", ROOT / "microvm-assets/replay-rootfs.img"
     kernel = Path(os.environ.get("MICROVM_KERNEL", ROOT / "microvm-assets/vmlinuz"))
-    unique = load_traces(args.trace_root); rng = random.Random(args.seed); rng.shuffle(unique)
+    initramfs = ensure_overlay_initramfs(kernel)
+    # Provisioning the guest image is deliberately independent of the remote
+    # corpus. A run/plan needs the catalog only to choose OCI instance images.
+    instance_ids = [] if args.prepare_guest and not args.run else load_instance_ids(
+        args.inference_endpoint, args.instance_catalog_url, args.instance_ids_file, args.instance_ids)
+    unique = [{"instance_id": instance_id, "repetition": 0} for instance_id in instance_ids]
+    rng = random.Random(args.seed); rng.shuffle(unique)
     args.output.mkdir(parents=True, exist_ok=False)
-    plan = {"stages": list(args.stages), "unique_traces": len(unique), "seed": args.seed,
+    plan = {"stages": list(args.stages), "remote_instances": len(unique), "seed": args.seed,
+            "inference_endpoint": args.inference_endpoint,
+            "instance_catalog_url": args.instance_catalog_url or catalog_url(args.inference_endpoint),
             "selection": "distinct sessions within every stage; 128 uses all 100 unique traces plus 28 seeded repeats",
-            "guest_execution": "local replay; host has no post-boot guest command channel",
+            "guest_execution": "remote turn-by-turn inference; returned bash tools execute locally",
+            "guest_storage": "shared read-only per-image block image plus per-VM guest tmpfs overlay; no trace data packaged",
+            "guest_network": {"subnet": args.network_subnet, "nat_destination": urllib.parse.urlsplit(args.inference_endpoint).hostname},
+            "guest_initramfs": str(initramfs),
             "memory_threshold_percent": args.memory_threshold_percent,
             "host_numa_nodes": [node.name for node in numa_nodes()],
             "host_cpus": cpuset(),
@@ -464,14 +786,13 @@ def main() -> None:
     # Rebuild on every execution run so the guest behavior and host-side
     # result parser always match.  `--prepare-guest` supports a separate
     # provisioning-only invocation.
+    args.shared_image_root = args.shared_image_root or args.output / "shared-images"
     if args.prepare_guest or args.run: prepare_guest(rootfs_tree, rootfs)
     if not args.run: print(args.output); return
-    if not Path("/dev/kvm").exists() or not rootfs.is_file() or not kernel.is_file(): raise SystemExit("--run requires /dev/kvm, a kernel, and a prepared replay rootfs")
-    if not all(shutil.which(x) for x in ("cloud-hypervisor", "docker", "debugfs", "numactl")): raise SystemExit("missing cloud-hypervisor, docker, debugfs, or numactl")
-    if swap_bytes():
+    if not Path("/dev/kvm").exists() or not rootfs.is_file() or not kernel.is_file() or not initramfs.is_file(): raise SystemExit("--run requires /dev/kvm, a kernel, an OverlayFS initramfs, and a prepared replay rootfs")
+    if not all(shutil.which(x) for x in ("cloud-hypervisor", "docker", "numactl", "ip", "iptables")): raise SystemExit("missing cloud-hypervisor, docker, numactl, ip, or iptables")
+    if swap_bytes() and not args.allow_swap:
         raise SystemExit("swap is enabled; disable host swap before an in-memory run")
-    if filesystem_type(args.ram_root) != "tmpfs":
-        raise SystemExit(f"--ram-root must be on tmpfs for an in-memory run (got {filesystem_type(args.ram_root)})")
     memory_threshold_bytes = int(host_memory_bytes() * args.memory_threshold_percent / 100.0)
     results = []
     for count in args.stages:
@@ -479,13 +800,12 @@ def main() -> None:
             results.append({"concurrency": count, "skipped": True, "stop_reason": "host memory guard reached before admission"})
             break
         try:
-            result = run_stage(args.output / f"sessions-{count:03d}", sessions_for_stage(unique, count, rng), args, rootfs, kernel, memory_threshold_bytes)
+            result = run_stage(args.output / f"sessions-{count:03d}", sessions_for_stage(unique, count, rng), args, rootfs, kernel, initramfs, memory_threshold_bytes)
             results.append(result)
             if result.get("memory_guard_triggered"):
                 results.append({"skipped_remaining": True, "stop_reason": "host memory guard reached during stage"})
                 break
         except MemoryGuard as exc:
-            sudo("rm", "-rf", str(args.ram_root / f"swebench-scale-{os.getpid()}-{count}"))
             shutil.rmtree(args.scratch_root / f"swebench-scale-scratch-{os.getpid()}-{count}", ignore_errors=True)
             results.append({"concurrency": count, "skipped": True, "stop_reason": str(exc)})
             break
