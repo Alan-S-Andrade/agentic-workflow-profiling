@@ -258,10 +258,15 @@ def swap_bytes() -> int:
 
 def initramfs_contains_overlay(initramfs: Path) -> bool:
     """Return whether an initramfs contains the guest OverlayFS module."""
-    probe = subprocess.run(["lsinitramfs", str(initramfs)], text=True,
-                           stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
-                           check=False)
-    return probe.returncode == 0 and bool(re.search(r"(?:^|/)overlay\.ko(?:$|[./])", probe.stdout))
+    probe = subprocess.run(
+        ["lsinitramfs", str(initramfs)],
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.DEVNULL,
+        env={**os.environ, "TMPDIR": "/tmp"},
+        check=False,
+    )
+    return bool(re.search(r"(?:^|/)overlay\.ko(?:$|[./])", probe.stdout))
 
 
 def ensure_overlay_initramfs(kernel: Path) -> Path:
