@@ -282,21 +282,30 @@ def host_used_bytes() -> int:
     return max(0, total - available)
 
 
-def host_cpu_ticks() -> tuple[int, int]:
-    """Return aggregate /proc/stat CPU ticks and idle ticks."""
-    line = next((line for line in Path("/proc/stat").read_text().splitlines()
-                 if line.startswith("cpu ")), None)
-    if not line:
-        return 0, 0
-    values = [int(value) for value in line.split()[1:]]
-    return sum(values), sum(values[index] for index in (3, 4) if index < len(values))
+def host_cpu_ticks() -> tuple[int, int, dict[str, dict[str, int]]]:
+    """Return aggregate and per-core CPU ticks from /proc/stat."""
+    aggregate = (0, 0)
+    cores: dict[str, dict[str, int]] = {}
+    for line in Path("/proc/stat").read_text().splitlines():
+        fields = line.split()
+        if not fields or (fields[0] != "cpu" and not re.fullmatch(r"cpu\d+", fields[0])):
+            continue
+        values = [int(value) for value in fields[1:]]
+        total = sum(values)
+        idle = sum(values[index] for index in (3, 4) if index < len(values))
+        if fields[0] == "cpu":
+            aggregate = (total, idle)
+        else:
+            cores[fields[0]] = {"total_ticks": total, "idle_ticks": idle}
+    return aggregate[0], aggregate[1], cores
 
 
 def host_resource_sample() -> dict:
-    total, idle = host_cpu_ticks()
+    total, idle, cores = host_cpu_ticks()
     return {"timestamp": time.time(), "host_memory_used_bytes": host_used_bytes(),
             "host_memory_total_bytes": host_memory_bytes(),
-            "host_cpu_total_ticks": total, "host_cpu_idle_ticks": idle}
+            "host_cpu_total_ticks": total, "host_cpu_idle_ticks": idle,
+            "host_cpu_cores": cores}
 
 
 def swap_bytes() -> int:
