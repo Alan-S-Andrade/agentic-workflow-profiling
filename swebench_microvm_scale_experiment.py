@@ -63,19 +63,29 @@ def command(cmd):
 def request_turn(endpoint, instance_id, session_id, turn, timeout):
     payload = json.dumps({'instance_id': instance_id, 'session_id': session_id, 'turn': turn}).encode()
     request = Request(endpoint, data=payload, headers={'Content-Type': 'application/json', 'Accept': 'application/json'}, method='POST')
-    try:
-        with urlopen(request, timeout=timeout) as response:
-            result = json.loads(response.read().decode('utf-8'))
-    except (HTTPError, URLError, TimeoutError, OSError, ValueError) as exc:
-        raise RuntimeError('remote inference request failed: ' + str(exc)) from exc
-    if not isinstance(result, dict):
-        raise RuntimeError('remote inference response must be a JSON object')
-    if int(result.get('turn', turn)) != turn:
-        raise RuntimeError('remote inference returned an unexpected turn')
-    commands = result.get('commands', [])
-    if not isinstance(commands, list) or not all(isinstance(item, str) for item in commands):
-        raise RuntimeError('remote inference response commands must be a string list')
-    return result
+    max_attempts = 7
+    last_error = None
+    for attempt in range(max_attempts):
+        try:
+            with urlopen(request, timeout=timeout) as response:
+                result = json.loads(response.read().decode('utf-8'))
+            if not isinstance(result, dict):
+                raise ValueError('remote inference response must be a JSON object')
+            if int(result.get('turn', turn)) != turn:
+                raise ValueError('remote inference returned an unexpected turn')
+            commands = result.get('commands', [])
+            if not isinstance(commands, list) or not all(isinstance(item, str) for item in commands):
+                raise ValueError('remote inference response commands must be a string list')
+            return result
+        except HTTPError as exc:
+            if exc.code not in (408, 429) and exc.code < 500:
+                raise RuntimeError('remote inference request failed: ' + str(exc)) from exc
+            last_error = exc
+        except (URLError, TimeoutError, OSError, ValueError) as exc:
+            last_error = exc
+        if attempt + 1 < max_attempts:
+            time.sleep(min(8.0, 0.5 * (2 ** attempt)))
+    raise RuntimeError('remote inference request failed after retries: ' + str(last_error)) from last_error
 def main():
     instance_id = os.environ['MICROVM_INSTANCE_ID']; session_id = os.environ['MICROVM_SESSION_ID']
     endpoint = os.environ['MICROVM_INFERENCE_ENDPOINT']; timeout = float(os.environ.get('MICROVM_INFERENCE_TIMEOUT', '120'))
@@ -591,6 +601,10 @@ class TraceRequestHandler(http.server.BaseHTTPRequestHandler):
         print(f"{self.address_string()} - {format % args}", flush=True)
 
 
+class InferenceHTTPServer(http.server.ThreadingHTTPServer):
+    request_queue_size = 512
+
+
 def serve_traces(trace_root: Path, host: str, port: int) -> None:
     """Run the multithreaded origin service used by the microVM clients."""
     service = TraceService(load_server_workflows(trace_root))
@@ -599,7 +613,7 @@ def serve_traces(trace_root: Path, host: str, port: int) -> None:
         pass
 
     Handler.service = service
-    server = http.server.ThreadingHTTPServer((host, port), Handler)
+    server = InferenceHTTPServer((host, port), Handler)
     server.daemon_threads = True
     print(f"serving {len(service.workflows)} YIG workflows on http://{host}:{port}", flush=True)
     try:
