@@ -22,7 +22,6 @@ from __future__ import annotations
 
 import argparse
 import base64
-import hashlib
 import http.server
 import ipaddress
 import json
@@ -97,9 +96,6 @@ def main():
         failures += turn_failures
         turn_record = {'turn': turn, 'started_at': started, 'finished_at': time.time(), 'inference_elapsed_seconds': inference_elapsed, 'server_inference_seconds': response.get('inference_seconds'), 'tool_commands': len(response.get('commands', [])), 'tool_failures': turn_failures}
         turn_records.write(json.dumps(turn_record) + '\n'); turn_records.flush()
-        # The upper layer is a private ext4 disk. Flush each completed turn so
-        # a guest power event cannot leave the turn only in page cache.
-        os.sync()
         serial.write('REPLAY_TURN ' + base64.b64encode(json.dumps(turn_record).encode()).decode() + '\n')
         if response.get('done', False): break
         turn += 1
@@ -112,19 +108,42 @@ def main():
     finally:
       tool_records.close(); turn_records.close()
     serial.write('REPLAY_DONE\n'); serial.close()
-    (replay / 'summary.json').write_text(json.dumps({'instance_id': instance_id, 'session_id': session_id, 'inference_endpoint': endpoint, 'tools': tools, 'tool_failures': failures, 'turns': turn}, indent=2) + '\n'); os.sync()
+    (replay / 'summary.json').write_text(json.dumps({'instance_id': instance_id, 'session_id': session_id, 'inference_endpoint': endpoint, 'tools': tools, 'tool_failures': failures, 'turns': turn}, indent=2) + '\n')
 if __name__ == '__main__': main()
 '''
-GUEST_INIT = r'''#!/bin/bash
+GUEST_FETCH = r'''#!/usr/bin/env python3
+import os
+import posixpath
+import tarfile
+from urllib.request import Request, urlopen
+
+url = os.environ["MICROVM_ARTIFACT_ENDPOINT"]
+root = "/rw"
+request = Request(url, headers={"Accept": "application/gzip"})
+with urlopen(request, timeout=900) as response:
+    with tarfile.open(fileobj=response, mode="r|gz") as archive:
+        for member in archive:
+            name = posixpath.normpath(member.name).lstrip("/")
+            if not name or name == ".":
+                continue
+            target = os.path.abspath(os.path.join(root, name))
+            if os.path.commonpath((root, target)) != root:
+                raise RuntimeError("artifact contains an unsafe path: " + member.name)
+            # Preserve executable bits and ownership: the downloaded root is
+            # the actual execution environment, not merely a data archive.
+            archive.extract(member, root)
+'''
+GUEST_INIT = r'''#!/usr/bin/bash
 mount -t proc proc /proc
 mount -t sysfs sysfs /sys
 mount -t devtmpfs devtmpfs /dev
-mkdir -p /run /tmp /lower /upper /rw
+mkdir -p /run /tmp /rw
 cmdline=$(cat /proc/cmdline)
 getarg() { printf '%s\n' "$cmdline" | sed -n "s/.* $1=\([^ ]*\).*/\1/p"; }
 instance_id=$(getarg microvm_instance)
 session_id=$(getarg microvm_session)
 inference_endpoint=$(getarg microvm_inference)
+artifact_endpoint=$(getarg microvm_artifact)
 guest_ip=$(getarg microvm_ip)
 gateway_ip=$(getarg microvm_gateway)
 inference_timeout=$(getarg microvm_timeout)
@@ -136,31 +155,36 @@ for netpath in /sys/class/net/*; do
 done
 if [ -z "$netdev" ] || [ -z "$guest_ip" ] || [ -z "$gateway_ip" ]; then
     echo "missing guest network configuration" >&2
-    /bin/busybox poweroff -f
+    /usr/bin/busybox poweroff -f
     exit 2
 fi
 ip_bin=/sbin/ip
-[ -x "$ip_bin" ] || ip_bin=/usr/sbin/ip
+[ -x "$ip_bin" ] || ip_bin=/usr/bin/ip
 if ! "$ip_bin" link set lo up || ! "$ip_bin" link set "$netdev" up || ! "$ip_bin" addr add "$guest_ip/24" dev "$netdev" || ! "$ip_bin" route add default via "$gateway_ip"; then
     echo "guest network setup failed" >&2
-    /bin/busybox poweroff -f
+    /usr/bin/busybox poweroff -f
     exit 3
 fi
-mount -t ext4 -o ro /dev/vdb /lower
-mount -t ext4 -o rw /dev/vdc /upper
-mkdir -p /upper/overlay-upper /upper/overlay-work /upper/overlay-upper/replay
-if ! mount -t overlay overlay -o lowerdir=/lower,upperdir=/upper/overlay-upper,workdir=/upper/overlay-work /rw; then
-    echo "OVERLAYFS_FAILED" > /dev/ttyS0
-    echo "overlayfs is required; refusing the full-image fallback" >&2
-    /bin/busybox poweroff -f
+if [ -z "$artifact_endpoint" ]; then
+    echo "missing guest artifact endpoint" >&2
+    /usr/bin/busybox poweroff -f
     exit 3
 fi
-echo "OVERLAYFS_READY" > /dev/ttyS0
-mount -t tmpfs -o nosuid,nodev tmpfs /tmp
+mount -t tmpfs -o nosuid,nodev tmpfs /rw
+mkdir -p /rw/proc /rw/sys /rw/dev /rw/replay /rw/tmp /rw/run
+mount --bind /proc /rw/proc
+mount --bind /sys /rw/sys
+mount --bind /dev /rw/dev
+export MICROVM_ARTIFACT_ENDPOINT="$artifact_endpoint"
+if ! /usr/bin/python3 /usr/local/bin/fetch-swebench-artifact.py; then
+    echo "ARTIFACT_FETCH_FAILED" > /dev/ttyS0
+    /usr/bin/busybox poweroff -f
+    exit 4
+fi
+echo "ARTIFACT_READY" > /dev/ttyS0
 MICROVM_INSTANCE_ID="$instance_id" MICROVM_SESSION_ID="$session_id" MICROVM_INFERENCE_ENDPOINT="$inference_endpoint" MICROVM_INFERENCE_TIMEOUT="${inference_timeout:-120}" MICROVM_MAX_TURNS="${max_turns:-1000}" /usr/bin/python3 /usr/local/bin/swebench-remote-inference.py
 status=$?
-sync
-/bin/busybox poweroff -f
+    /usr/bin/busybox poweroff -f
 exit "$status"
 '''
 
@@ -246,6 +270,23 @@ def host_used_bytes() -> int:
     return sum(_node_meminfo(node)[1] for node in numa_nodes())
 
 
+def host_cpu_ticks() -> tuple[int, int]:
+    """Return aggregate /proc/stat CPU ticks and idle ticks."""
+    line = next((line for line in Path("/proc/stat").read_text().splitlines()
+                 if line.startswith("cpu ")), None)
+    if not line:
+        return 0, 0
+    values = [int(value) for value in line.split()[1:]]
+    return sum(values), sum(values[index] for index in (3, 4) if index < len(values))
+
+
+def host_resource_sample() -> dict:
+    total, idle = host_cpu_ticks()
+    return {"timestamp": time.time(), "host_memory_used_bytes": host_used_bytes(),
+            "host_memory_total_bytes": host_memory_bytes(),
+            "host_cpu_total_ticks": total, "host_cpu_idle_ticks": idle}
+
+
 def swap_bytes() -> int:
     """Return configured swap capacity in bytes."""
     total = 0
@@ -256,65 +297,25 @@ def swap_bytes() -> int:
     return total
 
 
-def initramfs_contains_overlay(initramfs: Path) -> bool:
-    """Return whether an initramfs contains the guest OverlayFS module."""
-    probe = subprocess.run(
-        ["lsinitramfs", str(initramfs)],
-        text=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.DEVNULL,
-        env={**os.environ, "TMPDIR": "/tmp"},
-        check=False,
-    )
-    return bool(re.search(r"(?:^|/)overlay\.ko(?:$|[./])", probe.stdout))
+def ensure_guest_initramfs(kernel: Path) -> Path:
+    """Select an initramfs for the bootstrap VM.
 
-
-def ensure_overlay_initramfs(kernel: Path) -> Path:
-    """Build a private initramfs that explicitly carries overlay.ko.
-
-    The host's generic initramfs does not currently include the OverlayFS
-    module even though the host kernel has it installed.  Cloud Hypervisor
-    boots that initramfs as the guest initramfs, so the module must be put in
-    the image explicitly.  A private image keeps the experiment independent
-    of the host boot image.
+    The guest environment is now a tmpfs populated from the remote artifact,
+    so it does not use OverlayFS and does not require overlay.ko in initramfs.
     """
     requested = os.environ.get("MICROVM_INITRAMFS")
     if requested:
         initramfs = Path(requested).expanduser().resolve()
-        if not initramfs.is_file() or not initramfs_contains_overlay(initramfs):
-            raise SystemExit(f"MICROVM_INITRAMFS must contain overlay.ko: {initramfs}")
+        if not initramfs.is_file():
+            raise SystemExit(f"MICROVM_INITRAMFS is not a file: {initramfs}")
         return initramfs
-
-    kernel_release = os.uname().release
-    target = ROOT / "microvm-assets" / f"initrd-overlay-{kernel_release}.img"
-    if target.is_file() and initramfs_contains_overlay(target):
-        return target
-    if not shutil.which("mkinitramfs"):
-        raise SystemExit("mkinitramfs is required to build the guest OverlayFS initramfs")
-
-    with tempfile.TemporaryDirectory(prefix="swebench-initramfs-") as temp_name:
-        temp = Path(temp_name)
-        config = temp / "initramfs-tools"
-        shutil.copytree("/etc/initramfs-tools", config)
-        modules = config / "modules"
-        existing = modules.read_text() if modules.exists() else ""
-        if not re.search(r"(?m)^overlay(?:\s|$)", existing):
-            modules.write_text(existing.rstrip() + "\noverlay\n")
-        built = temp / target.name
-        # This host may expose a read-only /var/tmp and protected files under
-        # /etc (for example the iSCSI initiator file).  Build as root and force
-        # initramfs-tools to use the writable shared scratch directory.
-        sudo("env", "TMPDIR=/tmp", "mkinitramfs", "-d", str(config),
-             "-o", str(built), kernel_release)
-        # mkinitramfs commonly leaves a root-readable-only output file.  The
-        # validation below runs as the invoking user, so make the image
-        # readable before inspecting it and caching it in the workspace.
-        sudo("chmod", "0644", str(built))
-        if not initramfs_contains_overlay(built):
-            raise RuntimeError(f"mkinitramfs produced an image without overlay.ko: {built}")
-        target.parent.mkdir(parents=True, exist_ok=True)
-        os.replace(built, target)
-    return target
+    candidate = ROOT / "microvm-assets" / f"initrd-overlay-{os.uname().release}.img"
+    if candidate.is_file():
+        return candidate
+    candidate = Path(f"/boot/initrd.img-{os.uname().release}")
+    if candidate.is_file():
+        return candidate
+    raise SystemExit("no guest initramfs found; set MICROVM_INITRAMFS to a readable initramfs")
 
 
 def filesystem_type(path: Path) -> str:
@@ -414,6 +415,11 @@ class TraceService:
     def instances(self) -> list[str]:
         return sorted(self.workflows)
 
+    def artifact_image(self, instance_id: str) -> str:
+        if instance_id not in self.workflows:
+            raise TraceRequestError(404, "unknown instance_id")
+        return image_name(instance_id)
+
     def inference(self, request: object) -> dict:
         if not isinstance(request, dict):
             raise TraceRequestError(400, "request must be a JSON object")
@@ -473,7 +479,75 @@ class TraceRequestHandler(http.server.BaseHTTPRequestHandler):
         elif self.path == "/v1/instances":
             self._json(200, {"instances": self.service.instances()})
         else:
-            self._json(404, {"error": "not found"})
+            parsed = urllib.parse.urlsplit(self.path)
+            match = re.fullmatch(r"/v1/artifacts/([^/]+)", parsed.path)
+            if not match:
+                self._json(404, {"error": "not found"})
+                return
+            instance_id = urllib.parse.unquote(match.group(1))
+            try:
+                image = self.service.artifact_image(instance_id)
+                self.stream_artifact(image)
+            except TraceRequestError as exc:
+                self._json(exc.status, {"error": str(exc)})
+            except Exception as exc:
+                print(f"artifact stream failed for {instance_id}: {exc}", flush=True)
+
+    def stream_artifact(self, image: str) -> None:
+        """Stream a Docker image export without creating a client-side file."""
+        inspect = subprocess.run(
+            ["sudo", "-n", "docker", "image", "inspect", image],
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False,
+        )
+        if inspect.returncode:
+            pulled = subprocess.run(["sudo", "-n", "docker", "pull", image], check=False)
+            if pulled.returncode:
+                raise RuntimeError(f"Docker image is unavailable: {image}")
+        container = subprocess.check_output(
+            ["sudo", "-n", "docker", "create", image, "/bin/true"], text=True
+        ).strip()
+        exported = compressed = None
+        byte_count = 0
+        try:
+            exported = subprocess.Popen(
+                ["sudo", "-n", "docker", "export", container],
+                stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
+            )
+            assert exported.stdout is not None
+            compressed = subprocess.Popen(
+                ["gzip", "-1"], stdin=exported.stdout, stdout=subprocess.PIPE,
+                stderr=subprocess.DEVNULL,
+            )
+            exported.stdout.close()
+            assert compressed.stdout is not None
+            self.send_response(200)
+            self.send_header("Content-Type", "application/gzip")
+            self.send_header("Content-Disposition", "attachment; filename=artifact.tar.gz")
+            self.send_header("Connection", "close")
+            self.end_headers()
+            while True:
+                chunk = compressed.stdout.read(1024 * 1024)
+                if not chunk:
+                    break
+                self.wfile.write(chunk)
+                byte_count += len(chunk)
+            if compressed.wait() or exported.wait():
+                raise RuntimeError(f"Docker export failed for {image}")
+            print(f"streamed {byte_count} compressed bytes for {image}", flush=True)
+        except (BrokenPipeError, ConnectionResetError):
+            if compressed is not None:
+                compressed.kill()
+            if exported is not None:
+                exported.kill()
+        finally:
+            if compressed is not None:
+                compressed.stdout.close() if compressed.stdout else None
+            if exported is not None:
+                exported.stderr.close() if exported.stderr else None
+            subprocess.run(
+                ["sudo", "-n", "docker", "rm", "-f", container],
+                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False,
+            )
 
     def do_POST(self) -> None:
         if self.path != "/v1/inference":
@@ -522,6 +596,19 @@ def catalog_url(inference_endpoint: str) -> str:
     return urllib.parse.urlunsplit((parsed.scheme, parsed.netloc, path, "", ""))
 
 
+def artifact_url(inference_endpoint: str, instance_id: str,
+                 template: str | None = None) -> str:
+    """Build the remote artifact URL without copying any artifact locally."""
+    if template:
+        try:
+            return template.format(instance_id=urllib.parse.quote(instance_id, safe=""))
+        except KeyError as exc:
+            raise SystemExit("--artifact-endpoint-template may only use {instance_id}") from exc
+    parsed = urllib.parse.urlsplit(inference_endpoint)
+    path = parsed.path.rsplit("/", 1)[0] + "/artifacts/" + urllib.parse.quote(instance_id, safe="")
+    return urllib.parse.urlunsplit((parsed.scheme, parsed.netloc, path, "", ""))
+
+
 def validate_inference_endpoint(endpoint: str) -> None:
     parsed = urllib.parse.urlsplit(endpoint)
     if parsed.scheme not in {"http", "https"} or not parsed.hostname or any(char.isspace() for char in endpoint):
@@ -558,16 +645,18 @@ def load_instance_ids(inference_endpoint: str, catalog: str | None,
 
 
 def prepare_guest(rootfs_tree: Path, rootfs: Path) -> None:
-    """Install the networked inference runner and rebuild the shared base disk."""
+    """Install the bootstrap runner and rebuild the shared base disk."""
     with tempfile.TemporaryDirectory(prefix="swebench-guest-") as temp:
         temp = Path(temp)
-        runner, init = temp / "swebench-remote-inference.py", temp / "init"
-        runner.write_text(GUEST_INFERENCE); init.write_text(GUEST_INIT)
+        runner, fetch, init = (temp / "swebench-remote-inference.py",
+                               temp / "fetch-swebench-artifact.py", temp / "init")
+        runner.write_text(GUEST_INFERENCE); fetch.write_text(GUEST_FETCH); init.write_text(GUEST_INIT)
         sudo("rm", "-f", str(rootfs_tree / "usr/local/bin/swebench-local-replay.py"))
         sudo("rm", "-rf", str(rootfs_tree / "replay-manifests"))
         sudo("install", "-m", "0755", str(runner), str(rootfs_tree / "usr/local/bin/swebench-remote-inference.py"))
+        sudo("install", "-m", "0755", str(fetch), str(rootfs_tree / "usr/local/bin/fetch-swebench-artifact.py"))
         sudo("install", "-m", "0755", str(init), str(rootfs_tree / "sbin/init"))
-        for mountpoint in ("/lower", "/upper", "/rw", "/tmp"):
+        for mountpoint in ("/rw", "/tmp"):
             sudo("install", "-d", "-m", "0755", str(rootfs_tree / mountpoint.lstrip("/")))
         if not (rootfs_tree / "sbin/ip").is_file() and not (rootfs_tree / "usr/sbin/ip").is_file():
             raise SystemExit("the guest rootfs needs iproute2 (/sbin/ip or /usr/sbin/ip) for remote inference networking")
@@ -665,55 +754,10 @@ class VM:
                  memory_ceiling_mib: int, allow_swap: bool) -> None:
         self.run_dir, self.session, self.manifest = run_dir, session, manifest
         self.vm_dir = run_dir / "vms" / f"session-{session:03d}"; self.vm_dir.mkdir(parents=True)
-        image = image_name(manifest["instance_id"])
-        image_key = hashlib.sha256(image.encode()).hexdigest()[:24]
-        # The OCI/Docker source may be cached, but each VM gets a distinct
-        # materialized SWE-bench lower disk; no raw guest disk is shared.
-        self.disk = self.vm_dir / f"swebench-{image_key}.raw"
-        self.upper_disk = self.vm_dir / "upper.ext4"
         self.cgroup = Path(f"/sys/fs/cgroup/swebench-microvm-{os.getpid()}-{session}")
         self.memory_ceiling_mib = memory_ceiling_mib
         self.allow_swap = allow_swap
         self.proc: subprocess.Popen | None = None
-
-    def prepare_upper_disk(self, size_gib: int) -> None:
-        """Create this VM's private writable OverlayFS upper disk."""
-        if self.upper_disk.exists():
-            return
-        if size_gib < 1:
-            raise ValueError("guest upper disk size must be positive")
-        temporary = self.upper_disk.with_suffix(".ext4.tmp")
-        try:
-            call("truncate", "-s", f"{size_gib}G", str(temporary))
-            call("mkfs.ext4", "-F", "-q", "-b", "4096",
-                 "-E", "lazy_itable_init=1,lazy_journal_init=1", str(temporary))
-            os.replace(temporary, self.upper_disk)
-        finally:
-            temporary.unlink(missing_ok=True)
-
-    def build_disk(self, staging: Path, memory_threshold_bytes: int) -> None:
-        if self.disk.exists():
-            raise RuntimeError(f"private SWE-bench disk already exists: {self.disk}")
-        image = image_name(self.manifest["instance_id"])
-        image_key = hashlib.sha256(image.encode()).hexdigest()[:24]
-        root = staging / f"image-{image_key}"
-        root.mkdir(parents=True, exist_ok=False)
-        container = subprocess.check_output(["sudo", "-n", "docker", "create", image, "/bin/true"], text=True).strip()
-        try:
-            exported = subprocess.Popen(["sudo", "-n", "docker", "export", container], stdout=subprocess.PIPE)
-            extracted = subprocess.run(["sudo", "-n", "tar", "-C", str(root), "-xpf", "-"], stdin=exported.stdout, check=False)
-            assert exported.stdout is not None; exported.stdout.close()
-            if exported.wait() or extracted.returncode:
-                raise RuntimeError(f"failed to export {image}")
-            kib = int(subprocess.check_output(["sudo", "-n", "du", "-sk", str(root)], text=True).split()[0])
-            if host_used_bytes() >= memory_threshold_bytes:
-                raise MemoryGuard(f"private SWE-bench disk for session {self.session} reached the {memory_threshold_bytes} byte host-memory guard")
-            self.disk.parent.mkdir(parents=True, exist_ok=True)
-            call("truncate", "-s", f"{kib + 1024 * 1024}K", str(self.disk))
-            sudo("mkfs.ext4", "-F", "-q", "-d", str(root), str(self.disk))
-        finally:
-            subprocess.run(["sudo", "-n", "docker", "rm", "-f", container], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            subprocess.run(["sudo", "-n", "rm", "-rf", str(root)], check=True)
 
     def prepare_cgroup(self) -> None:
         sudo("mkdir", "-p", str(self.cgroup))
@@ -723,18 +767,18 @@ class VM:
 
     def start(self, rootfs: Path, kernel: Path, initramfs: Path,
               network: dict[str, str], inference_endpoint: str,
+              artifact_endpoint: str,
               inference_timeout: float, max_turns: int) -> None:
         cpus = cpuset()
         cpu_arg = format_cpu_list(cpus)
         command = ["taskset", "-c", cpu_arg, "numactl", "--interleave=all", "cloud-hypervisor",
                    "--kernel", str(kernel), "--initramfs", str(initramfs),
-                   "--disk", f"path={rootfs},image_type=raw,readonly=on", "--disk", f"path={self.disk},image_type=raw,readonly=on",
-                   "--disk", f"path={self.upper_disk},image_type=raw",
+                   "--disk", f"path={rootfs},image_type=raw,readonly=on",
                    "--net", f"tap={network['tap']},mac={network['mac']}",
                    "--memory", "size=0", "--memory-zone", f"size={self.memory_ceiling_mib}M,id=mem0",
                    "--numa", f"guest_numa_id=0,cpus={cpu_arg},memory_zones=mem0", "--cpus", f"boot={len(cpus)},max={len(cpus)}",
                    "--console", "off", "--serial", f"file={self.vm_dir / 'serial.log'}",
-                   "--cmdline", f"root=/dev/vda rootfstype=ext4 ro fsck.mode=skip init=/sbin/init console=ttyS0 panic=-1 microvm_instance={self.manifest['instance_id']} microvm_session={self.session} microvm_inference={inference_endpoint} microvm_ip={network['ip']} microvm_gateway={network['gateway']} microvm_timeout={inference_timeout} microvm_max_turns={max_turns}"]
+                   "--cmdline", f"root=/dev/vda rootfstype=ext4 ro fsck.mode=skip init=/sbin/init console=ttyS0 panic=-1 microvm_instance={self.manifest['instance_id']} microvm_session={self.session} microvm_inference={inference_endpoint} microvm_artifact={artifact_endpoint} microvm_ip={network['ip']} microvm_gateway={network['gateway']} microvm_timeout={inference_timeout} microvm_max_turns={max_turns}"]
         self.proc = subprocess.Popen(command, stdout=(self.vm_dir / "vmm.stdout").open("w"), stderr=subprocess.STDOUT, start_new_session=True)
         sudo("sh", "-c", f"echo {self.proc.pid} > {self.cgroup}/cgroup.procs")
 
@@ -758,12 +802,12 @@ class VM:
             pass
         return rows
 
-    def overlay_ready(self) -> bool:
+    def guest_ready(self) -> bool:
         try:
             serial = (self.vm_dir / "serial.log").read_text(errors="replace")
         except FileNotFoundError:
             return False
-        return "OVERLAYFS_READY" in serial and "OVERLAYFS_FAILED" not in serial
+        return "ARTIFACT_READY" in serial and "ARTIFACT_FETCH_FAILED" not in serial
 
     def replay_complete(self) -> bool:
         try:
@@ -823,8 +867,6 @@ def run_stage(stage_dir: Path, manifests: list[dict], args, rootfs: Path, kernel
               initramfs: Path,
               memory_threshold_bytes: int) -> dict:
     stage_dir.mkdir(parents=True)
-    scratch_dir = args.scratch_root / f"swebench-scale-scratch-{os.getpid()}-{len(manifests)}"
-    staging = scratch_dir / "staging"; staging.mkdir(parents=True)
     memory_ceiling = args.guest_memory_ceiling_mib or host_memory_bytes() // 1024**2
     vms = [VM(stage_dir, index + 1, manifest, memory_ceiling, args.allow_swap)
            for index, manifest in enumerate(manifests)]
@@ -833,35 +875,32 @@ def run_stage(stage_dir: Path, manifests: list[dict], args, rootfs: Path, kernel
         "resource_policy": "no per-session CPU or memory quota; shared all-NUMA host capacity",
         "host_memory_threshold_percent": args.memory_threshold_percent,
         "swap_policy": "allow" if args.allow_swap else "disabled",
-        "guest_storage_policy": "per-VM private read-only SWE-bench disk plus per-VM private disk-backed OverlayFS upper layer",
-        "guest_upper_disk_gib": args.guest_upper_disk_gib,
+        "guest_storage_policy": "minimal read-only bootstrap disk; complete SWE-bench image streamed from the remote server into per-VM guest tmpfs; no per-VM environment disk",
+        "artifact_endpoints": {str(v.session): artifact_url(args.inference_endpoint, v.manifest["instance_id"], args.artifact_endpoint_template) for v in vms},
         "host_numa_nodes": [node.name for node in numa_nodes()]}, indent=2) + "\n")
-    try:
-        for image in sorted({image_name(v.manifest["instance_id"]) for v in vms}):
-            if host_used_bytes() >= memory_threshold_bytes:
-                raise MemoryGuard("host memory guard reached while preparing images")
-            sudo("docker", "pull", image)
-        for vm in vms: vm.build_disk(staging, memory_threshold_bytes)
-        for vm in vms: vm.prepare_upper_disk(args.guest_upper_disk_gib)
-    except BaseException:
-        shutil.rmtree(scratch_dir, ignore_errors=True)
-        raise
     samples: dict[int, list[dict]] = {vm.session: [] for vm in vms}; stop = threading.Event()
     oom_guard = threading.Event()
     peak_host_used = [host_used_bytes()]
     def monitor() -> None:
-        with (stage_dir / "session-samples.jsonl").open("w") as stream:
+        with ((stage_dir / "session-samples.jsonl").open("w") as stream,
+              (stage_dir / "host-samples.jsonl").open("w") as host_stream):
+            baseline = host_resource_sample()
+            host_stream.write(json.dumps(baseline) + "\n"); host_stream.flush()
             while not stop.wait(args.sample_interval_seconds):
                 for vm in vms:
                     row = vm.sample(); samples[vm.session].append(row); stream.write(json.dumps(row) + "\n")
                 stream.flush()
-                used = host_used_bytes()
+                host_row = host_resource_sample()
+                host_stream.write(json.dumps(host_row) + "\n"); host_stream.flush()
+                used = host_row["host_memory_used_bytes"]
                 peak_host_used[0] = max(peak_host_used[0], used)
                 if used >= memory_threshold_bytes:
                     oom_guard.set()
-                    stream.write(json.dumps({"timestamp": time.time(), "event": "memory_guard", "host_used_bytes": used,
-                                             "threshold_bytes": memory_threshold_bytes}) + "\n")
-                    stream.flush()
+                    guard_row = dict(host_row)
+                    guard_row.update({"event": "memory_guard", "host_used_bytes": used,
+                                      "threshold_bytes": memory_threshold_bytes})
+                    host_stream.write(json.dumps(guard_row) + "\n")
+                    host_stream.flush()
     for vm in vms: vm.prepare_cgroup()
     network = StageNetwork(args.network_subnet, args.inference_endpoint, args.network_interface,
                            os.getpid(), [vm.session for vm in vms])
@@ -881,6 +920,7 @@ def run_stage(stage_dir: Path, manifests: list[dict], args, rootfs: Path, kernel
             try:
                 launch_gate.wait()
                 vm.start(rootfs, kernel, initramfs, network.config(vm.session), args.inference_endpoint,
+                         artifact_url(args.inference_endpoint, vm.manifest["instance_id"], args.artifact_endpoint_template),
                          args.inference_timeout_seconds, args.max_turns)
             except BaseException as exc:
                 launch_errors.append(exc)
@@ -895,9 +935,9 @@ def run_stage(stage_dir: Path, manifests: list[dict], args, rootfs: Path, kernel
                 break
             time.sleep(0.2)
         if not oom_guard.is_set():
-            invalid = [vm.session for vm in vms if not vm.overlay_ready()]
+            invalid = [vm.session for vm in vms if not vm.guest_ready()]
             if invalid:
-                raise RuntimeError(f"guest OverlayFS was not mounted for sessions {invalid}")
+                raise RuntimeError(f"SWE-bench artifact was not loaded into guest tmpfs for sessions {invalid}")
             errors = {vm.session: vm.replay_error() for vm in vms if vm.replay_error()}
             incomplete = [vm.session for vm in vms if not vm.replay_complete()]
             if errors or incomplete:
@@ -915,9 +955,6 @@ def run_stage(stage_dir: Path, manifests: list[dict], args, rootfs: Path, kernel
               "peak_host_used_bytes": peak_host_used[0],
               "peak_aggregate_cgroup_memory_bytes": max((sum(r["cgroup_memory_bytes"] for r in group) for group in zip(*samples.values())), default=0)}
     (stage_dir / "summary.json").write_text(json.dumps(result, indent=2) + "\n")
-    # Keep each VM's disk-backed lower and upper disks with its stage output;
-    # reclaim only the temporary image-export staging tree.
-    shutil.rmtree(scratch_dir, ignore_errors=True)
     return result
 
 
@@ -934,6 +971,9 @@ def main() -> None:
     parser.add_argument("--inference-endpoint", default=os.environ.get(
         "MICROVM_INFERENCE_ENDPOINT", DEFAULT_INFERENCE_ENDPOINT),
         help="remote trace-backed inference endpoint (default: %(default)s)")
+    parser.add_argument("--artifact-endpoint-template",
+                        default=os.environ.get("MICROVM_ARTIFACT_ENDPOINT_TEMPLATE"),
+                        help="remote artifact URL template containing {instance_id}; defaults to /v1/artifacts/<id> beside inference")
     parser.add_argument("--instance-catalog-url",
                         help="GET endpoint returning the remote instance-id list; defaults to /v1/instances")
     parser.add_argument("--instance-ids-file", type=Path,
@@ -944,12 +984,8 @@ def main() -> None:
     parser.add_argument("--seed", type=int, default=20261001)
     parser.add_argument("--sample-interval-seconds", type=float, default=0.25)
     parser.add_argument("--ram-root", type=Path, default=Path("/dev/shm"))
-    parser.add_argument("--scratch-root", type=Path, default=Path("/tmp"),
-                        help="regular filesystem used while exporting OCI images")
     parser.add_argument("--memory-threshold-percent", type=float, default=90.0)
     parser.add_argument("--guest-memory-ceiling-mib", type=int)
-    parser.add_argument("--guest-upper-disk-gib", type=int, default=8,
-                        help="private per-VM ext4 OverlayFS upper-layer size (default: 8 GiB)")
     parser.add_argument("--inference-timeout-seconds", type=float, default=120.0)
     parser.add_argument("--max-turns", type=int, default=1000)
     parser.add_argument("--network-subnet", default="10.250.0.0/24",
@@ -975,13 +1011,12 @@ def main() -> None:
     if not 1.0 <= args.memory_threshold_percent < 100.0: raise SystemExit("memory threshold must be in [1, 100)")
     if args.inference_timeout_seconds <= 0: raise SystemExit("inference timeout must be positive")
     if args.max_turns <= 0: raise SystemExit("max-turns must be positive")
-    if args.guest_upper_disk_gib <= 0: raise SystemExit("guest upper disk size must be positive")
     validate_inference_endpoint(args.inference_endpoint)
     rootfs_tree, rootfs = ROOT / "microvm-assets/rootfs-tree", ROOT / "microvm-assets/replay-rootfs.img"
     kernel = Path(os.environ.get("MICROVM_KERNEL", ROOT / "microvm-assets/vmlinuz"))
-    initramfs = ensure_overlay_initramfs(kernel)
-    # Provisioning the guest image is deliberately independent of the remote
-    # corpus. A run/plan needs the catalog only to choose OCI instance images.
+    initramfs = ensure_guest_initramfs(kernel)
+    # Provisioning the bootstrap image is deliberately independent of the
+    # remote corpus. The guest fetches each OCI export only after it boots.
     if args.prepare_guest and not args.run:
         instance_ids = []
     else:
@@ -997,8 +1032,8 @@ def main() -> None:
             "instance_catalog_url": args.instance_catalog_url or catalog_url(args.inference_endpoint),
             "selection": "distinct traces until the remote pool is exhausted; seeded trace repeats above pool size",
             "guest_execution": "remote turn-by-turn inference; returned bash tools execute locally",
-            "guest_storage": "per-VM private read-only SWE-bench disk plus per-VM private disk-backed OverlayFS upper layer; no trace data packaged",
-            "guest_upper_disk_gib": args.guest_upper_disk_gib,
+            "artifact_endpoint_template": args.artifact_endpoint_template or "<inference-origin>/v1/artifacts/{instance_id}",
+            "guest_storage": "minimal read-only bootstrap disk; complete SWE-bench image streamed from the remote server into per-VM guest tmpfs; no trace data or environment disk packaged on the client",
             "guest_network": {"subnet": args.network_subnet, "nat_destination": urllib.parse.urlsplit(args.inference_endpoint).hostname},
             "guest_initramfs": str(initramfs),
             "memory_threshold_percent": args.memory_threshold_percent,
@@ -1011,8 +1046,8 @@ def main() -> None:
     # provisioning-only invocation.
     if args.prepare_guest or args.run: prepare_guest(rootfs_tree, rootfs)
     if not args.run: print(args.output); return
-    if not Path("/dev/kvm").exists() or not rootfs.is_file() or not kernel.is_file() or not initramfs.is_file(): raise SystemExit("--run requires /dev/kvm, a kernel, an OverlayFS initramfs, and a prepared replay rootfs")
-    if not all(shutil.which(x) for x in ("cloud-hypervisor", "docker", "numactl", "ip", "iptables")): raise SystemExit("missing cloud-hypervisor, docker, numactl, ip, or iptables")
+    if not Path("/dev/kvm").exists() or not rootfs.is_file() or not kernel.is_file() or not initramfs.is_file(): raise SystemExit("--run requires /dev/kvm, a kernel, an initramfs, and a prepared bootstrap rootfs")
+    if not all(shutil.which(x) for x in ("cloud-hypervisor", "numactl", "ip", "iptables")): raise SystemExit("missing cloud-hypervisor, numactl, ip, or iptables")
     if swap_bytes() and not args.allow_swap:
         raise SystemExit("swap is enabled; disable host swap before an in-memory run")
     memory_threshold_bytes = int(host_memory_bytes() * args.memory_threshold_percent / 100.0)
@@ -1028,7 +1063,6 @@ def main() -> None:
                 results.append({"skipped_remaining": True, "stop_reason": "host memory guard reached during stage"})
                 break
         except MemoryGuard as exc:
-            shutil.rmtree(args.scratch_root / f"swebench-scale-scratch-{os.getpid()}-{count}", ignore_errors=True)
             results.append({"concurrency": count, "skipped": True, "stop_reason": str(exc)})
             break
     (args.output / "experiment-summary.json").write_text(json.dumps(results, indent=2) + "\n")
