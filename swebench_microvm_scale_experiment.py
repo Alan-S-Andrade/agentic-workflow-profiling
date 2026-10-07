@@ -182,7 +182,7 @@ if ! /usr/bin/python3 /usr/local/bin/fetch-swebench-artifact.py; then
     exit 4
 fi
 echo "ARTIFACT_READY" > /dev/ttyS0
-MICROVM_INSTANCE_ID="$instance_id" MICROVM_SESSION_ID="$session_id" MICROVM_INFERENCE_ENDPOINT="$inference_endpoint" MICROVM_INFERENCE_TIMEOUT="${inference_timeout:-120}" MICROVM_MAX_TURNS="${max_turns:-1000}" /usr/bin/python3 /usr/local/bin/swebench-remote-inference.py
+TMPDIR=/rw/tmp MICROVM_INSTANCE_ID="$instance_id" MICROVM_SESSION_ID="$session_id" MICROVM_INFERENCE_ENDPOINT="$inference_endpoint" MICROVM_INFERENCE_TIMEOUT="${inference_timeout:-120}" MICROVM_MAX_TURNS="${max_turns:-1000}" /usr/bin/python3 /usr/local/bin/swebench-remote-inference.py
 status=$?
     /usr/bin/busybox poweroff -f
 exit "$status"
@@ -262,12 +262,24 @@ def _node_meminfo(node: Path) -> tuple[int, int]:
     return total_bytes, used_bytes
 
 
+def proc_meminfo_bytes() -> dict[str, int]:
+    values = {}
+    for line in Path("/proc/meminfo").read_text().splitlines():
+        key, _, raw = line.partition(":")
+        fields = raw.split()
+        if fields and fields[0].isdigit():
+            values[key] = int(fields[0]) * (1024 if len(fields) > 1 and fields[1] == "kB" else 1)
+    return values
+
+
 def host_memory_bytes() -> int:
-    return sum(_node_meminfo(node)[0] for node in numa_nodes())
+    return proc_meminfo_bytes().get("MemTotal", 0)
 
 
 def host_used_bytes() -> int:
-    return sum(_node_meminfo(node)[1] for node in numa_nodes())
+    memory = proc_meminfo_bytes()
+    total, available = memory.get("MemTotal", 0), memory.get("MemAvailable", 0)
+    return max(0, total - available)
 
 
 def host_cpu_ticks() -> tuple[int, int]:
