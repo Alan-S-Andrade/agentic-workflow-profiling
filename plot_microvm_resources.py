@@ -218,7 +218,7 @@ def main() -> None:
                         default=Path("traces/first_remote_exp_manual3/resource-usage.png"))
     parser.add_argument("--cdf-output", type=Path, default=None,
                         help="CDF plot path; defaults beside --output with '-cdf' suffix")
-    parser.add_argument("--stages", type=int, nargs="+", default=[1, 2, 4, 8],
+    parser.add_argument("--stages", type=int, nargs="+", default=[1, 2, 4, 8, 16],
                         help="concurrency stages to mark with dashed lines")
     parser.add_argument("--bin-seconds", type=float, default=0.5,
                         help="time bin used to smooth aggregate samples")

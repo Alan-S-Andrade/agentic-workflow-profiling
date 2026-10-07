@@ -907,6 +907,7 @@ def run_stage(stage_dir: Path, manifests: list[dict], args, rootfs: Path, kernel
            for index, manifest in enumerate(manifests)]
     (stage_dir / "run-plan.json").write_text(json.dumps({"concurrency": len(vms), "sessions": [v.manifest for v in vms], "seed": args.seed,
         "guest_visible_vcpus": len(cpuset()), "guest_memory_ceiling_mib": memory_ceiling,
+        "sample_interval_seconds": args.sample_interval_seconds,
         "resource_policy": "no per-session CPU or memory quota; shared all-NUMA host capacity",
         "host_memory_threshold_percent": args.memory_threshold_percent,
         "swap_policy": "allow" if args.allow_swap else "disabled",
@@ -916,15 +917,22 @@ def run_stage(stage_dir: Path, manifests: list[dict], args, rootfs: Path, kernel
     samples: dict[int, list[dict]] = {vm.session: [] for vm in vms}; stop = threading.Event()
     oom_guard = threading.Event()
     peak_host_used = [host_used_bytes()]
-    def monitor() -> None:
-        with ((stage_dir / "session-samples.jsonl").open("w") as stream,
-              (stage_dir / "host-samples.jsonl").open("w") as host_stream):
-            baseline = host_resource_sample()
-            host_stream.write(json.dumps(baseline) + "\n"); host_stream.flush()
+    def monitor_sessions() -> None:
+        with (stage_dir / "session-samples.jsonl").open("w") as stream:
             while not stop.wait(args.sample_interval_seconds):
                 for vm in vms:
                     row = vm.sample(); samples[vm.session].append(row); stream.write(json.dumps(row) + "\n")
                 stream.flush()
+
+    def monitor_host() -> None:
+        with (stage_dir / "host-samples.jsonl").open("w") as host_stream:
+            baseline = host_resource_sample()
+            host_stream.write(json.dumps(baseline) + "\n"); host_stream.flush()
+            next_sample = time.monotonic() + args.sample_interval_seconds
+            while not stop.is_set():
+                delay = max(0.0, next_sample - time.monotonic())
+                if stop.wait(delay):
+                    break
                 host_row = host_resource_sample()
                 host_stream.write(json.dumps(host_row) + "\n"); host_stream.flush()
                 used = host_row["host_memory_used_bytes"]
@@ -936,6 +944,9 @@ def run_stage(stage_dir: Path, manifests: list[dict], args, rootfs: Path, kernel
                                       "threshold_bytes": memory_threshold_bytes})
                     host_stream.write(json.dumps(guard_row) + "\n")
                     host_stream.flush()
+                next_sample += args.sample_interval_seconds
+                if next_sample <= time.monotonic():
+                    next_sample = time.monotonic() + args.sample_interval_seconds
     for vm in vms: vm.prepare_cgroup()
     network = StageNetwork(args.network_subnet, args.inference_endpoint, args.network_interface,
                            os.getpid(), [vm.session for vm in vms])
@@ -944,7 +955,9 @@ def run_stage(stage_dir: Path, manifests: list[dict], args, rootfs: Path, kernel
     except BaseException:
         network.close()
         raise
-    monitor_thread = threading.Thread(target=monitor, daemon=True); monitor_thread.start()
+    session_monitor_thread = threading.Thread(target=monitor_sessions, daemon=True)
+    host_monitor_thread = threading.Thread(target=monitor_host, daemon=True)
+    session_monitor_thread.start(); host_monitor_thread.start()
     started = time.time()
     try:
         # Start each VMM from a barrier so a stage has one common admission
@@ -978,7 +991,7 @@ def run_stage(stage_dir: Path, manifests: list[dict], args, rootfs: Path, kernel
             if errors or incomplete:
                 raise RuntimeError(f"remote inference failed: errors={errors}, incomplete_sessions={incomplete}")
     finally:
-        stop.set(); monitor_thread.join(timeout=2)
+        stop.set(); session_monitor_thread.join(timeout=2); host_monitor_thread.join(timeout=2)
         for vm in vms:
             samples[vm.session].append(vm.sample())
             vm.stop()
