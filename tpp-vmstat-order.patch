@@ -1,0 +1,19 @@
+--- a/mm/vmstat.c
++++ b/mm/vmstat.c
+@@ -1261,14 +1261,14 @@
+ 	"pgfault",
+ 	"pgmajfault",
+ 	"pglazyfreed",
+-	"pgdemote_file",
+-	"pgdemote_anon",
+ 	"pgrefill",
+ 	"pgreuse",
+ 	"pgsteal_kswapd",
+ 	"pgsteal_direct",
+ 	"pgdemote_kswapd",
+ 	"pgdemote_direct",
++	"pgdemote_file",
++	"pgdemote_anon",
+ 	"pgscan_kswapd",
+ 	"pgscan_direct",
+ 

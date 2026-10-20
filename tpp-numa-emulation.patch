@@ -1,0 +1,19 @@
+--- a/mm/migrate.c
++++ b/mm/migrate.c
+@@ -3181,10 +3181,13 @@
+ 	disable_all_migrate_targets();
+ 
+ 	/*
+-	 * Allocations go close to CPUs, first.  Assume that
+-	 * the migration path starts at the nodes with CPUs.
++	 * Use TPP's fast-tier definition, including when the slow tier
++	 * is emulated with a CPU-bearing remote NUMA node.
+ 	 */
+-	next_pass = node_states[N_CPU];
++	for_each_node_state(node, N_MEMORY) {
++		if (node_is_toptier(node))
++			node_set(node, next_pass);
++	}
+ again:
+ 	this_pass = next_pass;
+ 	next_pass = NODE_MASK_NONE;
