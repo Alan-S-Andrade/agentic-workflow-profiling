@@ -43,7 +43,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 DEFAULT_STAGES = (1, 2, 4, 8, 16, 32, 64, 128)
 DEFAULT_INFERENCE_ENDPOINT = "http://130.127.133.251:8080/v1/inference"
-DEFAULT_TRACE_ROOT = ROOT / "yig_traces"
+DEFAULT_TRACE_ROOT = ROOT / "yig"
 
 
 class MemoryGuard(Exception):
@@ -383,8 +383,10 @@ def pss_bytes(path: Path) -> int:
     return total
 
 
-def image_name(instance_id: str) -> str:
-    return f"swebench/sweb.eval.x86_64.{instance_id.replace('__', '_1776_').lower()}:latest"
+def image_name(instance_id: str, arch: str = "x86_64") -> str:
+    if arch not in {"x86_64", "arm64"}:
+        raise ValueError(f"unsupported SWE-bench image architecture: {arch}")
+    return f"swebench/sweb.eval.{arch}.{instance_id.replace('__', '_1776_').lower()}:latest"
 
 
 def trace_workflow(trace: Path) -> tuple[str, list[dict]]:
@@ -446,10 +448,12 @@ class TraceService:
     def instances(self) -> list[str]:
         return sorted(self.workflows)
 
-    def artifact_image(self, instance_id: str) -> str:
+    def artifact_image(self, instance_id: str, arch: str = "x86_64") -> str:
         if instance_id not in self.workflows:
             raise TraceRequestError(404, "unknown instance_id")
-        return image_name(instance_id)
+        if arch not in {"x86_64", "arm64"}:
+            raise TraceRequestError(400, "arch must be x86_64 or arm64")
+        return image_name(instance_id, arch)
 
     def inference(self, request: object) -> dict:
         if not isinstance(request, dict):
@@ -517,7 +521,8 @@ class TraceRequestHandler(http.server.BaseHTTPRequestHandler):
                 return
             instance_id = urllib.parse.unquote(match.group(1))
             try:
-                image = self.service.artifact_image(instance_id)
+                arch_values = urllib.parse.parse_qs(parsed.query).get("arch", ["x86_64"])
+                image = self.service.artifact_image(instance_id, arch_values[-1])
                 self.stream_artifact(image)
             except TraceRequestError as exc:
                 self._json(exc.status, {"error": str(exc)})
@@ -632,16 +637,25 @@ def catalog_url(inference_endpoint: str) -> str:
 
 
 def artifact_url(inference_endpoint: str, instance_id: str,
-                 template: str | None = None) -> str:
+                 template: str | None = None, arch: str = "x86_64") -> str:
     """Build the remote artifact URL without copying any artifact locally."""
+    if arch not in {"x86_64", "arm64"}:
+        raise SystemExit("--arch must be x86_64 or arm64")
     if template:
         try:
-            return template.format(instance_id=urllib.parse.quote(instance_id, safe=""))
+            url = template.format(instance_id=urllib.parse.quote(instance_id, safe=""), arch=arch)
         except KeyError as exc:
-            raise SystemExit("--artifact-endpoint-template may only use {instance_id}") from exc
+            raise SystemExit("--artifact-endpoint-template may use {instance_id} and {arch}") from exc
+        parsed = urllib.parse.urlsplit(url)
+        query = urllib.parse.parse_qsl(parsed.query, keep_blank_values=True)
+        query = [(key, value) for key, value in query if key != "arch"]
+        query.append(("arch", arch))
+        return urllib.parse.urlunsplit((parsed.scheme, parsed.netloc, parsed.path,
+                                       urllib.parse.urlencode(query), parsed.fragment))
     parsed = urllib.parse.urlsplit(inference_endpoint)
     path = parsed.path.rsplit("/", 1)[0] + "/artifacts/" + urllib.parse.quote(instance_id, safe="")
-    return urllib.parse.urlunsplit((parsed.scheme, parsed.netloc, path, "", ""))
+    return urllib.parse.urlunsplit((parsed.scheme, parsed.netloc, path,
+                                   urllib.parse.urlencode({"arch": arch}), ""))
 
 
 def validate_inference_endpoint(endpoint: str) -> None:
@@ -912,7 +926,7 @@ def run_stage(stage_dir: Path, manifests: list[dict], args, rootfs: Path, kernel
         "host_memory_threshold_percent": args.memory_threshold_percent,
         "swap_policy": "allow" if args.allow_swap else "disabled",
         "guest_storage_policy": "minimal read-only bootstrap disk; complete SWE-bench image streamed from the remote server into per-VM guest tmpfs; no per-VM environment disk",
-        "artifact_endpoints": {str(v.session): artifact_url(args.inference_endpoint, v.manifest["instance_id"], args.artifact_endpoint_template) for v in vms},
+        "artifact_endpoints": {str(v.session): artifact_url(args.inference_endpoint, v.manifest["instance_id"], args.artifact_endpoint_template, args.arch) for v in vms},
         "host_numa_nodes": [node.name for node in numa_nodes()]}, indent=2) + "\n")
     samples: dict[int, list[dict]] = {vm.session: [] for vm in vms}; stop = threading.Event()
     oom_guard = threading.Event()
@@ -968,7 +982,7 @@ def run_stage(stage_dir: Path, manifests: list[dict], args, rootfs: Path, kernel
             try:
                 launch_gate.wait()
                 vm.start(rootfs, kernel, initramfs, network.config(vm.session), args.inference_endpoint,
-                         artifact_url(args.inference_endpoint, vm.manifest["instance_id"], args.artifact_endpoint_template),
+                         artifact_url(args.inference_endpoint, vm.manifest["instance_id"], args.artifact_endpoint_template, args.arch),
                          args.inference_timeout_seconds, args.max_turns)
             except BaseException as exc:
                 launch_errors.append(exc)
@@ -1021,7 +1035,9 @@ def main() -> None:
         help="remote trace-backed inference endpoint (default: %(default)s)")
     parser.add_argument("--artifact-endpoint-template",
                         default=os.environ.get("MICROVM_ARTIFACT_ENDPOINT_TEMPLATE"),
-                        help="remote artifact URL template containing {instance_id}; defaults to /v1/artifacts/<id> beside inference")
+                        help="remote artifact URL template using {instance_id} and optionally {arch}; an arch query parameter is always included")
+    parser.add_argument("--arch", choices=("x86_64", "arm64"), default="x86_64",
+                        help="architecture of the SWE-bench image requested from the artifact server (default: x86_64)")
     parser.add_argument("--instance-catalog-url",
                         help="GET endpoint returning the remote instance-id list; defaults to /v1/instances")
     parser.add_argument("--instance-ids-file", type=Path,
@@ -1076,6 +1092,7 @@ def main() -> None:
     rng = random.Random(args.seed); rng.shuffle(unique)
     args.output.mkdir(parents=True, exist_ok=False)
     plan = {"stages": list(args.stages), "remote_instances": len(unique), "seed": args.seed,
+            "arch": args.arch,
             "inference_endpoint": args.inference_endpoint,
             "instance_catalog_url": args.instance_catalog_url or catalog_url(args.inference_endpoint),
             "selection": "distinct traces until the remote pool is exhausted; seeded trace repeats above pool size",
