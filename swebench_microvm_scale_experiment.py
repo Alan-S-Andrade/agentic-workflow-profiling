@@ -28,8 +28,10 @@ import json
 import os
 import random
 import re
+import select
 import shutil
 import signal
+import socket
 import subprocess
 import tempfile
 import threading
@@ -195,6 +197,92 @@ echo "ARTIFACT_READY" > /dev/ttyS0
 TMPDIR=/rw/tmp MICROVM_INSTANCE_ID="$instance_id" MICROVM_SESSION_ID="$session_id" MICROVM_INFERENCE_ENDPOINT="$inference_endpoint" MICROVM_INFERENCE_TIMEOUT="${inference_timeout:-120}" MICROVM_MAX_TURNS="${max_turns:-1000}" /usr/bin/python3 /usr/local/bin/swebench-remote-inference.py
 status=$?
     /usr/bin/busybox poweroff -f
+exit "$status"
+'''
+
+GUEST_VSOCK_PROXY = r'''#!/usr/bin/python3
+import select, socket, threading
+
+LISTEN = ("127.0.0.1", 18080)
+HOST_CID = 2
+HOST_PORT = 5555
+
+def relay(left, right):
+    peers = (left, right)
+    while True:
+        readable, _, exceptional = select.select(peers, [], peers, 300)
+        if exceptional or not readable:
+            return
+        for source in readable:
+            data = source.recv(65536)
+            if not data:
+                return
+            target = right if source is left else left
+            target.sendall(data)
+
+def handle(client):
+    upstream = socket.socket(socket.AF_VSOCK, socket.SOCK_STREAM)
+    try:
+        upstream.connect((HOST_CID, HOST_PORT))
+        relay(client, upstream)
+    except OSError as exc:
+        print("vsock proxy connection failed:", exc, flush=True)
+    finally:
+        client.close()
+        upstream.close()
+
+server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+server.bind(LISTEN)
+server.listen(256)
+while True:
+    client, _ = server.accept()
+    threading.Thread(target=handle, args=(client,), daemon=True).start()
+'''
+
+GUEST_INIT_VSOCK = r'''#!/bin/sh
+PATH=/usr/local/bin:/usr/bin:/bin:/sbin:/usr/sbin
+export PATH
+mount -t proc proc /proc
+mount -t sysfs sysfs /sys
+mount -t devtmpfs devtmpfs /dev
+mkdir -p /run /tmp /rw
+cmdline=$(cat /proc/cmdline)
+getarg() { printf '%s\n' "$cmdline" | sed -n "s/.* $1=\([^ ]*\).*/\1/p"; }
+instance_id=$(getarg microvm_instance)
+session_id=$(getarg microvm_session)
+inference_endpoint=$(getarg microvm_inference)
+artifact_endpoint=$(getarg microvm_artifact)
+inference_timeout=$(getarg microvm_timeout)
+max_turns=$(getarg microvm_max_turns)
+mount -t tmpfs -o nosuid,nodev tmpfs /rw
+mkdir -p /rw/proc /rw/sys /rw/dev /rw/replay /rw/tmp /rw/run
+mount --bind /proc /rw/proc
+mount --bind /sys /rw/sys
+mount --bind /dev /rw/dev
+/usr/bin/python3 /usr/local/bin/vsock-http-proxy.py >/run/vsock-http-proxy.log 2>&1 &
+proxy_pid=$!
+sleep 0.2
+if ! kill -0 "$proxy_pid" 2>/dev/null; then
+    echo "VSOCK_PROXY_FAILED" > /dev/ttyS0
+    /usr/bin/busybox poweroff -f
+    exit 2
+fi
+export http_proxy=http://127.0.0.1:18080
+export https_proxy=http://127.0.0.1:18080
+export HTTP_PROXY=$http_proxy HTTPS_PROXY=$https_proxy
+export no_proxy=localhost,127.0.0.1
+export NO_PROXY=$no_proxy
+export MICROVM_ARTIFACT_ENDPOINT=$artifact_endpoint
+if ! /usr/bin/python3 /usr/local/bin/fetch-swebench-artifact.py; then
+    echo "ARTIFACT_FETCH_FAILED" > /dev/ttyS0
+    /usr/bin/busybox poweroff -f
+    exit 4
+fi
+echo "ARTIFACT_READY" > /dev/ttyS0
+TMPDIR=/rw/tmp MICROVM_INSTANCE_ID="$instance_id" MICROVM_SESSION_ID="$session_id" MICROVM_INFERENCE_ENDPOINT="$inference_endpoint" MICROVM_INFERENCE_TIMEOUT="${inference_timeout:-120}" MICROVM_MAX_TURNS="${max_turns:-1000}" /usr/bin/python3 /usr/local/bin/swebench-remote-inference.py
+status=$?
+/usr/bin/busybox poweroff -f
 exit "$status"
 '''
 
@@ -383,12 +471,32 @@ def pss_bytes(path: Path) -> int:
     return total
 
 
-def image_name(instance_id: str, arch: str = "x86_64") -> str:
-    if arch not in {"x86_64", "arm64"}:
-        raise ValueError(f"unsupported SWE-bench image architecture: {arch}")
-    return f"swebench/sweb.eval.{arch}.{instance_id.replace('__', '_1776_').lower()}:latest"
+def process_pss_bytes(pid: int | None) -> int:
+    if pid is None:
+        return 0
+    try:
+        match = re.search(r"^Pss:\s+(\d+) kB", Path(f"/proc/{pid}/smaps_rollup").read_text(), re.M)
+        return int(match.group(1)) * 1024 if match else 0
+    except (FileNotFoundError, PermissionError):
+        return 0
 
 
+def process_cpu_usec(pid: int | None) -> int:
+    if pid is None:
+        return 0
+    try:
+        raw = Path(f"/proc/{pid}/stat").read_text()
+        fields = raw[raw.rfind(")") + 2:].split()
+        ticks = int(fields[11]) + int(fields[12])
+        return ticks * 1_000_000 // os.sysconf("SC_CLK_TCK")
+    except (FileNotFoundError, PermissionError, ValueError, IndexError):
+        return 0
+
+
+def image_name(instance_id: str, architecture: str = "x86_64") -> str:
+    if architecture not in {"x86_64", "arm64"}:
+        raise ValueError(f"unsupported artifact architecture: {architecture}")
+    return f"swebench/sweb.eval.{architecture}.{instance_id.replace('__', '_1776_').lower()}:latest"
 def trace_workflow(trace: Path) -> tuple[str, list[dict]]:
     """Load one trajectory for the server; its contents never leave the server."""
     data = json.loads(trace.read_text())
@@ -448,13 +556,12 @@ class TraceService:
     def instances(self) -> list[str]:
         return sorted(self.workflows)
 
-    def artifact_image(self, instance_id: str, arch: str = "x86_64") -> str:
+    def artifact_image(self, instance_id: str, architecture: str = "x86_64") -> str:
         if instance_id not in self.workflows:
             raise TraceRequestError(404, "unknown instance_id")
-        if arch not in {"x86_64", "arm64"}:
+        if architecture not in {"x86_64", "arm64"}:
             raise TraceRequestError(400, "arch must be x86_64 or arm64")
-        return image_name(instance_id, arch)
-
+        return image_name(instance_id, architecture)
     def inference(self, request: object) -> dict:
         if not isinstance(request, dict):
             raise TraceRequestError(400, "request must be a JSON object")
@@ -521,8 +628,9 @@ class TraceRequestHandler(http.server.BaseHTTPRequestHandler):
                 return
             instance_id = urllib.parse.unquote(match.group(1))
             try:
-                arch_values = urllib.parse.parse_qs(parsed.query).get("arch", ["x86_64"])
-                image = self.service.artifact_image(instance_id, arch_values[-1])
+                query = urllib.parse.parse_qs(parsed.query)
+                architecture = query.get("arch", ["x86_64"])[0]
+                image = self.service.artifact_image(instance_id, architecture)
                 self.stream_artifact(image)
             except TraceRequestError as exc:
                 self._json(exc.status, {"error": str(exc)})
@@ -637,25 +745,27 @@ def catalog_url(inference_endpoint: str) -> str:
 
 
 def artifact_url(inference_endpoint: str, instance_id: str,
-                 template: str | None = None, arch: str = "x86_64") -> str:
+                 template: str | None = None, architecture: str = "x86_64") -> str:
     """Build the remote artifact URL without copying any artifact locally."""
-    if arch not in {"x86_64", "arm64"}:
-        raise SystemExit("--arch must be x86_64 or arm64")
+    if architecture not in {"x86_64", "arm64"}:
+        raise SystemExit("--artifact-arch must be x86_64 or arm64")
     if template:
         try:
-            url = template.format(instance_id=urllib.parse.quote(instance_id, safe=""), arch=arch)
+            url = template.format(instance_id=urllib.parse.quote(instance_id, safe=""),
+                                  architecture=urllib.parse.quote(architecture, safe=""),
+                                  arch=urllib.parse.quote(architecture, safe=""))
         except KeyError as exc:
-            raise SystemExit("--artifact-endpoint-template may use {instance_id} and {arch}") from exc
+            raise SystemExit("--artifact-endpoint-template may use {instance_id}, {arch}, and {architecture}") from exc
         parsed = urllib.parse.urlsplit(url)
         query = urllib.parse.parse_qsl(parsed.query, keep_blank_values=True)
         query = [(key, value) for key, value in query if key != "arch"]
-        query.append(("arch", arch))
+        query.append(("arch", architecture))
         return urllib.parse.urlunsplit((parsed.scheme, parsed.netloc, parsed.path,
                                        urllib.parse.urlencode(query), parsed.fragment))
     parsed = urllib.parse.urlsplit(inference_endpoint)
     path = parsed.path.rsplit("/", 1)[0] + "/artifacts/" + urllib.parse.quote(instance_id, safe="")
     return urllib.parse.urlunsplit((parsed.scheme, parsed.netloc, path,
-                                   urllib.parse.urlencode({"arch": arch}), ""))
+                                   urllib.parse.urlencode({"arch": architecture}), ""))
 
 
 def validate_inference_endpoint(endpoint: str) -> None:
@@ -693,23 +803,53 @@ def load_instance_ids(inference_endpoint: str, catalog: str | None,
     return unique
 
 
-def prepare_guest(rootfs_tree: Path, rootfs: Path) -> None:
+def prepare_guest(rootfs_tree: Path, rootfs: Path, slurm_vsock: bool = False) -> None:
     """Install the bootstrap runner and rebuild the shared base disk."""
     with tempfile.TemporaryDirectory(prefix="swebench-guest-") as temp:
         temp = Path(temp)
         runner, fetch, init = (temp / "swebench-remote-inference.py",
                                temp / "fetch-swebench-artifact.py", temp / "init")
-        runner.write_text(GUEST_INFERENCE); fetch.write_text(GUEST_FETCH); init.write_text(GUEST_INIT)
-        sudo("rm", "-f", str(rootfs_tree / "usr/local/bin/swebench-local-replay.py"))
-        sudo("rm", "-rf", str(rootfs_tree / "replay-manifests"))
-        sudo("install", "-m", "0755", str(runner), str(rootfs_tree / "usr/local/bin/swebench-remote-inference.py"))
-        sudo("install", "-m", "0755", str(fetch), str(rootfs_tree / "usr/local/bin/fetch-swebench-artifact.py"))
-        sudo("install", "-m", "0755", str(init), str(rootfs_tree / "sbin/init"))
+        proxy = temp / "vsock-http-proxy.py"
+        runner.write_text(GUEST_INFERENCE); fetch.write_text(GUEST_FETCH)
+        init.write_text(GUEST_INIT_VSOCK if slurm_vsock else GUEST_INIT)
+        targets = [
+            (runner, rootfs_tree / "usr/local/bin/swebench-remote-inference.py"),
+            (fetch, rootfs_tree / "usr/local/bin/fetch-swebench-artifact.py"),
+            (init, rootfs_tree / "sbin/init"),
+        ]
+        if slurm_vsock:
+            proxy.write_text(GUEST_VSOCK_PROXY)
+            targets.append((proxy, rootfs_tree / "usr/local/bin/vsock-http-proxy.py"))
+        if slurm_vsock:
+            (rootfs_tree / "usr/local/bin/swebench-local-replay.py").unlink(missing_ok=True)
+            shutil.rmtree(rootfs_tree / "replay-manifests", ignore_errors=True)
+            for source, destination in targets:
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(source, destination)
+                destination.chmod(0o755)
+        else:
+            sudo("rm", "-f", str(rootfs_tree / "usr/local/bin/swebench-local-replay.py"))
+            sudo("rm", "-rf", str(rootfs_tree / "replay-manifests"))
+            for source, destination in targets:
+                sudo("install", "-m", "0755", str(source), str(destination))
         for mountpoint in ("/rw", "/tmp"):
-            sudo("install", "-d", "-m", "0755", str(rootfs_tree / mountpoint.lstrip("/")))
-        if not (rootfs_tree / "sbin/ip").is_file() and not (rootfs_tree / "usr/sbin/ip").is_file():
+            destination = rootfs_tree / mountpoint.lstrip("/")
+            if slurm_vsock:
+                destination.mkdir(parents=True, exist_ok=True)
+            else:
+                sudo("install", "-d", "-m", "0755", str(destination))
+        if not slurm_vsock and not (rootfs_tree / "sbin/ip").is_file() and not (rootfs_tree / "usr/sbin/ip").is_file():
             raise SystemExit("the guest rootfs needs iproute2 (/sbin/ip or /usr/sbin/ip) for remote inference networking")
-        sudo("mkfs.ext4", "-F", "-q", "-d", str(rootfs_tree), str(rootfs))
+        if slurm_vsock:
+            rootfs.parent.mkdir(parents=True, exist_ok=True)
+            with tempfile.NamedTemporaryFile(prefix="scale-rootfs-", suffix=".ext4", dir=os.environ.get("TMPDIR", "/tmp")) as image:
+                image.truncate(2 * 1024**3)
+                call("mkfs.ext4", "-F", "-q", "-b", "4096", "-d", str(rootfs_tree), image.name)
+                partial = rootfs.with_name(rootfs.name + ".partial")
+                call("cp", "--sparse=always", image.name, str(partial))
+                os.replace(partial, rootfs)
+        else:
+            sudo("mkfs.ext4", "-F", "-q", "-d", str(rootfs_tree), str(rootfs))
 
 
 def default_uplink() -> str:
@@ -768,7 +908,6 @@ class StageNetwork:
             self.rules.append(rule)
 
     def config(self, session: int) -> dict[str, str]:
-        # Cloud Hypervisor's virtio-net device gets the first non-loopback name.
         return {"tap": self.taps[session], "ip": self.guest_ips[session],
                 "gateway": self.gateway_ip, "mac": f"02:fc:00:{session // 256:02x}:{session % 256:02x}:01"}
 
@@ -798,42 +937,155 @@ class StageNetwork:
         self.ready = False
 
 
+class HostVsockTcpForwarder:
+    """Forward a guest's HTTP proxy TCP stream over Cloud Hypervisor vsock."""
+
+    def __init__(self, socket_path: Path, endpoint: str) -> None:
+        parsed = urllib.parse.urlsplit(endpoint)
+        self.host = parsed.hostname
+        self.port = parsed.port or (443 if parsed.scheme == "https" else 80)
+        if not self.host:
+            raise ValueError("inference endpoint must include a host")
+        self.path = Path(f"{socket_path}_5555")
+        self.listener = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        self.listener.bind(str(self.path))
+        self.listener.listen(256)
+        self.listener.settimeout(1.0)
+        self.stopping = threading.Event()
+        self.thread = threading.Thread(target=self._serve, daemon=True)
+
+    def start(self) -> None:
+        self.thread.start()
+
+    def _serve(self) -> None:
+        while not self.stopping.is_set():
+            try:
+                client, _ = self.listener.accept()
+            except TimeoutError:
+                continue
+            except OSError:
+                return
+            threading.Thread(target=self._handle, args=(client,), daemon=True).start()
+
+    def _handle(self, client: socket.socket) -> None:
+        upstream = None
+        try:
+            client.settimeout(30)
+            header = bytearray()
+            while not header.endswith(b"\r\n\r\n"):
+                byte = client.recv(1)
+                if not byte:
+                    return
+                header.extend(byte)
+                if len(header) > 65536:
+                    raise ValueError("HTTP proxy request headers exceed 64 KiB")
+            lines = bytes(header).split(b"\r\n")
+            method, target, version = lines[0].decode("ascii").split(" ", 2)
+            parsed = urllib.parse.urlsplit(target)
+            if parsed.scheme:
+                if parsed.hostname != self.host or (parsed.port or self.port) != self.port:
+                    raise ValueError(f"guest requested a different proxy destination: {target}")
+                path = parsed.path or "/"
+                if parsed.query:
+                    path += "?" + parsed.query
+                lines[0] = f"{method} {path} {version}".encode("ascii")
+                header = bytearray(b"\r\n".join(lines))
+            upstream = socket.create_connection((self.host, self.port), timeout=30)
+            upstream.settimeout(None)
+            client.settimeout(None)
+            upstream.sendall(header)
+            self._relay(client, upstream)
+        except (OSError, ValueError, UnicodeDecodeError) as exc:
+            print(f"vsock HTTP forwarder error for {self.host}:{self.port}: {exc}", flush=True)
+        finally:
+            client.close()
+            if upstream is not None:
+                upstream.close()
+
+    @staticmethod
+    def _relay(left: socket.socket, right: socket.socket) -> None:
+        while True:
+            readable, _, exceptional = select.select((left, right), [], (left, right), 900)
+            if exceptional or not readable:
+                return
+            for source in readable:
+                data = source.recv(65536)
+                if not data:
+                    return
+                (right if source is left else left).sendall(data)
+
+    def close(self) -> None:
+        self.stopping.set()
+        self.listener.close()
+        self.thread.join(timeout=2)
+        self.path.unlink(missing_ok=True)
+
+
 class VM:
     def __init__(self, run_dir: Path, session: int, manifest: dict,
-                 memory_ceiling_mib: int, allow_swap: bool) -> None:
+                 memory_ceiling_mib: int, allow_swap: bool, slurm_vsock: bool = False) -> None:
         self.run_dir, self.session, self.manifest = run_dir, session, manifest
         self.vm_dir = run_dir / "vms" / f"session-{session:03d}"; self.vm_dir.mkdir(parents=True)
         self.cgroup = Path(f"/sys/fs/cgroup/swebench-microvm-{os.getpid()}-{session}")
         self.memory_ceiling_mib = memory_ceiling_mib
         self.allow_swap = allow_swap
+        self.slurm_vsock = slurm_vsock
+        runtime_root = Path(os.environ.get("MICROVM_VSOCK_DIR", "/tmp"))
+        self.runtime_dir = runtime_root / f"vm-{os.getpid()}-{session:03d}"
+        self.runtime_dir.mkdir(parents=True, exist_ok=True)
+        self.forwarder: HostVsockTcpForwarder | None = None
         self.proc: subprocess.Popen | None = None
 
     def prepare_cgroup(self) -> None:
+        if self.slurm_vsock:
+            return
         sudo("mkdir", "-p", str(self.cgroup))
         swap_limit = self.cgroup / "memory.swap.max"
         if swap_limit.exists() and not self.allow_swap:
             sudo("sh", "-c", f"echo 0 > {swap_limit}")
 
-    def start(self, rootfs: Path, kernel: Path, initramfs: Path,
-              network: dict[str, str], inference_endpoint: str,
+    def start(self, rootfs: Path, kernel: Path, initramfs: Path | None,
+              network: dict[str, str] | None, inference_endpoint: str,
               artifact_endpoint: str,
-              inference_timeout: float, max_turns: int) -> None:
+              inference_timeout: float, max_turns: int, slurm_vsock: bool = False) -> None:
         cpus = cpuset()
         cpu_arg = format_cpu_list(cpus)
         command = ["taskset", "-c", cpu_arg, "numactl", "--interleave=all", "cloud-hypervisor",
-                   "--kernel", str(kernel), "--initramfs", str(initramfs),
-                   "--disk", f"path={rootfs},image_type=raw,readonly=on",
-                   "--net", f"tap={network['tap']},mac={network['mac']}",
-                   "--memory", "size=0", "--memory-zone", f"size={self.memory_ceiling_mib}M,id=mem0",
-                   "--numa", f"guest_numa_id=0,cpus={cpu_arg},memory_zones=mem0", "--cpus", f"boot={len(cpus)},max={len(cpus)}",
-                   "--console", "off", "--serial", f"file={self.vm_dir / 'serial.log'}",
-                   "--cmdline", f"root=/dev/vda rootfstype=ext4 ro fsck.mode=skip init=/sbin/init console=ttyS0 panic=-1 microvm_instance={self.manifest['instance_id']} microvm_session={self.session} microvm_inference={inference_endpoint} microvm_artifact={artifact_endpoint} microvm_ip={network['ip']} microvm_gateway={network['gateway']} microvm_timeout={inference_timeout} microvm_max_turns={max_turns}"]
+                   "--kernel", str(kernel)]
+        if initramfs is not None:
+            command.extend(["--initramfs", str(initramfs)])
+        command.extend(["--disk", f"path={rootfs},image_type=raw,readonly=on"])
+        cmdline = (f"root=/dev/vda rootfstype=ext4 ro fsck.mode=skip init=/sbin/init console=ttyS0 panic=-1 "
+                   f"microvm_instance={self.manifest['instance_id']} microvm_session={self.session} "
+                   f"microvm_inference={inference_endpoint} microvm_artifact={artifact_endpoint} "
+                   f"microvm_timeout={inference_timeout} microvm_max_turns={max_turns}")
+        if slurm_vsock:
+            vsock_path = self.runtime_dir / "vsock.sock"
+            self.forwarder = HostVsockTcpForwarder(vsock_path, inference_endpoint)
+            self.forwarder.start()
+            command.extend(["--vsock", f"cid=3,socket={vsock_path}"])
+        else:
+            if network is None:
+                raise ValueError("the network configuration is required outside --slurm-vsock mode")
+            command.extend(["--net", f"tap={network['tap']},mac={network['mac']}"])
+            cmdline += f" microvm_ip={network['ip']} microvm_gateway={network['gateway']}"
+        command.extend(["--memory", "size=0", "--memory-zone", f"size={self.memory_ceiling_mib}M,id=mem0",
+                        "--numa", f"guest_numa_id=0,cpus={cpu_arg},memory_zones=mem0", "--cpus", f"boot={len(cpus)},max={len(cpus)}",
+                        "--console", "off", "--serial", f"file={self.vm_dir / 'serial.log'}",
+                        "--api-socket", f"path={self.runtime_dir / 'api.sock'}", "--cmdline", cmdline])
         self.proc = subprocess.Popen(command, stdout=(self.vm_dir / "vmm.stdout").open("w"), stderr=subprocess.STDOUT, start_new_session=True)
-        sudo("sh", "-c", f"echo {self.proc.pid} > {self.cgroup}/cgroup.procs")
+        if not slurm_vsock:
+            sudo("sh", "-c", f"echo {self.proc.pid} > {self.cgroup}/cgroup.procs")
 
     def sample(self) -> dict:
+        if self.slurm_vsock:
+            pss = process_pss_bytes(self.proc.pid if self.proc else None)
+            return {"timestamp": time.time(), "session": self.session, "instance_id": self.manifest["instance_id"],
+                    "cgroup_memory_bytes": None, "pss_bytes": pss, "vmm_pss_bytes": pss,
+                    "cpu_usage_usec": process_cpu_usec(self.proc.pid if self.proc else None)}
         return {"timestamp": time.time(), "session": self.session, "instance_id": self.manifest["instance_id"],
                 "cgroup_memory_bytes": cgroup_value(self.cgroup, "memory.current"), "pss_bytes": pss_bytes(self.cgroup),
+                "vmm_pss_bytes": pss_bytes(self.cgroup),
                 "cpu_usage_usec": cpu_usage_usec(self.cgroup)}
 
     def done(self) -> bool:
@@ -879,8 +1131,12 @@ class VM:
             os.killpg(self.proc.pid, signal.SIGTERM)
             try: self.proc.wait(timeout=10)
             except subprocess.TimeoutExpired: os.killpg(self.proc.pid, signal.SIGKILL)
-        try: sudo("rmdir", str(self.cgroup))
-        except subprocess.CalledProcessError: pass
+        if self.forwarder is not None:
+            self.forwarder.close()
+            self.forwarder = None
+        if not self.slurm_vsock:
+            try: sudo("rmdir", str(self.cgroup))
+            except subprocess.CalledProcessError: pass
 
 
 def nearest_sample(samples: list[dict], timestamp: float, before: bool) -> dict | None:
@@ -895,7 +1151,8 @@ def summarize_turns(vm: VM, samples: list[dict]) -> list[dict]:
         within = [row for row in samples if turn["started_at"] <= row["timestamp"] <= turn["finished_at"]]
         rows.append({"session": vm.session, "instance_id": vm.manifest["instance_id"], **turn,
                      "cpu_seconds": ((last["cpu_usage_usec"] - first["cpu_usage_usec"]) / 1e6 if first and last else None),
-                     "peak_cgroup_memory_bytes": max((r["cgroup_memory_bytes"] for r in within), default=None),
+                     "peak_cgroup_memory_bytes": (None if vm.slurm_vsock else max((r["cgroup_memory_bytes"] for r in within), default=None)),
+                     "peak_vmm_pss_bytes": max((r["vmm_pss_bytes"] for r in within), default=None),
                      "peak_pss_bytes": max((r["pss_bytes"] for r in within), default=None),
                      "sample_count": len(within)})
     return rows
@@ -913,11 +1170,11 @@ def sessions_for_stage(unique: list[dict], count: int, rng: random.Random) -> li
 
 
 def run_stage(stage_dir: Path, manifests: list[dict], args, rootfs: Path, kernel: Path,
-              initramfs: Path,
+              initramfs: Path | None,
               memory_threshold_bytes: int) -> dict:
     stage_dir.mkdir(parents=True)
     memory_ceiling = args.guest_memory_ceiling_mib or host_memory_bytes() // 1024**2
-    vms = [VM(stage_dir, index + 1, manifest, memory_ceiling, args.allow_swap)
+    vms = [VM(stage_dir, index + 1, manifest, memory_ceiling, args.allow_swap, args.slurm_vsock)
            for index, manifest in enumerate(manifests)]
     (stage_dir / "run-plan.json").write_text(json.dumps({"concurrency": len(vms), "sessions": [v.manifest for v in vms], "seed": args.seed,
         "guest_visible_vcpus": len(cpuset()), "guest_memory_ceiling_mib": memory_ceiling,
@@ -926,7 +1183,9 @@ def run_stage(stage_dir: Path, manifests: list[dict], args, rootfs: Path, kernel
         "host_memory_threshold_percent": args.memory_threshold_percent,
         "swap_policy": "allow" if args.allow_swap else "disabled",
         "guest_storage_policy": "minimal read-only bootstrap disk; complete SWE-bench image streamed from the remote server into per-VM guest tmpfs; no per-VM environment disk",
-        "artifact_endpoints": {str(v.session): artifact_url(args.inference_endpoint, v.manifest["instance_id"], args.artifact_endpoint_template, args.arch) for v in vms},
+        "guest_network_mode": "vsock host proxy" if args.slurm_vsock else "tap with host NAT",
+        "resource_sampling": "Cloud Hypervisor process PSS and CPU time" if args.slurm_vsock else "per-VM cgroup",
+        "artifact_endpoints": {str(v.session): artifact_url(args.inference_endpoint, v.manifest["instance_id"], args.artifact_endpoint_template, args.artifact_arch) for v in vms},
         "host_numa_nodes": [node.name for node in numa_nodes()]}, indent=2) + "\n")
     samples: dict[int, list[dict]] = {vm.session: [] for vm in vms}; stop = threading.Event()
     oom_guard = threading.Event()
@@ -962,13 +1221,15 @@ def run_stage(stage_dir: Path, manifests: list[dict], args, rootfs: Path, kernel
                 if next_sample <= time.monotonic():
                     next_sample = time.monotonic() + args.sample_interval_seconds
     for vm in vms: vm.prepare_cgroup()
-    network = StageNetwork(args.network_subnet, args.inference_endpoint, args.network_interface,
-                           os.getpid(), [vm.session for vm in vms])
-    try:
-        network.setup()
-    except BaseException:
-        network.close()
-        raise
+    network = None
+    if not args.slurm_vsock:
+        network = StageNetwork(args.network_subnet, args.inference_endpoint, args.network_interface,
+                               os.getpid(), [vm.session for vm in vms])
+        try:
+            network.setup()
+        except BaseException:
+            network.close()
+            raise
     session_monitor_thread = threading.Thread(target=monitor_sessions, daemon=True)
     host_monitor_thread = threading.Thread(target=monitor_host, daemon=True)
     session_monitor_thread.start(); host_monitor_thread.start()
@@ -981,9 +1242,9 @@ def run_stage(stage_dir: Path, manifests: list[dict], args, rootfs: Path, kernel
         def launch(vm: VM) -> None:
             try:
                 launch_gate.wait()
-                vm.start(rootfs, kernel, initramfs, network.config(vm.session), args.inference_endpoint,
-                         artifact_url(args.inference_endpoint, vm.manifest["instance_id"], args.artifact_endpoint_template, args.arch),
-                         args.inference_timeout_seconds, args.max_turns)
+                vm.start(rootfs, kernel, initramfs, network.config(vm.session) if network else None, args.inference_endpoint,
+                         artifact_url(args.inference_endpoint, vm.manifest["instance_id"], args.artifact_endpoint_template, args.artifact_arch),
+                         args.inference_timeout_seconds, args.max_turns, args.slurm_vsock)
             except BaseException as exc:
                 launch_errors.append(exc)
         launchers = [threading.Thread(target=launch, args=(vm,)) for vm in vms]
@@ -1009,13 +1270,16 @@ def run_stage(stage_dir: Path, manifests: list[dict], args, rootfs: Path, kernel
         for vm in vms:
             samples[vm.session].append(vm.sample())
             vm.stop()
-        network.close()
+        if network:
+            network.close()
     turn_rows = [row for vm in vms for row in summarize_turns(vm, samples[vm.session])]
     (stage_dir / "turn-resource.jsonl").write_text("".join(json.dumps(row) + "\n" for row in turn_rows))
     result = {"concurrency": len(vms), "elapsed_seconds": time.time() - started, "sessions_completed": sum(vm.done() for vm in vms),
               "turns_measured": len(turn_rows), "memory_guard_triggered": oom_guard.is_set(),
               "peak_host_used_bytes": peak_host_used[0],
-              "peak_aggregate_cgroup_memory_bytes": max((sum(r["cgroup_memory_bytes"] for r in group) for group in zip(*samples.values())), default=0)}
+              "peak_aggregate_cgroup_memory_bytes": (None if args.slurm_vsock else
+                  max((sum(r["cgroup_memory_bytes"] for r in group) for group in zip(*samples.values())), default=0)),
+              "peak_aggregate_vmm_pss_bytes": max((sum(r["vmm_pss_bytes"] for r in group) for group in zip(*samples.values())), default=0)}
     (stage_dir / "summary.json").write_text(json.dumps(result, indent=2) + "\n")
     return result
 
@@ -1035,9 +1299,10 @@ def main() -> None:
         help="remote trace-backed inference endpoint (default: %(default)s)")
     parser.add_argument("--artifact-endpoint-template",
                         default=os.environ.get("MICROVM_ARTIFACT_ENDPOINT_TEMPLATE"),
-                        help="remote artifact URL template using {instance_id} and optionally {arch}; an arch query parameter is always included")
-    parser.add_argument("--arch", choices=("x86_64", "arm64"), default="x86_64",
-                        help="architecture of the SWE-bench image requested from the artifact server (default: x86_64)")
+                        help="remote artifact URL template using {instance_id}, {arch}, or {architecture}; defaults to /v1/artifacts/<id> beside inference")
+    parser.add_argument("--arch", "--artifact-arch", dest="artifact_arch", choices=("x86_64", "arm64"),
+                        default=os.environ.get("MICROVM_ARTIFACT_ARCH", "x86_64"),
+                        help="architecture of SWE-bench environment artifacts served remotely")
     parser.add_argument("--instance-catalog-url",
                         help="GET endpoint returning the remote instance-id list; defaults to /v1/instances")
     parser.add_argument("--instance-ids-file", type=Path,
@@ -1057,6 +1322,8 @@ def main() -> None:
     parser.add_argument("--network-interface",
                         help="host uplink for inference NAT; defaults to the default IPv4 route")
     parser.add_argument("--prepare-guest", action="store_true")
+    parser.add_argument("--slurm-vsock", action="store_true",
+                        help="rootless GH200 mode: use guest-to-host vsock proxy and process PSS sampling")
     parser.add_argument("--allow-swap", action="store_true",
                         help="permit host and VM swap; default runs require swap to be disabled")
     parser.add_argument("--run", action="store_true")
@@ -1076,9 +1343,21 @@ def main() -> None:
     if args.inference_timeout_seconds <= 0: raise SystemExit("inference timeout must be positive")
     if args.max_turns <= 0: raise SystemExit("max-turns must be positive")
     validate_inference_endpoint(args.inference_endpoint)
+    if args.slurm_vsock:
+        if args.artifact_arch != "arm64":
+            raise SystemExit("--slurm-vsock on GH200 requires --artifact-arch arm64")
+        inference_host = urllib.parse.urlsplit(args.inference_endpoint).hostname
+        if args.artifact_endpoint_template:
+            artifact_host = urllib.parse.urlsplit(artifact_url(
+                args.inference_endpoint, "example", args.artifact_endpoint_template,
+                args.artifact_arch)).hostname
+            if artifact_host and artifact_host != inference_host:
+                raise SystemExit("--slurm-vsock requires artifact and inference endpoints to share one host")
+        if args.network_interface:
+            raise SystemExit("--network-interface cannot be combined with --slurm-vsock")
     rootfs_tree, rootfs = ROOT / "microvm-assets/rootfs-tree", ROOT / "microvm-assets/replay-rootfs.img"
     kernel = Path(os.environ.get("MICROVM_KERNEL", ROOT / "microvm-assets/vmlinuz"))
-    initramfs = ensure_guest_initramfs(kernel)
+    initramfs = None if args.slurm_vsock else ensure_guest_initramfs(kernel)
     # Provisioning the bootstrap image is deliberately independent of the
     # remote corpus. The guest fetches each OCI export only after it boots.
     if args.prepare_guest and not args.run:
@@ -1092,15 +1371,17 @@ def main() -> None:
     rng = random.Random(args.seed); rng.shuffle(unique)
     args.output.mkdir(parents=True, exist_ok=False)
     plan = {"stages": list(args.stages), "remote_instances": len(unique), "seed": args.seed,
-            "arch": args.arch,
+            "arch": args.artifact_arch,
             "inference_endpoint": args.inference_endpoint,
             "instance_catalog_url": args.instance_catalog_url or catalog_url(args.inference_endpoint),
             "selection": "distinct traces until the remote pool is exhausted; seeded trace repeats above pool size",
             "guest_execution": "remote turn-by-turn inference; returned bash tools execute locally",
-            "artifact_endpoint_template": args.artifact_endpoint_template or "<inference-origin>/v1/artifacts/{instance_id}",
+            "artifact_endpoint_template": args.artifact_endpoint_template or "<inference-origin>/v1/artifacts/{instance_id}?arch={architecture}",
+            "artifact_arch": args.artifact_arch,
             "guest_storage": "minimal read-only bootstrap disk; complete SWE-bench image streamed from the remote server into per-VM guest tmpfs; no trace data or environment disk packaged on the client",
             "guest_network": {"subnet": args.network_subnet, "nat_destination": urllib.parse.urlsplit(args.inference_endpoint).hostname},
-            "guest_initramfs": str(initramfs),
+            "guest_initramfs": str(initramfs) if initramfs else None,
+            "guest_network_mode": "vsock host proxy" if args.slurm_vsock else "tap with host NAT",
             "memory_threshold_percent": args.memory_threshold_percent,
             "host_numa_nodes": [node.name for node in numa_nodes()],
             "host_cpus": cpuset(),
@@ -1109,10 +1390,12 @@ def main() -> None:
     # Rebuild on every execution run so the guest behavior and host-side
     # result parser always match.  `--prepare-guest` supports a separate
     # provisioning-only invocation.
-    if args.prepare_guest or args.run: prepare_guest(rootfs_tree, rootfs)
+    if args.prepare_guest or args.run: prepare_guest(rootfs_tree, rootfs, args.slurm_vsock)
     if not args.run: print(args.output); return
-    if not Path("/dev/kvm").exists() or not rootfs.is_file() or not kernel.is_file() or not initramfs.is_file(): raise SystemExit("--run requires /dev/kvm, a kernel, an initramfs, and a prepared bootstrap rootfs")
-    if not all(shutil.which(x) for x in ("cloud-hypervisor", "numactl", "ip", "iptables")): raise SystemExit("missing cloud-hypervisor, numactl, ip, or iptables")
+    if not Path("/dev/kvm").exists() or not rootfs.is_file() or not kernel.is_file() or (initramfs and not initramfs.is_file()):
+        raise SystemExit("--run requires /dev/kvm, a kernel, and a prepared bootstrap rootfs (plus an initramfs outside --slurm-vsock)")
+    required = ("cloud-hypervisor", "numactl", "taskset") if args.slurm_vsock else ("cloud-hypervisor", "numactl", "ip", "iptables")
+    if not all(shutil.which(x) for x in required): raise SystemExit(f"missing required host tools: {', '.join(x for x in required if not shutil.which(x))}")
     if swap_bytes() and not args.allow_swap:
         raise SystemExit("swap is enabled; disable host swap before an in-memory run")
     memory_threshold_bytes = int(host_memory_bytes() * args.memory_threshold_percent / 100.0)
