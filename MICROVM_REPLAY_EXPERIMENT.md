@@ -77,15 +77,21 @@ The guest records actual request latency; it does not sleep on
 `inference_seconds`. The host therefore measures remote inference as a real
 networked dependency rather than simulating a saved model delay.
 
-Start the threaded trace server on the inference node:
+Start the threaded trace server on the inference node from the repository root.
+The default trace root is `./yig`; the listener binds to all interfaces on port
+8080 so the client host can reach it:
 
 ```bash
 python3 swebench_microvm_scale_experiment.py \
   --serve \
-  --trace-root /path/to/yig \
   --serve-host 0.0.0.0 \
   --serve-port 8080
 ```
+
+Allow inbound TCP port 8080 from the client host in the inference node's
+firewall or cloud network policy. From the client host, check
+`http://130.127.133.251:8080/healthz`; it should return `{"ok": true,
+"instances": 100}` for the checked-in corpus.
 
 Then start the microVM client host. The client selects a different instance ID
 for every VM in a stage and keeps that assignment for the VM's full trace:
