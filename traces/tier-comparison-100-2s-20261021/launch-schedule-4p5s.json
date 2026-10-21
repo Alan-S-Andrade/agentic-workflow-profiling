@@ -1,0 +1,406 @@
+{
+  "format": "microvm-admission-schedule-v1",
+  "source": "deterministic 4.5-second spacing; same schedule for both migration mechanisms",
+  "sessions": [
+    {
+      "session": 1,
+      "launch_offset_seconds": 0.0
+    },
+    {
+      "session": 2,
+      "launch_offset_seconds": 4.5
+    },
+    {
+      "session": 3,
+      "launch_offset_seconds": 9.0
+    },
+    {
+      "session": 4,
+      "launch_offset_seconds": 13.5
+    },
+    {
+      "session": 5,
+      "launch_offset_seconds": 18.0
+    },
+    {
+      "session": 6,
+      "launch_offset_seconds": 22.5
+    },
+    {
+      "session": 7,
+      "launch_offset_seconds": 27.0
+    },
+    {
+      "session": 8,
+      "launch_offset_seconds": 31.5
+    },
+    {
+      "session": 9,
+      "launch_offset_seconds": 36.0
+    },
+    {
+      "session": 10,
+      "launch_offset_seconds": 40.5
+    },
+    {
+      "session": 11,
+      "launch_offset_seconds": 45.0
+    },
+    {
+      "session": 12,
+      "launch_offset_seconds": 49.5
+    },
+    {
+      "session": 13,
+      "launch_offset_seconds": 54.0
+    },
+    {
+      "session": 14,
+      "launch_offset_seconds": 58.5
+    },
+    {
+      "session": 15,
+      "launch_offset_seconds": 63.0
+    },
+    {
+      "session": 16,
+      "launch_offset_seconds": 67.5
+    },
+    {
+      "session": 17,
+      "launch_offset_seconds": 72.0
+    },
+    {
+      "session": 18,
+      "launch_offset_seconds": 76.5
+    },
+    {
+      "session": 19,
+      "launch_offset_seconds": 81.0
+    },
+    {
+      "session": 20,
+      "launch_offset_seconds": 85.5
+    },
+    {
+      "session": 21,
+      "launch_offset_seconds": 90.0
+    },
+    {
+      "session": 22,
+      "launch_offset_seconds": 94.5
+    },
+    {
+      "session": 23,
+      "launch_offset_seconds": 99.0
+    },
+    {
+      "session": 24,
+      "launch_offset_seconds": 103.5
+    },
+    {
+      "session": 25,
+      "launch_offset_seconds": 108.0
+    },
+    {
+      "session": 26,
+      "launch_offset_seconds": 112.5
+    },
+    {
+      "session": 27,
+      "launch_offset_seconds": 117.0
+    },
+    {
+      "session": 28,
+      "launch_offset_seconds": 121.5
+    },
+    {
+      "session": 29,
+      "launch_offset_seconds": 126.0
+    },
+    {
+      "session": 30,
+      "launch_offset_seconds": 130.5
+    },
+    {
+      "session": 31,
+      "launch_offset_seconds": 135.0
+    },
+    {
+      "session": 32,
+      "launch_offset_seconds": 139.5
+    },
+    {
+      "session": 33,
+      "launch_offset_seconds": 144.0
+    },
+    {
+      "session": 34,
+      "launch_offset_seconds": 148.5
+    },
+    {
+      "session": 35,
+      "launch_offset_seconds": 153.0
+    },
+    {
+      "session": 36,
+      "launch_offset_seconds": 157.5
+    },
+    {
+      "session": 37,
+      "launch_offset_seconds": 162.0
+    },
+    {
+      "session": 38,
+      "launch_offset_seconds": 166.5
+    },
+    {
+      "session": 39,
+      "launch_offset_seconds": 171.0
+    },
+    {
+      "session": 40,
+      "launch_offset_seconds": 175.5
+    },
+    {
+      "session": 41,
+      "launch_offset_seconds": 180.0
+    },
+    {
+      "session": 42,
+      "launch_offset_seconds": 184.5
+    },
+    {
+      "session": 43,
+      "launch_offset_seconds": 189.0
+    },
+    {
+      "session": 44,
+      "launch_offset_seconds": 193.5
+    },
+    {
+      "session": 45,
+      "launch_offset_seconds": 198.0
+    },
+    {
+      "session": 46,
+      "launch_offset_seconds": 202.5
+    },
+    {
+      "session": 47,
+      "launch_offset_seconds": 207.0
+    },
+    {
+      "session": 48,
+      "launch_offset_seconds": 211.5
+    },
+    {
+      "session": 49,
+      "launch_offset_seconds": 216.0
+    },
+    {
+      "session": 50,
+      "launch_offset_seconds": 220.5
+    },
+    {
+      "session": 51,
+      "launch_offset_seconds": 225.0
+    },
+    {
+      "session": 52,
+      "launch_offset_seconds": 229.5
+    },
+    {
+      "session": 53,
+      "launch_offset_seconds": 234.0
+    },
+    {
+      "session": 54,
+      "launch_offset_seconds": 238.5
+    },
+    {
+      "session": 55,
+      "launch_offset_seconds": 243.0
+    },
+    {
+      "session": 56,
+      "launch_offset_seconds": 247.5
+    },
+    {
+      "session": 57,
+      "launch_offset_seconds": 252.0
+    },
+    {
+      "session": 58,
+      "launch_offset_seconds": 256.5
+    },
+    {
+      "session": 59,
+      "launch_offset_seconds": 261.0
+    },
+    {
+      "session": 60,
+      "launch_offset_seconds": 265.5
+    },
+    {
+      "session": 61,
+      "launch_offset_seconds": 270.0
+    },
+    {
+      "session": 62,
+      "launch_offset_seconds": 274.5
+    },
+    {
+      "session": 63,
+      "launch_offset_seconds": 279.0
+    },
+    {
+      "session": 64,
+      "launch_offset_seconds": 283.5
+    },
+    {
+      "session": 65,
+      "launch_offset_seconds": 288.0
+    },
+    {
+      "session": 66,
+      "launch_offset_seconds": 292.5
+    },
+    {
+      "session": 67,
+      "launch_offset_seconds": 297.0
+    },
+    {
+      "session": 68,
+      "launch_offset_seconds": 301.5
+    },
+    {
+      "session": 69,
+      "launch_offset_seconds": 306.0
+    },
+    {
+      "session": 70,
+      "launch_offset_seconds": 310.5
+    },
+    {
+      "session": 71,
+      "launch_offset_seconds": 315.0
+    },
+    {
+      "session": 72,
+      "launch_offset_seconds": 319.5
+    },
+    {
+      "session": 73,
+      "launch_offset_seconds": 324.0
+    },
+    {
+      "session": 74,
+      "launch_offset_seconds": 328.5
+    },
+    {
+      "session": 75,
+      "launch_offset_seconds": 333.0
+    },
+    {
+      "session": 76,
+      "launch_offset_seconds": 337.5
+    },
+    {
+      "session": 77,
+      "launch_offset_seconds": 342.0
+    },
+    {
+      "session": 78,
+      "launch_offset_seconds": 346.5
+    },
+    {
+      "session": 79,
+      "launch_offset_seconds": 351.0
+    },
+    {
+      "session": 80,
+      "launch_offset_seconds": 355.5
+    },
+    {
+      "session": 81,
+      "launch_offset_seconds": 360.0
+    },
+    {
+      "session": 82,
+      "launch_offset_seconds": 364.5
+    },
+    {
+      "session": 83,
+      "launch_offset_seconds": 369.0
+    },
+    {
+      "session": 84,
+      "launch_offset_seconds": 373.5
+    },
+    {
+      "session": 85,
+      "launch_offset_seconds": 378.0
+    },
+    {
+      "session": 86,
+      "launch_offset_seconds": 382.5
+    },
+    {
+      "session": 87,
+      "launch_offset_seconds": 387.0
+    },
+    {
+      "session": 88,
+      "launch_offset_seconds": 391.5
+    },
+    {
+      "session": 89,
+      "launch_offset_seconds": 396.0
+    },
+    {
+      "session": 90,
+      "launch_offset_seconds": 400.5
+    },
+    {
+      "session": 91,
+      "launch_offset_seconds": 405.0
+    },
+    {
+      "session": 92,
+      "launch_offset_seconds": 409.5
+    },
+    {
+      "session": 93,
+      "launch_offset_seconds": 414.0
+    },
+    {
+      "session": 94,
+      "launch_offset_seconds": 418.5
+    },
+    {
+      "session": 95,
+      "launch_offset_seconds": 423.0
+    },
+    {
+      "session": 96,
+      "launch_offset_seconds": 427.5
+    },
+    {
+      "session": 97,
+      "launch_offset_seconds": 432.0
+    },
+    {
+      "session": 98,
+      "launch_offset_seconds": 436.5
+    },
+    {
+      "session": 99,
+      "launch_offset_seconds": 441.0
+    },
+    {
+      "session": 100,
+      "launch_offset_seconds": 445.5
+    }
+  ]
+}

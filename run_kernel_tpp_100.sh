@@ -1,16 +1,17 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-cd /users/alanuiuc/agentic-workflow-profiling
-output=traces/remote-swebench-kernel-tpp-node0-compute-azure-200x-100-20261021
-schedule=traces/azure-yig-admission-100-200x-20261021/launch-schedule.json
-endpoint=http://128.110.220.114:8081/v1/inference
+cd "$(dirname "$0")"
+output=${1:-traces/tier-comparison-100-2s-20261021/kernel-tpp-4p5s}
+schedule=${2:-traces/tier-comparison-100-2s-20261021/launch-schedule-4p5s.json}
+endpoint=${MICROVM_INFERENCE_ENDPOINT:-http://128.110.220.114:8081/v1/inference}
 
 if [[ -e "$output" ]]; then
   echo "output already exists: $output" >&2
   exit 2
 fi
 
+python3 enable_kernel_tpp.py check
 original_numa_balancing=$(cat /proc/sys/kernel/numa_balancing)
 original_demotion=$(cat /sys/kernel/mm/numa/demotion_enabled)
 original_scale_factor=$(cat /proc/sys/vm/demote_scale_factor)
@@ -32,9 +33,10 @@ restore_tpp() {
   printf '%s\n' "$original_scale_factor" > /proc/sys/vm/demote_scale_factor
   sysctl -w "kernel.numa_balancing=$original_numa_balancing" >/dev/null
 }
-trap restore_tpp EXIT INT TERM
+trap restore_tpp EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
 
-python3 enable_kernel_tpp.py check
 python3 enable_kernel_tpp.py enable
 
 export PATH="$PWD/.tools:$PATH"
@@ -47,7 +49,9 @@ numactl --cpunodebind=0 python3 swebench_microvm_scale_experiment.py \
   --output "$output" \
   --inference-endpoint "$endpoint" \
   --admission-schedule "$schedule" \
-  --stages 100 --run &
+  --stages 100 --memory-threshold-percent 90 --fast-node-min-free-gib 10 \
+  --arch arm64 --slurm-vsock --tiered-memory --guest-vcpus 4 \
+  --replay-inference-latency --run &
 runner_pid=$!
 
 python3 -u record_tpp_migrations.py \

@@ -25,6 +25,7 @@ import base64
 import http.server
 import ipaddress
 import json
+import math
 import os
 import random
 import re
@@ -92,15 +93,21 @@ def main():
     instance_id = os.environ['MICROVM_INSTANCE_ID']; session_id = os.environ['MICROVM_SESSION_ID']
     endpoint = os.environ['MICROVM_INFERENCE_ENDPOINT']; timeout = float(os.environ.get('MICROVM_INFERENCE_TIMEOUT', '120'))
     max_turns = int(os.environ.get('MICROVM_MAX_TURNS', '1000'))
+    replay_latency = os.environ.get('MICROVM_REPLAY_INFERENCE_LATENCY') == '1'
     replay = Path('/rw/replay'); replay.mkdir(parents=True, exist_ok=True)
     tool_records = (replay / 'guest-tools.jsonl').open('w'); turn_records = (replay / 'guest-turns.jsonl').open('w')
     failures = tools = 0; turn = 1
-    serial = open('/dev/ttyS0', 'w', buffering=1)
+    serial_path = '/dev/ttyAMA0' if os.uname().machine in ('aarch64', 'arm64') else '/dev/ttyS0'
+    serial = open(serial_path, 'w', buffering=1)
     try:
       while turn <= max_turns:
         started = time.time(); inference_started = time.monotonic()
+        serial.write('REPLAY_REQUEST ' + base64.b64encode(json.dumps({'turn': turn, 'timestamp': started}).encode()).decode() + '\n')
         response = request_turn(endpoint, instance_id, session_id, turn, timeout)
+        if replay_latency and response.get('inference_seconds') is not None:
+            time.sleep(max(0.0, float(response['inference_seconds']) - (time.monotonic() - inference_started)))
         inference_elapsed = time.monotonic() - inference_started
+        serial.write('REPLAY_INFERENCE_DONE ' + base64.b64encode(json.dumps({'turn': turn, 'timestamp': time.time()}).encode()).decode() + '\n')
         turn_failures = 0
         for action, cmd in enumerate(response.get('commands', []), 1):
             record = command(cmd); record.update({'turn': turn, 'action': action}); tool_records.write(json.dumps(record) + '\n'); tool_records.flush()
@@ -150,6 +157,9 @@ mount -t proc proc /proc
 mount -t sysfs sysfs /sys
 mount -t devtmpfs devtmpfs /dev
 mkdir -p /run /tmp /rw
+mount -t tmpfs -o nosuid,nodev tmpfs /run
+serial_dev=/dev/ttyS0
+case "$(uname -m)" in aarch64|arm64) serial_dev=/dev/ttyAMA0 ;; esac
 cmdline=$(cat /proc/cmdline)
 getarg() { printf '%s\n' "$cmdline" | sed -n "s/.* $1=\([^ ]*\).*/\1/p"; }
 instance_id=$(getarg microvm_instance)
@@ -160,6 +170,7 @@ guest_ip=$(getarg microvm_ip)
 gateway_ip=$(getarg microvm_gateway)
 inference_timeout=$(getarg microvm_timeout)
 max_turns=$(getarg microvm_max_turns)
+replay_latency=$(getarg microvm_replay_latency)
 netdev=
 for netpath in /sys/class/net/*; do
     name=${netpath##*/}
@@ -189,12 +200,12 @@ mount --bind /sys /rw/sys
 mount --bind /dev /rw/dev
 export MICROVM_ARTIFACT_ENDPOINT="$artifact_endpoint"
 if ! /usr/bin/python3 /usr/local/bin/fetch-swebench-artifact.py; then
-    echo "ARTIFACT_FETCH_FAILED" > /dev/ttyS0
+    echo "ARTIFACT_FETCH_FAILED" > "$serial_dev"
     /usr/bin/busybox poweroff -f
     exit 4
 fi
-echo "ARTIFACT_READY" > /dev/ttyS0
-TMPDIR=/rw/tmp MICROVM_INSTANCE_ID="$instance_id" MICROVM_SESSION_ID="$session_id" MICROVM_INFERENCE_ENDPOINT="$inference_endpoint" MICROVM_INFERENCE_TIMEOUT="${inference_timeout:-120}" MICROVM_MAX_TURNS="${max_turns:-1000}" /usr/bin/python3 /usr/local/bin/swebench-remote-inference.py
+echo "ARTIFACT_READY" > "$serial_dev"
+TMPDIR=/rw/tmp MICROVM_INSTANCE_ID="$instance_id" MICROVM_SESSION_ID="$session_id" MICROVM_INFERENCE_ENDPOINT="$inference_endpoint" MICROVM_INFERENCE_TIMEOUT="${inference_timeout:-120}" MICROVM_MAX_TURNS="${max_turns:-1000}" MICROVM_REPLAY_INFERENCE_LATENCY="${replay_latency:-0}" /usr/bin/python3 /usr/local/bin/swebench-remote-inference.py
 status=$?
     /usr/bin/busybox poweroff -f
 exit "$status"
@@ -247,6 +258,19 @@ mount -t proc proc /proc
 mount -t sysfs sysfs /sys
 mount -t devtmpfs devtmpfs /dev
 mkdir -p /run /tmp /rw
+mount -t tmpfs -o nosuid,nodev tmpfs /run
+if ! /sbin/modprobe vmw_vsock_virtio_transport; then
+    echo "VSOCK_MODULE_LOAD_FAILED" > /dev/ttyAMA0
+    /usr/bin/busybox poweroff -f
+    exit 2
+fi
+ip_bin=/sbin/ip
+[ -x "$ip_bin" ] || ip_bin=/usr/sbin/ip
+if ! "$ip_bin" link set lo up; then
+    echo "LOOPBACK_SETUP_FAILED" > /dev/ttyAMA0
+    /usr/bin/busybox poweroff -f
+    exit 2
+fi
 cmdline=$(cat /proc/cmdline)
 getarg() { printf '%s\n' "$cmdline" | sed -n "s/.* $1=\([^ ]*\).*/\1/p"; }
 instance_id=$(getarg microvm_instance)
@@ -255,6 +279,7 @@ inference_endpoint=$(getarg microvm_inference)
 artifact_endpoint=$(getarg microvm_artifact)
 inference_timeout=$(getarg microvm_timeout)
 max_turns=$(getarg microvm_max_turns)
+replay_latency=$(getarg microvm_replay_latency)
 mount -t tmpfs -o nosuid,nodev tmpfs /rw
 mkdir -p /rw/proc /rw/sys /rw/dev /rw/replay /rw/tmp /rw/run
 mount --bind /proc /rw/proc
@@ -264,7 +289,7 @@ mount --bind /dev /rw/dev
 proxy_pid=$!
 sleep 0.2
 if ! kill -0 "$proxy_pid" 2>/dev/null; then
-    echo "VSOCK_PROXY_FAILED" > /dev/ttyS0
+    echo "VSOCK_PROXY_FAILED" > /dev/ttyAMA0
     /usr/bin/busybox poweroff -f
     exit 2
 fi
@@ -275,12 +300,12 @@ export no_proxy=localhost,127.0.0.1
 export NO_PROXY=$no_proxy
 export MICROVM_ARTIFACT_ENDPOINT=$artifact_endpoint
 if ! /usr/bin/python3 /usr/local/bin/fetch-swebench-artifact.py; then
-    echo "ARTIFACT_FETCH_FAILED" > /dev/ttyS0
+    echo "ARTIFACT_FETCH_FAILED" > /dev/ttyAMA0
     /usr/bin/busybox poweroff -f
     exit 4
 fi
-echo "ARTIFACT_READY" > /dev/ttyS0
-TMPDIR=/rw/tmp MICROVM_INSTANCE_ID="$instance_id" MICROVM_SESSION_ID="$session_id" MICROVM_INFERENCE_ENDPOINT="$inference_endpoint" MICROVM_INFERENCE_TIMEOUT="${inference_timeout:-120}" MICROVM_MAX_TURNS="${max_turns:-1000}" /usr/bin/python3 /usr/local/bin/swebench-remote-inference.py
+echo "ARTIFACT_READY" > /dev/ttyAMA0
+TMPDIR=/rw/tmp MICROVM_INSTANCE_ID="$instance_id" MICROVM_SESSION_ID="$session_id" MICROVM_INFERENCE_ENDPOINT="$inference_endpoint" MICROVM_INFERENCE_TIMEOUT="${inference_timeout:-120}" MICROVM_MAX_TURNS="${max_turns:-1000}" MICROVM_REPLAY_INFERENCE_LATENCY="${replay_latency:-0}" /usr/bin/python3 /usr/local/bin/swebench-remote-inference.py
 status=$?
 /usr/bin/busybox poweroff -f
 exit "$status"
@@ -358,6 +383,14 @@ def _node_meminfo(node: Path) -> tuple[int, int]:
     else:
         raise RuntimeError(f"could not determine used memory for {node.name}")
     return total_bytes, used_bytes
+
+
+def numa_node_memory_bytes(node_id: int) -> tuple[int, int]:
+    """Return total and used memory for one host NUMA node."""
+    node = Path(f"/sys/devices/system/node/node{node_id}")
+    if not node.is_dir():
+        raise RuntimeError(f"NUMA node {node_id} does not exist")
+    return _node_meminfo(node)
 
 
 def proc_meminfo_bytes() -> dict[str, int]:
@@ -452,7 +485,7 @@ def cpu_usage_usec(path: Path) -> int:
     try:
         match = re.search(r"^usage_usec\s+(\d+)$", (path / "cpu.stat").read_text(), re.M)
         return int(match.group(1)) if match else 0
-    except (FileNotFoundError, PermissionError):
+    except (FileNotFoundError, PermissionError, ProcessLookupError):
         return 0
 
 
@@ -477,7 +510,7 @@ def process_pss_bytes(pid: int | None) -> int:
     try:
         match = re.search(r"^Pss:\s+(\d+) kB", Path(f"/proc/{pid}/smaps_rollup").read_text(), re.M)
         return int(match.group(1)) * 1024 if match else 0
-    except (FileNotFoundError, PermissionError):
+    except (FileNotFoundError, PermissionError, ProcessLookupError):
         return 0
 
 
@@ -1023,13 +1056,19 @@ class HostVsockTcpForwarder:
 
 class VM:
     def __init__(self, run_dir: Path, session: int, manifest: dict,
-                 memory_ceiling_mib: int, allow_swap: bool, slurm_vsock: bool = False) -> None:
+                 memory_ceiling_mib: int, allow_swap: bool, slurm_vsock: bool = False,
+                 numa_node: int | None = None, tiered_memory: bool = False,
+                 guest_vcpus: int = 0, replay_inference_latency: bool = False) -> None:
         self.run_dir, self.session, self.manifest = run_dir, session, manifest
         self.vm_dir = run_dir / "vms" / f"session-{session:03d}"; self.vm_dir.mkdir(parents=True)
         self.cgroup = Path(f"/sys/fs/cgroup/swebench-microvm-{os.getpid()}-{session}")
         self.memory_ceiling_mib = memory_ceiling_mib
         self.allow_swap = allow_swap
         self.slurm_vsock = slurm_vsock
+        self.numa_node = numa_node if numa_node is not None else "all"
+        self.tiered_memory = tiered_memory
+        self.guest_vcpus = guest_vcpus
+        self.replay_inference_latency = replay_inference_latency
         runtime_root = Path(os.environ.get("MICROVM_VSOCK_DIR", "/tmp"))
         self.runtime_dir = runtime_root / f"vm-{os.getpid()}-{session:03d}"
         self.runtime_dir.mkdir(parents=True, exist_ok=True)
@@ -1050,15 +1089,21 @@ class VM:
               inference_timeout: float, max_turns: int, slurm_vsock: bool = False) -> None:
         cpus = cpuset()
         cpu_arg = format_cpu_list(cpus)
-        command = ["taskset", "-c", cpu_arg, "numactl", "--interleave=all", "cloud-hypervisor",
-                   "--kernel", str(kernel)]
+        guest_vcpus = self.guest_vcpus or len(cpus)
+        guest_cpu_arg = format_cpu_list(range(guest_vcpus))
+        command = ["taskset", "-c", cpu_arg]
+        if not self.tiered_memory:
+            command.extend(["numactl", f"--membind={self.numa_node}"])
+        command.extend(["cloud-hypervisor", "--kernel", str(kernel)])
         if initramfs is not None:
             command.extend(["--initramfs", str(initramfs)])
         command.extend(["--disk", f"path={rootfs},image_type=raw,readonly=on"])
-        cmdline = (f"root=/dev/vda rootfstype=ext4 ro fsck.mode=skip init=/sbin/init console=ttyS0 panic=-1 "
+        serial_console = "ttyAMA0" if os.uname().machine in ("aarch64", "arm64") else "ttyS0"
+        cmdline = (f"root=/dev/vda rootfstype=ext4 ro fsck.mode=skip init=/sbin/init console={serial_console} panic=-1 "
                    f"microvm_instance={self.manifest['instance_id']} microvm_session={self.session} "
                    f"microvm_inference={inference_endpoint} microvm_artifact={artifact_endpoint} "
-                   f"microvm_timeout={inference_timeout} microvm_max_turns={max_turns}")
+                   f"microvm_timeout={inference_timeout} microvm_max_turns={max_turns} "
+                   f"microvm_replay_latency={int(self.replay_inference_latency)}")
         if slurm_vsock:
             vsock_path = self.runtime_dir / "vsock.sock"
             self.forwarder = HostVsockTcpForwarder(vsock_path, inference_endpoint)
@@ -1070,10 +1115,19 @@ class VM:
             command.extend(["--net", f"tap={network['tap']},mac={network['mac']}"])
             cmdline += f" microvm_ip={network['ip']} microvm_gateway={network['gateway']}"
         command.extend(["--memory", "size=0", "--memory-zone", f"size={self.memory_ceiling_mib}M,id=mem0",
-                        "--numa", f"guest_numa_id=0,cpus={cpu_arg},memory_zones=mem0", "--cpus", f"boot={len(cpus)},max={len(cpus)}",
+                        "--numa", f"guest_numa_id=0,cpus={guest_cpu_arg},memory_zones=mem0", "--cpus", f"boot={guest_vcpus},max={guest_vcpus}",
                         "--console", "off", "--serial", f"file={self.vm_dir / 'serial.log'}",
                         "--api-socket", f"path={self.runtime_dir / 'api.sock'}", "--cmdline", cmdline])
+        launched_at = time.time()
         self.proc = subprocess.Popen(command, stdout=(self.vm_dir / "vmm.stdout").open("w"), stderr=subprocess.STDOUT, start_new_session=True)
+        stat = Path(f"/proc/{self.proc.pid}/stat").read_text()
+        start_ticks = int(stat[stat.rfind(")") + 2:].split()[19])
+        (self.vm_dir / "sandbox.json").write_text(json.dumps({
+            "pid": self.proc.pid, "start_ticks": start_ticks,
+            "launched_at": launched_at, "instance_id": self.manifest["instance_id"],
+            "session": self.session, "serial_path": str((self.vm_dir / "serial.log").resolve()),
+            "cpu_affinity": cpu_arg, "memory_policy": "default" if self.tiered_memory else f"bind:{self.numa_node}"},
+            indent=2) + "\n")
         if not slurm_vsock:
             sudo("sh", "-c", f"echo {self.proc.pid} > {self.cgroup}/cgroup.procs")
 
@@ -1169,17 +1223,117 @@ def sessions_for_stage(unique: list[dict], count: int, rng: random.Random) -> li
     return result
 
 
+def load_admission_schedule(path: Path, count: int) -> dict:
+    """Validate a reproducible, ordered launch schedule for one stage."""
+    schedule = json.loads(path.read_text())
+    if schedule.get("format") != "microvm-admission-schedule-v1":
+        raise SystemExit("admission schedule has an unsupported format")
+    sessions = schedule.get("sessions")
+    if not isinstance(sessions, list) or len(sessions) != count:
+        raise SystemExit(f"admission schedule must contain exactly {count} sessions")
+    previous = -1.0
+    for number, row in enumerate(sessions, 1):
+        if not isinstance(row, dict) or row.get("session") != number:
+            raise SystemExit("admission schedule session numbers must be consecutive from 1")
+        try:
+            offset = float(row["launch_offset_seconds"])
+        except (KeyError, TypeError, ValueError) as exc:
+            raise SystemExit("admission schedule has an invalid launch offset") from exc
+        if not math.isfinite(offset) or offset < 0 or offset < previous:
+            raise SystemExit("admission schedule offsets must be finite, nonnegative, and ordered")
+        previous = offset
+    if float(sessions[0]["launch_offset_seconds"]) != 0:
+        raise SystemExit("the first admission must start at offset zero")
+    return schedule
+
+
+def admit_staggered(vms, offsets, launch, gate, guard: threading.Event,
+                    poll_seconds: float) -> None:
+    """Launch by absolute offset without waiting for an earlier guest to boot."""
+    epoch = time.monotonic()
+    for vm, offset in zip(vms, offsets):
+        deadline = epoch + float(offset)
+        while not guard.is_set() and time.monotonic() < deadline:
+            time.sleep(min(poll_seconds, deadline - time.monotonic()))
+        if guard.is_set():
+            return
+        launch(vm, offset, epoch)
+        if vm.done():
+            raise RuntimeError(f"session {vm.session} exited before workflow start")
+
+
+class WorkflowStartGate:
+    """Release simultaneous workflows together, or staggered workflows independently."""
+
+    def __init__(self, host: str, sessions: list[int], independent: bool = False) -> None:
+        self.sessions = set(sessions)
+        self.independent = independent
+        self.arrived: set[int] = set()
+        self.started_at: dict[int, float] = {}
+        self.lock = threading.Lock()
+        self.released = threading.Event()
+        gate = self
+
+        class Handler(http.server.BaseHTTPRequestHandler):
+            def do_GET(self) -> None:
+                try:
+                    session = int(urllib.parse.urlsplit(self.path).path.strip("/"))
+                except ValueError:
+                    session = -1
+                if session not in gate.sessions:
+                    self.send_error(404)
+                    return
+                with gate.lock:
+                    gate.arrived.add(session)
+                    gate.started_at.setdefault(session, time.time())
+                if not gate.independent and not gate.released.wait(timeout=900):
+                    self.send_error(504)
+                    return
+                self.send_response(204)
+                self.end_headers()
+
+            def log_message(self, format: str, *args) -> None:
+                return
+
+        self.server = http.server.ThreadingHTTPServer((host, 0), Handler)
+        self.server.daemon_threads = True
+        self.url = f"http://{host}:{self.server.server_port}"
+        self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)
+        self.thread.start()
+
+    def ready(self) -> bool:
+        with self.lock:
+            return self.arrived == self.sessions
+
+    def close(self) -> None:
+        self.released.set()
+        self.server.shutdown()
+        self.server.server_close()
+        self.thread.join(timeout=2)
+
+
 def run_stage(stage_dir: Path, manifests: list[dict], args, rootfs: Path, kernel: Path,
               initramfs: Path | None,
               memory_threshold_bytes: int) -> dict:
     stage_dir.mkdir(parents=True)
-    memory_ceiling = args.guest_memory_ceiling_mib or host_memory_bytes() // 1024**2
-    vms = [VM(stage_dir, index + 1, manifest, memory_ceiling, args.allow_swap, args.slurm_vsock)
+    memory_capacity = (numa_node_memory_bytes(args.numa_node)[0] if args.numa_node is not None
+                       else host_memory_bytes())
+    memory_ceiling = args.guest_memory_ceiling_mib or memory_capacity // 1024**2
+    vms = [VM(stage_dir, index + 1, manifest, memory_ceiling, args.allow_swap,
+              args.slurm_vsock, args.numa_node, args.tiered_memory,
+              args.guest_vcpus, args.replay_inference_latency)
            for index, manifest in enumerate(manifests)]
     (stage_dir / "run-plan.json").write_text(json.dumps({"concurrency": len(vms), "sessions": [v.manifest for v in vms], "seed": args.seed,
-        "guest_visible_vcpus": len(cpuset()), "guest_memory_ceiling_mib": memory_ceiling,
+        "guest_visible_vcpus": args.guest_vcpus or len(cpuset()), "guest_memory_ceiling_mib": memory_ceiling,
+        "replay_inference_latency": args.replay_inference_latency,
         "sample_interval_seconds": args.sample_interval_seconds,
-        "resource_policy": "no per-session CPU or memory quota; shared all-NUMA host capacity",
+        "resource_policy": ("default host memory policy; external tier controller owns page migration"
+                            if args.tiered_memory else
+                            f"no per-session CPU or memory quota; host memory bound to NUMA node {args.numa_node}"
+                            if args.numa_node is not None else
+                            "no per-session CPU or memory quota; shared all-NUMA host capacity"),
+        "admission_schedule": str(args.admission_schedule) if args.admission_schedule else None,
+        "memory_numa_node": args.numa_node,
         "host_memory_threshold_percent": args.memory_threshold_percent,
         "swap_policy": "allow" if args.allow_swap else "disabled",
         "guest_storage_policy": "minimal read-only bootstrap disk; complete SWE-bench image streamed from the remote server into per-VM guest tmpfs; no per-VM environment disk",
@@ -1189,7 +1343,28 @@ def run_stage(stage_dir: Path, manifests: list[dict], args, rootfs: Path, kernel
         "host_numa_nodes": [node.name for node in numa_nodes()]}, indent=2) + "\n")
     samples: dict[int, list[dict]] = {vm.session: [] for vm in vms}; stop = threading.Event()
     oom_guard = threading.Event()
+    guard_reason = [None]
     peak_host_used = [host_used_bytes()]
+    sampled_node = args.numa_node if args.numa_node is not None else 0 if args.tiered_memory else None
+    peak_numa_node_used = [numa_node_memory_bytes(sampled_node)[1] if sampled_node is not None else None]
+    peak_slow_node_used = [numa_node_memory_bytes(1)[1] if args.tiered_memory else None]
+    peak_resident_sessions = [0]
+    phase_dir = stage_dir / "phases"
+    if args.tiered_memory:
+        phase_dir.mkdir()
+    def add_numa_sample(row: dict) -> None:
+        if sampled_node is not None:
+            total, used = numa_node_memory_bytes(sampled_node)
+            row.update({"memory_numa_node": sampled_node,
+                        "numa_node_memory_total_bytes": total,
+                        "numa_node_memory_used_bytes": used})
+            peak_numa_node_used[0] = max(peak_numa_node_used[0] or 0, used)
+        if args.tiered_memory:
+            total, used = numa_node_memory_bytes(1)
+            row.update({"slow_memory_numa_node": 1,
+                        "slow_node_memory_total_bytes": total,
+                        "slow_node_memory_used_bytes": used})
+            peak_slow_node_used[0] = max(peak_slow_node_used[0] or 0, used)
     def monitor_sessions() -> None:
         with (stage_dir / "session-samples.jsonl").open("w") as stream:
             while not stop.wait(args.sample_interval_seconds):
@@ -1197,9 +1372,41 @@ def run_stage(stage_dir: Path, manifests: list[dict], args, rootfs: Path, kernel
                     row = vm.sample(); samples[vm.session].append(row); stream.write(json.dumps(row) + "\n")
                 stream.flush()
 
+    def publish_phases() -> None:
+        offsets = {vm.session: 0 for vm in vms}
+        partial = {vm.session: b"" for vm in vms}
+        current: dict[int, str] = {}
+        while not stop.wait(1.0):
+            for vm in vms:
+                if vm.proc is None or vm.proc.poll() is not None:
+                    continue
+                try:
+                    with (vm.vm_dir / "serial.log").open("rb") as serial:
+                        serial.seek(offsets[vm.session])
+                        chunk = serial.read()
+                        offsets[vm.session] = serial.tell()
+                except OSError:
+                    continue
+                if chunk:
+                    lines = (partial[vm.session] + chunk).split(b"\n")
+                    partial[vm.session] = lines.pop()
+                    for line in lines:
+                        if b"REPLAY_REQUEST " in line:
+                            current[vm.session] = "waiting_llm_inference"
+                        elif b"REPLAY_INFERENCE_DONE " in line:
+                            current[vm.session] = "running_tool"
+                phase = current.get(vm.session)
+                if phase is not None:
+                    path = phase_dir / f"session-{vm.session:03d}.json"
+                    tmp = phase_dir / f".session-{vm.session:03d}.tmp"
+                    tmp.write_text(json.dumps({"phase": phase, "updated_at": time.time()}) + "\n")
+                    os.replace(tmp, path)
+
     def monitor_host() -> None:
         with (stage_dir / "host-samples.jsonl").open("w") as host_stream:
             baseline = host_resource_sample()
+            baseline["resident_sessions"] = 0
+            add_numa_sample(baseline)
             host_stream.write(json.dumps(baseline) + "\n"); host_stream.flush()
             next_sample = time.monotonic() + args.sample_interval_seconds
             while not stop.is_set():
@@ -1207,13 +1414,27 @@ def run_stage(stage_dir: Path, manifests: list[dict], args, rootfs: Path, kernel
                 if stop.wait(delay):
                     break
                 host_row = host_resource_sample()
+                host_row["resident_sessions"] = sum(vm.proc is not None and vm.proc.poll() is None
+                                                    for vm in vms)
+                peak_resident_sessions[0] = max(peak_resident_sessions[0], host_row["resident_sessions"])
+                add_numa_sample(host_row)
                 host_stream.write(json.dumps(host_row) + "\n"); host_stream.flush()
-                used = host_row["host_memory_used_bytes"]
-                peak_host_used[0] = max(peak_host_used[0], used)
-                if used >= memory_threshold_bytes:
+                host_used = host_row["host_memory_used_bytes"]
+                peak_host_used[0] = max(peak_host_used[0], host_used)
+                guarded_used = (host_row["numa_node_memory_used_bytes"] if args.numa_node is not None
+                                else host_used)
+                fast_free = (host_row["numa_node_memory_total_bytes"] - host_row["numa_node_memory_used_bytes"]
+                             if args.tiered_memory else None)
+                reason = ("host_memory_threshold" if guarded_used >= memory_threshold_bytes else
+                          "fast_node_reserve" if fast_free is not None and
+                          fast_free <= args.fast_node_min_free_gib * 1024**3 else None)
+                if reason is not None:
                     oom_guard.set()
+                    guard_reason[0] = reason
                     guard_row = dict(host_row)
-                    guard_row.update({"event": "memory_guard", "host_used_bytes": used,
+                    guard_row.update({"event": "memory_guard", "reason": reason,
+                                      "fast_node_free_bytes": fast_free,
+                                      "guarded_memory_used_bytes": guarded_used,
                                       "threshold_bytes": memory_threshold_bytes})
                     host_stream.write(json.dumps(guard_row) + "\n")
                     host_stream.flush()
@@ -1232,41 +1453,55 @@ def run_stage(stage_dir: Path, manifests: list[dict], args, rootfs: Path, kernel
             raise
     session_monitor_thread = threading.Thread(target=monitor_sessions, daemon=True)
     host_monitor_thread = threading.Thread(target=monitor_host, daemon=True)
+    phase_thread = threading.Thread(target=publish_phases, daemon=True) if args.tiered_memory else None
     session_monitor_thread.start(); host_monitor_thread.start()
+    if phase_thread: phase_thread.start()
     started = time.time()
     try:
-        # Start each VMM from a barrier so a stage has one common admission
-        # instant, rather than a host-side sequential start ramp.
-        launch_gate = threading.Barrier(len(vms))
         launch_errors: list[BaseException] = []
         def launch(vm: VM) -> None:
             try:
-                launch_gate.wait()
                 vm.start(rootfs, kernel, initramfs, network.config(vm.session) if network else None, args.inference_endpoint,
                          artifact_url(args.inference_endpoint, vm.manifest["instance_id"], args.artifact_endpoint_template, args.artifact_arch),
                          args.inference_timeout_seconds, args.max_turns, args.slurm_vsock)
             except BaseException as exc:
                 launch_errors.append(exc)
-        launchers = [threading.Thread(target=launch, args=(vm,)) for vm in vms]
-        for thread in launchers: thread.start()
-        for thread in launchers: thread.join()
-        if launch_errors: raise RuntimeError("failed to launch simultaneous stage") from launch_errors[0]
-        while not all(vm.done() for vm in vms):
+        if args.admission_schedule_data is None:
+            # Baseline stages launch from one barrier to preserve simultaneous admission.
+            launch_gate = threading.Barrier(len(vms))
+            def simultaneous_launch(vm: VM) -> None:
+                launch_gate.wait()
+                launch(vm)
+            launchers = [threading.Thread(target=simultaneous_launch, args=(vm,)) for vm in vms]
+            for thread in launchers: thread.start()
+            for thread in launchers: thread.join()
+        else:
+            def timed_launch(vm: VM, offset: float, epoch: float) -> None:
+                launch(vm)
+                if launch_errors:
+                    raise RuntimeError("failed to launch staggered stage") from launch_errors[0]
+            admit_staggered(vms,
+                            [row["launch_offset_seconds"] for row in args.admission_schedule_data["sessions"]],
+                            timed_launch, None, oom_guard, 0.1)
+        if launch_errors: raise RuntimeError("failed to launch stage") from launch_errors[0]
+        launched_vms = [vm for vm in vms if vm.proc is not None]
+        while not all(vm.done() for vm in launched_vms):
             if oom_guard.is_set():
-                for vm in vms:
+                for vm in launched_vms:
                     if not vm.done(): vm.stop()
                 break
             time.sleep(0.2)
         if not oom_guard.is_set():
-            invalid = [vm.session for vm in vms if not vm.guest_ready()]
+            invalid = [vm.session for vm in launched_vms if not vm.guest_ready()]
             if invalid:
                 raise RuntimeError(f"SWE-bench artifact was not loaded into guest tmpfs for sessions {invalid}")
-            errors = {vm.session: vm.replay_error() for vm in vms if vm.replay_error()}
-            incomplete = [vm.session for vm in vms if not vm.replay_complete()]
+            errors = {vm.session: vm.replay_error() for vm in launched_vms if vm.replay_error()}
+            incomplete = [vm.session for vm in launched_vms if not vm.replay_complete()]
             if errors or incomplete:
                 raise RuntimeError(f"remote inference failed: errors={errors}, incomplete_sessions={incomplete}")
     finally:
         stop.set(); session_monitor_thread.join(timeout=2); host_monitor_thread.join(timeout=2)
+        if phase_thread: phase_thread.join(timeout=2)
         for vm in vms:
             samples[vm.session].append(vm.sample())
             vm.stop()
@@ -1274,9 +1509,16 @@ def run_stage(stage_dir: Path, manifests: list[dict], args, rootfs: Path, kernel
             network.close()
     turn_rows = [row for vm in vms for row in summarize_turns(vm, samples[vm.session])]
     (stage_dir / "turn-resource.jsonl").write_text("".join(json.dumps(row) + "\n" for row in turn_rows))
-    result = {"concurrency": len(vms), "elapsed_seconds": time.time() - started, "sessions_completed": sum(vm.done() for vm in vms),
+    result = {"concurrency": len(vms), "elapsed_seconds": time.time() - started, "sessions_completed": sum(vm.replay_complete() for vm in vms),
+              "sessions_launched": sum(vm.proc is not None for vm in vms),
+              "sessions_exited": sum(vm.done() for vm in vms),
+              "peak_resident_sessions": peak_resident_sessions[0],
               "turns_measured": len(turn_rows), "memory_guard_triggered": oom_guard.is_set(),
+              "memory_guard_reason": guard_reason[0],
               "peak_host_used_bytes": peak_host_used[0],
+              "memory_numa_node": sampled_node,
+              "peak_numa_node_used_bytes": peak_numa_node_used[0],
+              "peak_slow_node_used_bytes": peak_slow_node_used[0],
               "peak_aggregate_cgroup_memory_bytes": (None if args.slurm_vsock else
                   max((sum(r["cgroup_memory_bytes"] for r in group) for group in zip(*samples.values())), default=0)),
               "peak_aggregate_vmm_pss_bytes": max((sum(r["vmm_pss_bytes"] for r in group) for group in zip(*samples.values())), default=0)}
@@ -1310,11 +1552,23 @@ def main() -> None:
     parser.add_argument("--instance-id", dest="instance_ids", action="append", default=[],
                         help="explicit remote instance ID (repeatable; no local traces are read)")
     parser.add_argument("--stages", type=int, nargs="+", default=DEFAULT_STAGES)
+    parser.add_argument("--admission-schedule", type=Path,
+                        help="ordered session launch offsets for a single stage")
+    parser.add_argument("--tiered-memory", action="store_true",
+                        help="start VMMs on local node-0 memory with default policy, allowing tier migration")
+    parser.add_argument("--guest-vcpus", type=int, default=0,
+                        help="guest vCPUs per VM; 0 uses all CPUs in the host affinity set")
+    parser.add_argument("--replay-inference-latency", action="store_true",
+                        help="wait for each trace's recorded inference duration before running its tools")
+    parser.add_argument("--fast-node-min-free-gib", type=float, default=5.0,
+                        help="stop tiered admission if node 0 free memory reaches this reserve")
     parser.add_argument("--seed", type=int, default=20261001)
     parser.add_argument("--sample-interval-seconds", type=float, default=0.25)
     parser.add_argument("--ram-root", type=Path, default=Path("/dev/shm"))
     parser.add_argument("--memory-threshold-percent", type=float, default=90.0)
     parser.add_argument("--guest-memory-ceiling-mib", type=int)
+    parser.add_argument("--numa-node", type=int,
+                        help="bind host allocations and the memory guard to this NUMA node")
     parser.add_argument("--inference-timeout-seconds", type=float, default=120.0)
     parser.add_argument("--max-turns", type=int, default=1000)
     parser.add_argument("--network-subnet", default="10.250.0.0/24",
@@ -1337,7 +1591,20 @@ def main() -> None:
         return
     if args.output is None:
         raise SystemExit("--output is required unless --serve is used")
-    if tuple(args.stages) != DEFAULT_STAGES: raise SystemExit(f"stages must be exactly {DEFAULT_STAGES}")
+    if args.admission_schedule:
+        if len(args.stages) != 1 or args.stages[0] < 1:
+            raise SystemExit("--admission-schedule requires one positive --stages count")
+        args.admission_schedule_data = load_admission_schedule(args.admission_schedule, args.stages[0])
+    else:
+        if tuple(args.stages) != DEFAULT_STAGES:
+            raise SystemExit(f"stages must be exactly {DEFAULT_STAGES} without --admission-schedule")
+        args.admission_schedule_data = None
+    if args.tiered_memory and args.numa_node is not None:
+        raise SystemExit("--tiered-memory cannot be combined with --numa-node")
+    if args.guest_vcpus < 0 or args.guest_vcpus > len(cpuset()):
+        raise SystemExit("guest vCPUs must fit within the host CPU affinity set")
+    if not math.isfinite(args.fast_node_min_free_gib) or args.fast_node_min_free_gib < 0:
+        raise SystemExit("fast-node free reserve must be finite and nonnegative")
     if args.sample_interval_seconds <= 0: raise SystemExit("sample interval must be positive")
     if not 1.0 <= args.memory_threshold_percent < 100.0: raise SystemExit("memory threshold must be in [1, 100)")
     if args.inference_timeout_seconds <= 0: raise SystemExit("inference timeout must be positive")
@@ -1371,6 +1638,11 @@ def main() -> None:
     rng = random.Random(args.seed); rng.shuffle(unique)
     args.output.mkdir(parents=True, exist_ok=False)
     plan = {"stages": list(args.stages), "remote_instances": len(unique), "seed": args.seed,
+            "admission_schedule": str(args.admission_schedule) if args.admission_schedule else None,
+            "tiered_memory": args.tiered_memory,
+            "guest_vcpus": args.guest_vcpus or len(cpuset()),
+            "replay_inference_latency": args.replay_inference_latency,
+            "fast_node_min_free_gib": args.fast_node_min_free_gib if args.tiered_memory else None,
             "arch": args.artifact_arch,
             "inference_endpoint": args.inference_endpoint,
             "instance_catalog_url": args.instance_catalog_url or catalog_url(args.inference_endpoint),
@@ -1383,6 +1655,9 @@ def main() -> None:
             "guest_initramfs": str(initramfs) if initramfs else None,
             "guest_network_mode": "vsock host proxy" if args.slurm_vsock else "tap with host NAT",
             "memory_threshold_percent": args.memory_threshold_percent,
+            "memory_numa_node": args.numa_node,
+            "memory_capacity_bytes": (numa_node_memory_bytes(args.numa_node)[0]
+                                       if args.numa_node is not None else host_memory_bytes()),
             "host_numa_nodes": [node.name for node in numa_nodes()],
             "host_cpus": cpuset(),
             "host_memory_bytes": host_memory_bytes()}
@@ -1398,12 +1673,26 @@ def main() -> None:
     if not all(shutil.which(x) for x in required): raise SystemExit(f"missing required host tools: {', '.join(x for x in required if not shutil.which(x))}")
     if swap_bytes() and not args.allow_swap:
         raise SystemExit("swap is enabled; disable host swap before an in-memory run")
-    memory_threshold_bytes = int(host_memory_bytes() * args.memory_threshold_percent / 100.0)
+    if args.numa_node is not None:
+        node_total, node_used = numa_node_memory_bytes(args.numa_node)
+        memory_threshold_bytes = int(node_total * args.memory_threshold_percent / 100.0)
+        if node_used >= memory_threshold_bytes:
+            raise SystemExit(f"NUMA node {args.numa_node} is already above its memory threshold")
+    else:
+        memory_threshold_bytes = int(host_memory_bytes() * args.memory_threshold_percent / 100.0)
     results = []
     for count in args.stages:
-        if host_used_bytes() >= memory_threshold_bytes:
+        current_used = (numa_node_memory_bytes(args.numa_node)[1] if args.numa_node is not None
+                        else host_used_bytes())
+        if current_used >= memory_threshold_bytes:
             results.append({"concurrency": count, "skipped": True, "stop_reason": "host memory guard reached before admission"})
             break
+        if args.tiered_memory:
+            node_total, node_used = numa_node_memory_bytes(0)
+            if node_total - node_used <= args.fast_node_min_free_gib * 1024**3:
+                results.append({"concurrency": count, "skipped": True,
+                                "stop_reason": "fast node free-memory reserve reached before admission"})
+                break
         try:
             result = run_stage(args.output / f"sessions-{count:03d}", sessions_for_stage(unique, count, rng), args, rootfs, kernel, initramfs, memory_threshold_bytes)
             results.append(result)

@@ -1,0 +1,19 @@
+[
+  {
+    "concurrency": 100,
+    "elapsed_seconds": 1268.932161808014,
+    "sessions_completed": 100,
+    "sessions_launched": 100,
+    "sessions_exited": 100,
+    "peak_resident_sessions": 36,
+    "turns_measured": 1658,
+    "memory_guard_triggered": false,
+    "memory_guard_reason": null,
+    "peak_host_used_bytes": 494473633792,
+    "memory_numa_node": 0,
+    "peak_numa_node_used_bytes": 444443099136,
+    "peak_slow_node_used_bytes": 64169627648,
+    "peak_aggregate_cgroup_memory_bytes": null,
+    "peak_aggregate_vmm_pss_bytes": 484421357568
+  }
+]
